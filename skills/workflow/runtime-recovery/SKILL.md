@@ -25,6 +25,13 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 - 恢复后触发一次 Pipeline Supervisor sweep，让被中断的 issue 继续。
 - NAS 侧 runtime 不在自动恢复范围内（Owner 暂缓）。
 
+托管时的坑（首次托管前逐条核对）：
+
+- **launchd 不继承交互 shell 环境。** `~/.zshrc`/`~/.bashrc` 里 export 的变量（如 agent CLI 经第三方 provider 调模型所需的 `OPENAI_API_KEY`）在托管进程里都不存在，症状是手动启动正常、托管后 agent 任务鉴权失败。托管进程必须**显式导入**所需变量：用一个启动包装脚本，按名单只导入需要的变量名（例如从登录 shell 或 keychain 读取）后再 `exec` 真正的进程。不要把密钥写进 plist 或日志。新增依赖某变量的 CLI 时同步更新名单。
+- `KeepAlive={SuccessfulExit=false}` 只在异常退出（崩溃、`SIGKILL`）时拉起；`SIGTERM` 导致的干净退出不会被拉起，要靠健康检查兜底。演练时按 plist 语义选择信号。
+- `launchctl bootout` 返回时 job 可能还没卸载完，紧接着 `bootstrap` 会报 `5: Input/output error`。安装脚本要在两者之间等待 `launchctl print` 失败（即 job 已卸载）后再 bootstrap。
+- 替换 runner/daemon 的 plist 前先备份原件；其他安装器若按 SHA 校验 plist，替换后它的回滚会拒绝执行，需要先从备份恢复。
+
 LaunchAgent plist 与脚本属于本机私有配置，**不放进公开 repo**。
 
 ## 3. 写操作结果未知
