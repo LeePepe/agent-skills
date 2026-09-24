@@ -19,8 +19,19 @@ description: 用 shared-ci 的模板与检查器让一个 repo 满足统一的 r
 ## 共同前置
 
 - 在目标 repo 建专用分支/worktree；原 checkout 的未提交内容不动。
+- worktree 只建在本机的 agent worktree 根下（见下节）；Owner 的主 checkout 不作为 agent 的写入位置。
 - 读目标 repo 现有 `AGENTS.md`、`CLAUDE.md`、constitution、`docs/`，**保留业务事实和红线**，只改结构。
 - 账号、profile、本机路径、repo 数字 ID 不写进 repo（audit 会拒绝）。
+
+### Worktree 根
+
+| 根 | 用途 |
+|---|---|
+| `~/Development/worktrees/<task>/` | 协调者 / subagent 的任务 worktree |
+| `~/multica_workspaces/` | Multica daemon 的任务工作区 |
+| `~/orca/workspaces/<repo>/<task>/` | Orca worktree（主 checkout 的 linked worktree） |
+
+agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 repo 内设置。首次提交前用 `git config user.email` 确认；若 repo 自带 `user.email`（`.git/config`）会覆盖绑定，此时报告给 Owner，不要自行改 repo config。
 
 ## init：新建或补齐 repo 合同
 
