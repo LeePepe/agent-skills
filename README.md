@@ -76,3 +76,5 @@ python3 scripts/gen_registry.py --check
 ```
 
 CI(`.github/workflows/validate-skills.yml`)在每个 PR 上运行同样的检查。
+
+<!-- app-identity-probe -->
