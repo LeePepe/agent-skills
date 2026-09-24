@@ -1,0 +1,68 @@
+/*
+ * Base stylesheet for the design language (Tailwind v4).
+ * Colors are injected as CSS variables at runtime by shared/theme.ts, so the
+ * @theme mapping below only NAMES the utilities — values come from the seed
+ * color system. This keeps ONE language, seed-themed.
+ */
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-inner: var(--inner);
+  --color-border: var(--border);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-muted: var(--primary-muted);
+  --color-primary-border: var(--primary-border);
+  --color-primary-text: var(--primary-text);
+  --color-on-primary: var(--on-primary);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  --radius-card: 14px;
+  --radius-inner: 10px;
+}
+
+@layer base {
+  :root {
+    /* Fallback tokens so the page renders before theme.ts runs (blue/slate/light). */
+    --bg: #f9f9fb; --card: #fff; --inner: #f0f0f3;
+    --text-1: #1c2024; --text-2: #60646c; --text-3: #80838d; --border: #d9d9e0;
+    --primary: rgb(0 144 255); --on-primary: #fff; --ring: rgb(0 144 255);
+    --primary-subtle: rgb(238 245 252); --primary-text: rgb(0 110 214);
+    --success: #34c759; --warning: #ff9500; --danger: #ff3b30;
+    --chart-1: rgb(44 109 158);
+  }
+  * { border-color: var(--border); }
+  body {
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+}
+
+/* Max content width — the single biggest "modern" win (design-language §3). */
+.content { max-width: 1200px; margin-inline: auto; }

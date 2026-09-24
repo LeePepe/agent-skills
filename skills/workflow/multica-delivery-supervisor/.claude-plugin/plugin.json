@@ -1,0 +1,5 @@
+{
+  "name": "multica-delivery-supervisor",
+  "description": "Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority.",
+  "category": "workflow"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "multica-issue",
+  "description": "向 Multica dev team 提交新 issue,让 dev team(Team Lead → Fullstack Engineer → AI Reviewer → PR Manager)完成任务。给一句用户输入,skill 会:按当前 repo 的 github remote 反查正确的 Multica project;判定输入属于 bugfix / 新功能 / 技术架构(tech-context)变更;bug 会检索同一问题历史并记录 duplicate / ineffective fix / regression 关系;需要等待 TestFlight 或实际使用时可建立不派发 Agent 的 Outcome Check。实现类 issue 默认直接派发。当用户想「提个 issue 给 dev team / 让 dev team 做 X / 提 bug / 记录复发问题 / 等 TF 使用后验证 / 提新功能需求 / 改技术架构 / 把 tasks 批量入 Multica」时使用。",
+  "category": "repo"
+}

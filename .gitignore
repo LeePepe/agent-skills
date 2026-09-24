@@ -1,0 +1,8 @@
+# 第三方 skill 源码(独立 repo,经 ~/.claude/skills 软链引用,不纳入本仓库)
+# my-designer 工具箱通过全局软链调用它们;删除会断链,故留在磁盘但不跟踪。
+/impeccable/
+/taste-skill/
+/.worktrees/
+
+# tool logs
+firebase-debug.log

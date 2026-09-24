@@ -1,0 +1,4 @@
+interface:
+  display_name: "Owner Decision Loop"
+  short_description: "Turn owner choices into reusable delivery decisions"
+  default_prompt: "Use $owner-decision-loop to resolve this delivery conflict with the owner and record a reusable decision."

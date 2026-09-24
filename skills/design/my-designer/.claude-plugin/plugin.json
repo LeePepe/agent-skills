@@ -1,0 +1,5 @@
+{
+  "name": "my-designer",
+  "description": "Design lead only for rendered UI and visual-interface work in the personal projects VitalStride (including the VitalStrike alias), AIDash, Financial, and VoxPocket: layout, hierarchy, styling, interaction, chart presentation, design systems, scaffolds, and UI kits. Defaults to Basalt + Recharts for React web frontends; preserves native SwiftUI. Owns the visual direction end to end and may coordinate specialist design skills. All other projects belong to their project-specific skills or engineering workflow, including operational dashboards, query definitions, data contracts, widget inventory, workflow grouping, and control-plane configuration.",
+  "category": "design"
+}

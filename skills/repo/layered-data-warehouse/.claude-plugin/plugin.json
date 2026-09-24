@@ -1,0 +1,5 @@
+{
+  "name": "layered-data-warehouse",
+  "description": "给一个项目把数据仓库\"分层重构/梳理成型\"——先扫描项目真实的数据模型(ORM/DDL/DB/已有派生服务/导入管线),再套标准数仓分层(ODS/DWD/DIM/DWS/ADS,附 medallion 与 dbt 交叉映射),产出一份可演进的 warehouse 蓝图:分层清单、一致性维度、指标口径登记、SCD 与增量幂等策略、血缘、项目专属 red-lines、gap 分析与分阶段 refine 计划。产物是设计蓝图不是实现代码。方法固定、内容永远来自发现——同一份 skill 对 aidata(AI 用量遥测、已是 L1-L5 星型)与 Financial(个人财务 ORM + Anchor+Delta 派生引擎、尚无数仓)产出完全不同的蓝图。当用户想\"把某项目的数据仓库分层搭起来/梳理/重构/refine、按 收集→整理→分析→总结→消费 组织、做 ODS/DWD/DWS/ADS 或 bronze/silver/gold 分层设计、给现有数仓做分层体检、设计事实/维度/指标口径/SCD\"时使用。",
+  "category": "repo"
+}

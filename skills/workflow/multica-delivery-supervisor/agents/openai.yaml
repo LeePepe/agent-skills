@@ -1,0 +1,7 @@
+interface:
+  display_name: "Multica Delivery Supervisor"
+  short_description: "Supervise Multica projects and PR delivery safely"
+  default_prompt: "Use $multica-delivery-supervisor to supervise the named Multica projects and PRs in watch mode."
+
+policy:
+  allow_implicit_invocation: false

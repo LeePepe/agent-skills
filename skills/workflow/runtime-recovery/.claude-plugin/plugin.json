@@ -1,0 +1,5 @@
+{
+  "name": "runtime-recovery",
+  "description": "W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Multica daemon、self-hosted GitHub runner 不可用或执行者中断时，定位故障层、暂停依赖动作、自动拉起 daemon/runner、恢复后触发 Supervisor 巡检并由原 owner 接回。用于“Multica 连不上 / daemon 挂了 / runner offline / PR 卡在 codex-review pending / agent 中断后接续”。",
+  "category": "workflow"
+}

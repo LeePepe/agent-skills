@@ -1,0 +1,67 @@
+{
+  "name": "agent-skills",
+  "owner": {
+    "name": "LeePepe",
+    "url": "https://github.com/LeePepe"
+  },
+  "metadata": {
+    "description": "可复用的 Claude Code / Agent skills 集合,按 design / repo / research / meta 四类组织。",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "my-designer",
+      "source": "./skills/design/my-designer",
+      "category": "design",
+      "description": "设计负责人:拥有所有设计/UI 任务,持有一套设计语言 + seed 色系 + 质量线,按需把 taste-skill / impeccable / VDM / redesign-skill / dataviz / figma / Claude Design 当工具编排,验收整合成一份连贯产物。"
+    },
+    {
+      "name": "visual-design-modernization",
+      "source": "./skills/design/visual-design-modernization",
+      "category": "design",
+      "description": "丑 UI → north-star 的可重复现代化流程(diagnose→原型→客观评审→迁移)+ design-reviewer + 可换品牌 seed 色系。与 my-designer 共享色系。"
+    },
+    {
+      "name": "code-review",
+      "source": "./skills/repo/code-review",
+      "category": "repo",
+      "description": "双轴代码审查:Spec Kit 验意图与验收，Standards 按 changed layer fan-out，另查跨层依赖与 task 边界；缺上下文时显式降级，不编造规则。"
+    },
+    {
+      "name": "layered-ci-autofix",
+      "source": "./skills/repo/layered-ci-autofix",
+      "category": "repo",
+      "description": "运行时闭环:commit/push → 监督 PR CI → 读结构化信号按 layer 自动修 → 修完再等 CI。layered-agent-context 的 run-time 消费者,门复用 auto-review-merge。"
+    },
+    {
+      "name": "auto-review-merge",
+      "source": "./skills/repo/auto-review-merge",
+      "category": "repo",
+      "description": "给 GitHub repo 装 PR 自动 review + 门过自动合并:self-hosted runner 上本地订阅版 claude CLI 作确定性 merge 门,配 auto-merge + branch ruleset。"
+    },
+    {
+      "name": "multica-issue",
+      "source": "./skills/repo/multica-issue",
+      "category": "repo",
+      "description": "向 Multica dev team 提 issue 并直接派发触发 pipeline:反查 project、分类 bug/功能/架构、带 layer red_lines+test、三步 dispatch + run 验证。"
+    },
+    {
+      "name": "deep-research",
+      "source": "./skills/research/deep-research",
+      "category": "research",
+      "description": "对任意主题做深度、多来源、经交叉核查的调研,产出带引用、按置信度分级的报告。五阶段(分解→fan-out→对抗核查→圆桌→分级报告)。provider-agnostic:claude/kimi/codex 三端通用,fan-out 与核查可跨模型互查。"
+    },
+    {
+      "name": "save-tool",
+      "source": "./skills/meta/save-tool",
+      "category": "meta",
+      "description": "把用户分享的 skill/工具/repo/链接抽取去重后归档到 collected-tools/,只收藏不安装不运行。"
+    },
+    {
+      "name": "xcode-cli",
+      "source": "./skills/repo/xcode-cli",
+      "category": "repo",
+      "description": "Apple 工程命令行路由:纯 SwiftPM 改动只跑 swift build/test；App/Xcode 改动才用 xcodebuild，另含 simctl 与 xcresulttool 安全流程。"
+    }
+  ]
+}

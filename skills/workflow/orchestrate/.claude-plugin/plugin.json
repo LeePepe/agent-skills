@@ -1,0 +1,5 @@
+{
+  "name": "orchestrate",
+  "description": "W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成可交付切片，选执行来源（Dev Team issue 或 subagent），派发、监督并按 PR 证据验收；自己不写产品代码。用于“完成这个跨仓目标 / 继续某个 goal / 看看怎么继续 / 协调多个 repo 的升级 / 派活并盯到合并”。",
+  "category": "workflow"
+}

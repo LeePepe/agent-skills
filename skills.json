@@ -1,0 +1,159 @@
+{
+  "version": "0.1.0",
+  "count": 17,
+  "skills": [
+    {
+      "name": "multica-delivery-supervisor",
+      "category": "workflow",
+      "path": "skills/workflow/multica-delivery-supervisor",
+      "description": "Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": false
+    },
+    {
+      "name": "orchestrate",
+      "category": "workflow",
+      "path": "skills/workflow/orchestrate",
+      "description": "W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成可交付切片，选执行来源（Dev Team issue 或 subagent），派发、监督并按 PR 证据验收；自己不写产品代码。用于“完成这个跨仓目标 / 继续某个 goal / 看看怎么继续 / 协调多个 repo 的升级 / 派活并盯到合并”。",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "runtime-recovery",
+      "category": "workflow",
+      "path": "skills/workflow/runtime-recovery",
+      "description": "W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Multica daemon、self-hosted GitHub runner 不可用或执行者中断时，定位故障层、暂停依赖动作、自动拉起 daemon/runner、恢复后触发 Supervisor 巡检并由原 owner 接回。用于“Multica 连不上 / daemon 挂了 / runner offline / PR 卡在 codex-review pending / agent 中断后接续”。",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "shared-release",
+      "category": "workflow",
+      "path": "skills/workflow/shared-release",
+      "description": "W5 共享库发布与消费者升级——shared-* 仓合并后打不可变版本，随版本发布 ai/ 合同，在外部消费者验证，再为每个消费 repo 开独立 pin 升级 PR。用于“发布 shared-ci/telemetry/design-system/tokens/VoxKit 新版本 / 让产品升级到新版共享库 / 回滚共享库版本”。",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "my-designer",
+      "category": "design",
+      "path": "skills/design/my-designer",
+      "description": "Design lead only for rendered UI and visual-interface work in the personal projects VitalStride (including the VitalStrike alias), AIDash, Financial, and VoxPocket: layout, hierarchy, styling, interaction, chart presentation, design systems, scaffolds, and UI kits. Defaults to Basalt + Recharts for React web frontends; preserves native SwiftUI. Owns the visual direction end to end and may coordinate specialist design skills. All other projects belong to their project-specific skills or engineering workflow, including operational dashboards, query definitions, data contracts, widget inventory, workflow grouping, and control-plane configuration.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "visual-design-modernization",
+      "category": "design",
+      "path": "skills/design/visual-design-modernization",
+      "description": "Use when a user says an app's UI \"looks bad / dated / not modern\" and wants to improve visual quality (spacing, typography, color, hierarchy, data-viz) — especially for SwiftUI/macOS/iOS but the method is framework-agnostic. Provides a repeatable diagnose→north-star→isolated-prototype→objective-review→migrate loop, a reusable design-reviewer that substitutes for design experience, and a swappable brand-color system. Works fully without Figma.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "auto-review-merge",
+      "category": "repo",
+      "path": "skills/repo/auto-review-merge",
+      "description": "Use when a user wants automated PR code review plus hands-off auto-merge on a GitHub repo — \"review my PRs automatically\", \"auto-merge when CI passes\", \"gate merges on a Claude review\", \"set up PR automation\". Installs a self-hosted-runner mechanism that runs a local subscription `claude` CLI as a deterministic merge gate (no ANTHROPIC_API_KEY), wires GitHub auto-merge, and codifies a branch ruleset. Framework/language-agnostic; the review dimensions are configurable per repo.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "code-review",
+      "category": "repo",
+      "path": "skills/repo/code-review",
+      "description": "Review a branch, PR, worktree, or implementation handoff against both repository standards and feature intent. Use for implementer self-review or independent review when the target repo may contain Spec Kit artifacts and layered-agent-context files; preserves separate Standards and Spec axes, fans Standards review out by changed layer, checks cross-layer dependency direction, and reports cited findings without editing code.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "layered-ci-autofix",
+      "category": "repo",
+      "path": "skills/repo/layered-ci-autofix",
+      "description": "运行时(run-time)闭环:把改动 commit/push、开 PR、监督 PR 的 required CI、失败时读结构化失败信号 {layer, path, kind, detail, red_lines} 做**按 layer 收窄的自动修复**,修完再 push、重新等 CI,直到绿灯或触发升级。它是 repo-kit(setup-time 脚手架)的**运行时消费者**——消费后者铺好的 CI 信号与每层 red_lines/test;门用 auto-review-merge,不自己重造。当用户想\"项目改完自动 commit、监督 PR CI、CI 挂了自动修、跑通再合\"时使用。用于:一次任务收尾的 push→监督→修复闭环。不用于:装脚手架(那是 repo-kit)、纯搭 CI 门(那是 auto-review-merge)。",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "layered-data-warehouse",
+      "category": "repo",
+      "path": "skills/repo/layered-data-warehouse",
+      "description": "给一个项目把数据仓库\"分层重构/梳理成型\"——先扫描项目真实的数据模型(ORM/DDL/DB/已有派生服务/导入管线),再套标准数仓分层(ODS/DWD/DIM/DWS/ADS,附 medallion 与 dbt 交叉映射),产出一份可演进的 warehouse 蓝图:分层清单、一致性维度、指标口径登记、SCD 与增量幂等策略、血缘、项目专属 red-lines、gap 分析与分阶段 refine 计划。产物是设计蓝图不是实现代码。方法固定、内容永远来自发现——同一份 skill 对 aidata(AI 用量遥测、已是 L1-L5 星型)与 Financial(个人财务 ORM + Anchor+Delta 派生引擎、尚无数仓)产出完全不同的蓝图。当用户想\"把某项目的数据仓库分层搭起来/梳理/重构/refine、按 收集→整理→分析→总结→消费 组织、做 ODS/DWD/DWS/ADS 或 bronze/silver/gold 分层设计、给现有数仓做分层体检、设计事实/维度/指标口径/SCD\"时使用。",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "multica-issue",
+      "category": "repo",
+      "path": "skills/repo/multica-issue",
+      "description": "向 Multica dev team 提交新 issue,让 dev team(Team Lead → Fullstack Engineer → AI Reviewer → PR Manager)完成任务。给一句用户输入,skill 会:按当前 repo 的 github remote 反查正确的 Multica project;判定输入属于 bugfix / 新功能 / 技术架构(tech-context)变更;bug 会检索同一问题历史并记录 duplicate / ineffective fix / regression 关系;需要等待 TestFlight 或实际使用时可建立不派发 Agent 的 Outcome Check。实现类 issue 默认直接派发。当用户想「提个 issue 给 dev team / 让 dev team 做 X / 提 bug / 记录复发问题 / 等 TF 使用后验证 / 提新功能需求 / 改技术架构 / 把 tasks 批量入 Multica」时使用。",
+      "user_invocable": true,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "owner-decision-loop",
+      "category": "repo",
+      "path": "skills/repo/owner-decision-loop",
+      "description": "Resolve delivery decisions through reusable owner calibration. Use when Team Lead cannot determine Planner or Fullstack content from repository authority because product intent, acceptance, scope, architecture, policy, terminology, or conflicting evidence requires the owner's choice; do not use for routine implementation decisions already delegated to a role.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "repo-kit",
+      "category": "repo",
+      "path": "skills/repo/repo-kit",
+      "description": "用 shared-ci 的模板与检查器让一个 repo 满足统一的 repo 合同（薄 AGENTS、layer 表、同入口 verify、shared-ci caller、required 汇总 gate、PR 模板、CODEOWNERS），或接入共享库新版本，或从现有 repo 拆出共享库。三种模式：init（新建或补齐）、adopt（接入/升级共享库）、split（拆出 SDK/共享库，保留历史）。取代 layered-agent-context。",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "teamwork",
+      "category": "repo",
+      "path": "skills/repo/teamwork",
+      "description": "Multi-agent pipeline for complex tasks — spec-first, plan-led execution with gated review, verification, and shipping. team-lead orchestrates; specialist agents do the work.",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "xcode-cli",
+      "category": "repo",
+      "path": "skills/repo/xcode-cli",
+      "description": "Route Apple-platform builds, tests, simulator runs, and result inspection through Swift and Xcode command-line tools. Use when Codex needs to build or test a Swift package, Xcode project, or workspace; diagnose Apple build failures; run an iOS simulator; choose between swift build/test and xcodebuild; or parse xcresult output. Package-only changes stay on SwiftPM commands and escalate to xcodebuild only when the diff includes app/Xcode integration work or the user explicitly requests integration verification. Not for Xcode MCP or GUI automation.",
+      "user_invocable": false,
+      "has_references": true,
+      "has_eval": true
+    },
+    {
+      "name": "deep-research",
+      "category": "research",
+      "path": "skills/research/deep-research",
+      "description": "对任意主题做深度、多来源、经交叉核查的调研,产出带引用、按置信度分级的报告。五阶段流水线:把问题分解成 4-8 个子问题 → 跨渠道(web/github/news/academic)并行 fan-out 调研 → 对每个发现做对抗式核查(证伪而非确认,发现者≠核查者)→ 交叉验证+圆桌综合、标注分歧 → 输出 HIGH/MEDIUM/LOW/CONTESTED 分级的引用报告。Provider-agnostic:同一份 skill 在 Claude Code、Kimi(kimi -p)、Codex(codex exec)三端都成立;fan-out 与核查阶段可跨模型互查(claude 的发现让 codex/kimi 证伪,反之亦然),对方模型作独立第二视角。当用户想「深度调研 / deep research / 全面调研 / 多角度调研 / research roundtable / 帮我把某主题查透并给带引用的报告」时使用。调用前:若问题欠具体(如「买什么车」却无预算/用途/地区),先问 2-3 个澄清问题收窄范围,再把澄清结果织进 args。",
+      "user_invocable": true,
+      "has_references": true,
+      "has_eval": false
+    },
+    {
+      "name": "save-tool",
+      "category": "meta",
+      "path": "skills/meta/save-tool",
+      "description": "Use when the user shares a message containing skills, tools, GitHub repos, or resource links they want to stockpile for later — \"存起来\", \"save this tool\", \"collect these links\", \"先放着以后再看怎么用\". Extracts every repo/link/tool from the pasted content, dedupes against what's already saved, and files each into ~/Development/Personal/collected-tools/ as a one-topic Markdown note with repo URL + link + how-to-use, updating the folder README index. Does NOT install or run anything.",
+      "user_invocable": false,
+      "has_references": false,
+      "has_eval": false
+    }
+  ]
+}

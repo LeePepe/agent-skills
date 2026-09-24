@@ -1,0 +1,5 @@
+{
+  "name": "save-tool",
+  "description": "Use when the user shares a message containing skills, tools, GitHub repos, or resource links they want to stockpile for later — \"存起来\", \"save this tool\", \"collect these links\", \"先放着以后再看怎么用\". Extracts every repo/link/tool from the pasted content, dedupes against what's already saved, and files each into ~/Development/Personal/collected-tools/ as a one-topic Markdown note with repo URL + link + how-to-use, updating the folder README index. Does NOT install or run anything.",
+  "category": "meta"
+}

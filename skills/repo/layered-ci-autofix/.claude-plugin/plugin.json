@@ -1,0 +1,5 @@
+{
+  "name": "layered-ci-autofix",
+  "description": "运行时(run-time)闭环:把改动 commit/push、开 PR、监督 PR 的 required CI、失败时读结构化失败信号 {layer, path, kind, detail, red_lines} 做**按 layer 收窄的自动修复**,修完再 push、重新等 CI,直到绿灯或触发升级。它是 repo-kit(setup-time 脚手架)的**运行时消费者**——消费后者铺好的 CI 信号与每层 red_lines/test;门用 auto-review-merge,不自己重造。当用户想\"项目改完自动 commit、监督 PR CI、CI 挂了自动修、跑通再合\"时使用。用于:一次任务收尾的 push→监督→修复闭环。不用于:装脚手架(那是 repo-kit)、纯搭 CI 门(那是 auto-review-merge)。",
+  "category": "repo"
+}

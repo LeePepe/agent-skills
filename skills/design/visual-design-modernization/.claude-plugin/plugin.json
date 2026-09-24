@@ -1,0 +1,5 @@
+{
+  "name": "visual-design-modernization",
+  "description": "Use when a user says an app's UI \"looks bad / dated / not modern\" and wants to improve visual quality (spacing, typography, color, hierarchy, data-viz) — especially for SwiftUI/macOS/iOS but the method is framework-agnostic. Provides a repeatable diagnose→north-star→isolated-prototype→objective-review→migrate loop, a reusable design-reviewer that substitutes for design experience, and a swappable brand-color system. Works fully without Figma.",
+  "category": "design"
+}
