@@ -8,9 +8,9 @@
 - Acceptance 勾选框 + 依赖排序 = **to-issues**。
 - bug 的「先有失败信号」= **diagnosing-bugs**。
 
-**三个实现类模板都有两个 VitalStride 专属槽位**,由 repo 的事实源填充:
-- **该层 red_lines** —— 从 `Packages/<layer>/CONTEXT.md` frontmatter 的 `red_lines` 抄,修的时候不能踩。
-- **该层 test** —— 从同 frontmatter 的 `test` 抄,修完跑这条验证。
+**三个实现类模板都有两个仓库上下文槽位**,由 `AGENTS.md` 指定的叶子事实源填充:
+- **该层 red_lines** —— repo-kit 的 `tech-context.md`,或旧仓的 `CONTEXT.md`。
+- **该层 test** —— 对应 `gate`/`test` 的实际验证命令;交付还须跑仓库同入口 verify。
 
 > **路径规则的放松**:AGENT-BRIEF 原则是「不写文件路径,会过时」。VitalStride 现有 issue(如 MY-1070)
 > 会带一段 `## 现状基线(basis: main)` 列具体文件/行号 —— 这是**刻意**的,给 dev team 一个精确起点。
@@ -185,20 +185,21 @@ dispatch,所以不追加 Working Directory 尾段。
 ## 强制尾段 —— Working Directory 隔离(每个实现类 issue 都要带,CRITICAL)
 
 **每一个实现类** issue body(bug / feature-task / arch 三类)末尾**必须**追加下面这段,
-原样照抄(`<project-slug>` 换成小写项目名,如 `vitalstride`)。放在 body 最后。
+原样照抄。执行目录来自本次 daemon 分配,不用缓存路径。放在 body 最后。
 
 ```markdown
 ## Working Directory(CRITICAL — 禁止污染用户主 checkout)
 
-daemon 已在 `~/multica_workspaces/<workspace>/<task-id>/workdir/` 下为你建好隔离 worktree。
-**只在那个 workdir 里工作。**
+先核验 daemon 为本次任务提供的隔离 workdir 的绝对路径、repo remote、base/branch 和唯一 writer。
+目录缺失或有重叠 writer 时停下报告;保留 Owner checkout 的分支与全部未提交内容。
 
-- **绝对不要** `cd ~/Development/<Project>`,**绝对不要**在用户主 checkout 里 `git checkout` / `git checkout -b` / `git fetch` / `git push`。
-- 分支操作(建分支、commit、push、开 PR)全部在 daemon 给的 workdir 内完成。
-- `git push` 用 `--no-verify`(pre-push hook 在 workdir 内无效,且会超时)。
+- 只在已核验的 task workdir 内读目标 repo AGENTS.md、编辑、建分支、验证、commit、push 和开 PR。
+- 遵守 AGENTS.md 及其固定 SHA 协议,正常运行 hooks 和同入口 scripts/verify。
+- hook/verify 失败时修复根因或报告 blocker,不绕过 hooks、不弱化 gate;文档也要过门。
+- PR 使用仓库模板并交 W4 PR Manager;Owner hold 和缺失保护须显式保留,不自行 merge。
 ```
 
-> **为什么(不删这段)**:FS/TL agent 的默认行为是在用户的 `~/Development/<Project>` 里直接
+> **为什么(不删这段)**:历史事故是在 Owner 主 checkout 里直接
 > `git checkout -b`,并把新分支 upstream 错设成用户当前分支 → 用户手动开的分支被 agent 的 push 覆盖。
 > 这是已复现的事故(2026-07 一次 TestFlight 发版 PR 分支被 i18n pipeline 冲掉,根因即此)。
 > issue body 没这段 = FS 回退到污染主 checkout 的默认路径。**这段是护栏,不是可选说明。**

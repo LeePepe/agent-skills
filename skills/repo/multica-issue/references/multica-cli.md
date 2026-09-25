@@ -1,276 +1,131 @@
 # Multica CLI 配方
 
-`multica` 是真实 CLI(`/opt/homebrew/bin/multica`)。dev team 的工作输入是 **Multica issue**,
-不是 GitHub issue。本文件是本 skill 用到的命令配方。所有 `--output json` 都可管道给 `python3 -c`
-取字段。
+执行前读当前 `multica <command> --help`;help 是参数事实源,不是旧命令缓存。
+以下按 0.4.44 核对。目录:workspace/project → 创建 → 历史/Outcome → spec 门禁 → dispatch。
 
----
-
-## 先确认 workspace(所有 project 操作的前提)
-
-**在做任何 project/issue 操作前,先明确目标 workspace,并在命令上显式指定 —— 不要依赖当前默认 workspace。**
-`multica project list` / `issue list` 只返回**当前 workspace** 下的东西;默认 workspace(常是另一个工作用 workspace)
-会**静默隐藏**其它 workspace 里的 project,让反查扫空、白找一轮。
+## workspace 与 project 反查
 
 ```bash
-# 列出所有 workspace:列是 ID / NAME / SLUG,带 * 的是当前默认
-multica workspace list
-
-# 切换(接受 slug 或 ID 前缀):
-multica workspace switch <slug|id-prefix>     # 例:multica workspace switch my
+multica workspace list --output json
+multica workspace list --full-id
+multica --workspace-id "$WS" project list --output json
+multica --workspace-id "$WS" project resource list "$PROJECT_ID" --output json
 ```
 
-- `--workspace-id` 要**完整 UUID**;短 ID 或 slug 会报 `invalid workspace_id`。
-- `switch` 接受 slug / 前缀,`--workspace-id` 不接受 slug。
-- 个人项目多在 `my`(slug `my`,`6a90176a-...`),不在默认 workspace。
-- **已知绑定**:AIDash → 项目 `396be26e`,workspace **`my`**(默认 workspace 里看不到)。
-
-> 定位顺序永远是:**先 workspace,再 project**。跨项目通用,不只某一个 repo。
-
----
-
-## project 反查(repo → Multica project id)
-
-Multica project 通过 `project resource` 绑定 github repo。**先切到/确认正确 workspace(见上一节)**,再反查:
-
-```bash
-# 1. 当前 repo 的 github remote,规范化(去 .git、转小写)
-REMOTE=$(git remote get-url origin 2>/dev/null || git remote -v | awk '/github.com/{print $2; exit}')
-REMOTE_NORM=$(echo "$REMOTE" \
-  | sed -E 's#git@github.com:#https://github.com/#; s#\.git$##' \
-  | tr 'A-Z' 'a-z')
-
-# 2. 遍历所有 project,找 resource 匹配本 repo 的那个
-PROJECT_ID=""
-for PID in $(multica project list --output json \
-    | python3 -c "import sys,json;[print(p['id']) for p in json.load(sys.stdin)]"); do
-  MATCH=$(multica project resource list "$PID" --output json 2>/dev/null | python3 -c "
-import sys,json
-target='$REMOTE_NORM'
-for r in json.load(sys.stdin):
-    url=(r.get('resource_ref') or {}).get('url','').rstrip('/').lower().removesuffix('.git')
-    if r.get('resource_type')=='github_repo' and url==target:
-        print(r['project_id']); break
-" 2>/dev/null)
-  [ -n "$MATCH" ] && PROJECT_ID="$MATCH" && break
-done
-
-[ -z "$PROJECT_ID" ] && { echo "本 repo ($REMOTE_NORM) 未绑定任何 Multica project。请手动指定 project id,或先 multica project resource attach。"; exit 1; }
-echo "PROJECT_ID=$PROJECT_ID"
-```
-
-> `multica project list` 的 `title` 字段可能为 `None`,**不要靠标题匹配**;靠 resource 的 repo url。
-> 已知:VitalStride → `7adf8b88-9b2b-46fe-95cc-2dcd32bcf6fb`(绑 `github.com/LeePepe/VitalStride`)。
-
----
+`workspace list --output json` 返回含 `id`、`name`、`slug` 的数组。选择目标 workspace 的完整
+UUID 作为 `WS`,每条 workspace-scoped 命令显式带 `--workspace-id`;不更改全局默认 workspace。
+从当前 repo remote 规范化 GitHub URL(SSH/HTTPS、尾部 `.git`、大小写),逐 project 匹配
+`resource_type == github_repo` 的 `resource_ref.url`。不缓存真实 workspace/project ID。
+唯一匹配才继续;多命中、未命中或查询失败停下报告,不猜 project、不把 API 错误当未绑定。
 
 ## 创建 issue
 
-`multica issue create` 关键 flag:
+```bash
+multica issue create --help
+multica issue assign --help
+multica issue status --help
+multica issue runs --help
+multica issue rerun --help
+```
 
-| flag | 用途 |
+| 操作 | 参数与约束 |
 |---|---|
-| `--title` (必填) | issue 标题。约定前缀:`[Bug] <layer>:`、`[T###] [Story]`(speckit task)、`[Arch]` |
-| `--project <id>` | 挂到反查出的 project |
-| `--description-file <path>` | **body 从文件读**,保留多行/中文,verbatim。**首选**,不用 `--description` |
-| `--parent <issue-id>` | 挂到 parent issue(feature 总述下的 sub-issue) |
-| `--stage <N>` | staged barrier:同 stage 全完成才唤醒 parent 的 assignee。对应 tasks.md 依赖组 |
-| `--to "Dev Team"` / `--to-id <squad-uuid>` | assign 给 Dev Team squad(dispatch 第1步;第2步是转 todo) |
-| `--priority <p>` | 优先级(bug 建议设) |
-| `--status <s>` | `todo`=触发 pipeline 第2步;`backlog`=暂存不跑(即使已 assign squad) |
+| create | `--title`、`--project`、`--description-file`、`--status`、`--priority` |
+| create 时指定 owner | `--assignee` / `--assignee-id`;不是 assign 子命令的参数 |
+| assign 已有 issue | `--to` / `--to-id`;`--no-start` 只变更 ownership |
+| status | 状态 key;`--no-start` 只改状态,不启动 agent |
+| 分层 tasks | `--parent`、`--stage N`;parent/blocker 先建,依赖方引用真实 key |
 
-**body 用文件传**(避免转义):
-
-```bash
-BODY=$(mktemp /tmp/multica-issue-XXXX.md)
-cat > "$BODY" <<'EOF'
-## Category
-bug
-...(见 issue-templates.md)...
-EOF
-
-multica issue create \
-  --project "$PROJECT_ID" \
-  --title '[Bug] HealthKitService: 撤销权限后缓存未清' \
-  --description-file "$BODY" \
-  --priority high \
-  --output json | tee /tmp/created.json
-
-NEW_KEY=$(python3 -c "import sys,json; print(json.load(open('/tmp/created.json'))['identifier'])")
-echo "创建: $NEW_KEY"
-rm -f "$BODY"
-```
-
----
-
-## 问题历史、关系与 Outcome Check
-
-### 搜索历史
-
-```bash
-multica --workspace-id "$WS" issue search "<product area + symptom>" \
-  --include-closed --limit 20 --output json
-multica --workspace-id "$WS" issue metadata get <candidate> \
-  --key problem_fingerprint --output json
-```
-
-标题匹配只发现候选。确认 fingerprint 和 affected build 后,再写 `duplicate_of`、
-`ineffective_fix_for`、`regression_of` 或 `related_to`。
-
-### 给普通 Bug 写索引
-
-```bash
-multica --workspace-id "$WS" issue metadata set "$NEW_KEY" \
-  --key problem_fingerprint --type string --value "$PROBLEM_FINGERPRINT"
-multica --workspace-id "$WS" issue metadata set "$NEW_KEY" \
-  --key problem_report --value "$PROBLEM_REPORT_JSON"
-multica --workspace-id "$WS" issue metadata set "$NEW_KEY" \
-  --key problem_relation --value "$PROBLEM_RELATION_JSON"
-multica --workspace-id "$WS" issue metadata set "$NEW_KEY" \
-  --key task_effectiveness --value '{"status":"pending_delivery"}'
-```
-
-`problem_report` 至少保留 source kind、observed_at、affected version/build 和 evidence ref。
-
-### 创建不派发的 Outcome Check
+body 用 `--description-file` 传 UTF-8 文件。默认只允许当前目录内文件;任务临时文件在外部时,
+先核对其绝对路径和内容,再明确带 `--allow-external-file`。也可用 `--description-stdin`。
+临时 body/响应不提交到 repo。
 
 ```bash
 multica --workspace-id "$WS" issue create \
-  --project "$PROJECT_ID" \
-  --title "[Outcome Check] $ORIGIN_KEY: <behavior>" \
-  --description-file "$BODY" \
-  --status backlog \
-  --assignee "$WAIT_OWNER" \
-  --output json
-
-multica --workspace-id "$WS" issue metadata set "$CHECK_KEY" \
-  --key outcome_wait --value "$OUTCOME_WAIT_JSON"
-multica --workspace-id "$WS" issue metadata set "$CHECK_KEY" \
-  --key task_effectiveness \
-  --value '{"status":"pending_release"}'
+  --project "$PROJECT_ID" --title '[Bug] <layer>: <symptom>' \
+  --description-file "$BODY" --status backlog --priority high --output json
 ```
 
-Outcome Check 到此完成:保持 backlog,不 assign Dev Team,不转 todo,不调用 rerun。每次 release 或
-使用结论先追加 comment 作为事件,再更新 `task_effectiveness` 当前索引。
+先读成功响应中的 issue ID/key。此时保持未指派,就绪后走下文 dispatch。不要把创建、
+assignment、status、rerun 连成不读回状态的链。显式 park/human pause 时在此结束。
 
----
-
-## 依赖顺序 + staged barrier(feature 路径)
-
-speckit 的 tasks.md 常有依赖组(Stage 1 数据层 → Stage 2 组件 → Stage 3 接线)。落法:
+## 问题历史与 Outcome Check
 
 ```bash
-# 1. 先建 parent(feature 总述),拿到 PARENT_KEY
-multica issue create --project "$PROJECT_ID" \
-  --title '训练页自定义键盘(feature)' --description-file parent.md \
-  --output json > parent.json
-PARENT_KEY=$(python3 -c "import sys,json;print(json.load(open('parent.json'))['identifier'])")
-
-# 2. 各 task 作为 sub-issue,按 stage 分组;blocker 先建
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 1 \
-  --title '[T001] [数据层] Exercise 默认值' --description-file t001.md
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 2 \
-  --title '[T002] [键盘] WorkoutNumericKeyboard 组件' --description-file t002.md
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 3 \
-  --title '[T003] [接线] SetRow 接入键盘' --description-file t003.md
+multica --workspace-id "$WS" issue search "<area + symptom>" --include-closed --output json
+multica --workspace-id "$WS" issue metadata get "$ISSUE_ID" --key problem_fingerprint --output json
+multica --workspace-id "$WS" issue metadata set "$ISSUE_ID" \
+  --key problem_fingerprint --type string --value "$PROBLEM_FINGERPRINT"
 ```
 
-> 若某 task 显式依赖另一个具体 task,除了 stage,还可在 body 的 **Blocked by** 段写上真实 key
-> (所以要 blocker 先建)。stage 管「批次唤醒」,Blocked-by 管「人读的依赖说明」。
-
----
-
-## spec 先入库门禁(dispatch 前置,全自动)
-
-FS agent 在隔离 workdir 从 `github/main` 起分支,只读 main 上已合并的文件。issue body 引用
-`specs/`/`docs/adr/` 但文件没进 main → FS/Reviewer 踩空。dispatch 前自动补齐:
+按 `problem-history.md` 核验 fingerprint、affected build 和关系,再写 `problem_report`、
+`problem_relation`、`task_effectiveness`。标题相似只用于发现候选。
 
 ```bash
-# 0) 收集所有待派发 issue 的 body,grep 引用的 spec/ADR 路径
-REFS=$(printf '%s\n' "$BODY1" "$BODY2" ... \
-  | grep -oE '(specs|docs/adr)/[A-Za-z0-9._/-]+\.(md|swift|html)' | sort -u)
-[ -z "$REFS" ] && echo "无 spec/ADR 引用,跳过门禁" # 直接 dispatch
-
-# 1) 查每个引用是否已在 main
-git fetch github 2>/dev/null
-MISSING=""
-for p in $REFS; do
-  git cat-file -e "github/main:$p" 2>/dev/null || MISSING="$MISSING $p"
-done
-
-# 2) 有缺失 → 自动开设计文档 PR
-if [ -n "$MISSING" ]; then
-  # 挡路的无关 tracked 改动先 stash(只 stash 那些文件,不动要进 PR 的)
-  git stash push -- <无关的 tracked 文件> 2>/dev/null || true
-  git checkout -b "feat/<slug>-design-docs" github/main
-  git add $MISSING <这些 spec 依赖的规矩文件:宪法 bump / 新 ADR>   # 排除 firebase-debug.log / .specify/feature.json / 无关 specs
-  git commit --no-verify -m "docs: <feature> spec + ADR 先行入库(pipeline 依赖)"
-  git push --no-verify -u github "feat/<slug>-design-docs"
-  gh pr create --base main --head "feat/<slug>-design-docs" --title "docs: ..." --body "..."
-  # 监督 CI 到终态(auto-merge 开着就等自动合;Monitor 或轮询)
-  gh pr checks <PR#>            # 全 pass 且 auto-merge → 自动 MERGED
-  # 合并后复核文件确已落 main
-  git fetch github; for p in $MISSING; do git cat-file -e "github/main:$p" && echo "✓ $p 已入 main"; done
-fi
-# 3) 文件都在 main 后,才走下面的 dispatch
+multica --workspace-id "$WS" issue create \
+  --project "$PROJECT_ID" --title "[Outcome Check] $ORIGIN_KEY: <behavior>" \
+  --description-file "$BODY" --status backlog --assignee "$WAIT_OWNER" --output json
 ```
 
-**lint scope 注意**:VitalStride `.swiftlint.yml` `included:` 只含 app targets + `Packages`,**不含
-`specs/`/`docs/`** → 纯文档 PR 不触发 `no_hardcoded_chinese`,CI 全绿。别的 repo 先核对其 `included:`。
-**多 issue 共用一个 spec** → 一个设计文档 PR 覆盖全部,不要每 issue 一个 PR。
+WAIT_OWNER 必须是明确的人,不是 agent/squad。记录 `outcome_wait` 的 next event/wake condition
+和 `task_effectiveness`。Outcome Check 到此完成:不 assign Dev Team,不转 todo,不调用 rerun。
+已有 issue 需要调整等待负责人/状态时用 `--no-start`。事件先追加 comment,再更新当前 metadata。
 
----
+## spec 先入库门禁
+
+在 task worktree 核验 repo remote 与默认分支,不要假定 remote 名为 github 或默认分支总是 main。
+下列 `REMOTE_NAME`、`DEFAULT_BRANCH`、`SPEC_PATH` 必须来自已核验的目标与 issue 引用。
+
+```bash
+git remote get-url "$REMOTE_NAME"
+git fetch "$REMOTE_NAME" "$DEFAULT_BRANCH" || exit 1
+BASE_SHA="$(git rev-parse --verify FETCH_HEAD^{commit})" || exit 1
+git cat-file -e "$BASE_SHA:$SPEC_PATH"
+```
+
+先确认 fetch 成功,立即固定这次 FETCH_HEAD 的完整 SHA,再逐个核验 body 所有 spec/plan/tasks/ADR
+引用;不用可能过期的 remote-tracking ref 代替本次读取。引用路径按 Git tree 字面值核对。
+缺失时:
+
+1. 按目标 repo W3 建/复用专用分支与 task worktree,核验绝对路径、base 和唯一 writer。
+   Owner checkout 的分支、index、working tree 和未跟踪文件保持原样。只复制已授权设计内容;
+   有冲突或来源不清停下,不 stash 或切换 Owner checkout。
+2. 只提交缺失设计及必要依赖,正常 hooks + `scripts/verify`;失败修根因或报告 blocker。
+   计划变更保留适用的 AI Plan-Review;产品/宪法/policy/permission 等独立决定才等待对应 Owner 授权。
+   普通范围内测试变更的审查边界按 workflow 索引,不把 AI 计划关间接变成测试类 Owner 执行 hold。
+3. 用目标 PR 模板创建默认分支 PR,把 URL/head/验证/hold 交 W4 PR Manager。
+   重要路径或显式 hold 保持 Owner 审核;保护尚未生效时 Draft,不启用可立即执行的 auto-merge。
+4. W4 确认 merged 后,刷新默认分支并逐路径复核。PR 存在或 CI 绿不等于设计已进入执行基线。
+
+多个 issue 共用一个设计 PR。完整内联设计没有外部引用时无需路径检查,但保留 repo 的批准要求。
 
 ## dispatch / 收尾
 
-**默认直接派发,让 pipeline 真的跑起来。三步,第 3 步必须确认为真:**
+只对前置批准/设计基线/依赖都就绪的实现 issue 执行。Outcome Check 或显式 human pause/Owner hold
+保持 backlog,不触发任何 agent。默认派发不覆盖这些 hold。
 
-Outcome Check 不进入本节:它保持 backlog,assign 给 wait owner,并以 `outcome_wait` metadata
-记录 next event;不 assign Dev Team、不转 todo、不调用 rerun。
+1. 读取 issue 当前状态/assignment,查询本 issue 与关联 family 的在途工作:
 
-```bash
-# dispatch(唤醒 pipeline)—— 三步:
-#   1) assign 给 "Dev Team" squad(不是 Team Lead 个人;squad 内部路由 TL→FS→Reviewer→PR Manager)
-#   2) status 转 todo(触发 run;光 assign 不会触发,issue 会停在 backlog、零 run)
-#   3) 验证 run 起来了(关键);零 run 用 rerun 兜底
-SQUAD_ID=$(multica --workspace-id "$WS" squad list --output json \
-  | python3 -c 'import json,sys;print(next(s["id"] for s in json.load(sys.stdin) if s["name"]=="Dev Team"))')
-multica --workspace-id "$WS" issue assign "$NEW_KEY" --to-id "$SQUAD_ID"
-multica --workspace-id "$WS" issue status "$NEW_KEY" todo      # ← 这步才真正触发 pipeline
+   ```bash
+   multica --workspace-id "$WS" issue get "$ISSUE_ID" --output json
+   multica --workspace-id "$WS" issue runs "$ISSUE_ID" --active --output json
+   multica --workspace-id "$WS" issue runs "$ISSUE_ID" --siblings --output json
+   ```
 
-# 3) 验证:issue runs 应有 queued/running。零 run → rerun 兜底,再查一次确认。
-ISSUE_UUID=$(multica issue get "$NEW_KEY" --output json | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')
-RUNS=$(multica issue runs "$ISSUE_UUID" --output json 2>/dev/null)
-echo "$RUNS" | grep -qE '"status":\s*"(queued|running)"' \
-  || { echo "零 run,rerun 兜底"; multica issue rerun "$ISSUE_UUID"; multica issue runs "$ISSUE_UUID" --output json; }
-# 没确认到 queued/running,就不算派发完成,不要回报「已派发」。
+   每次都要求成功退出、可解析 JSON、无截断警告。`--active` 包含 queued、dispatched、running、
+   waiting_local_directory。已有本 issue run 直接观察;family 有重叠 scope writer 就等待原 owner。
+   `--siblings` 只是观察,不是锁,截断时不能由短列表推断没有 writer。
+2. 确认没有在途重叠且依赖就绪后,从该 workspace 的 `squad list` 解析唯一 Dev Team squad ID。
+   用 `issue assign "$ISSUE_ID" --to-id "$SQUAD_ID" --no-start` 设 owner,读回确认未启动。
+   再检查 active/family runs;仍为空才 `issue status "$ISSUE_ID" todo` 请求一次启动。
+3. 读回 `issue runs --active` 和完整 `issue runs`。有 run 就回报真实 run ID/状态:
+   queued/dispatched 是已接收,不是正在实现;waiting_local_directory 要报告目录阻塞。
+   快速完成的 run 查其时间/产物,不可因为不再 active 就重跑。
+4. 启动结果不明时先有限次只读复查。超时、API 错误、无效 JSON、未知状态都不是空列表;
+   状态未知停下交 Supervisor/W6,不调用 rerun。只有成功完整读回确认无 live run、当前 assignment
+   有效、没有已完成的新交付、没有 hold,且确需重新 enqueue 时才允许一次
+   `issue rerun "$ISSUE_ID"`;调用前立即再查 active/family runs,调用后读回确认。
+   rerun 失败/仍无可确认 run 则报告 blocker,不循环启动。
 
-# 暂存不 dispatch(仅当用户明确说「先别跑 / 只暂存 / park」):保持 --status backlog,别转 todo。
-
-# 收尾观察:
-multica issue get "$NEW_KEY" --output json          # 看状态/assignee/parent
-multica issue list --project "$PROJECT_ID" --output json  # 看 project 下全部 issue
-multica issue comment add "$NEW_KEY" --content-stdin < body.md # 追加说明(多行用 --content-stdin)
-```
-
-**后续 pipeline**(见 `AGENTS.md` §FS/TL workflow):Dev Team squad 内 Team Lead 派 → Fullstack
-Engineer 实现 + 开 PR(push `agent/<issue-key>-<task>` 到 github)→ AI Reviewer 审 → TL merge PR →
-issue done。这个 skill **只负责起草 + dispatch**,不参与后续实现。
-
----
-
-## 常见坑
-
-- **默认 workspace 藏 project** → `project list`/`issue list` 只看当前 workspace,默认常是另一个 workspace,
-  会静默隐藏别的 workspace 的 project。先 `workspace list` + `switch <slug>` 定位,再操作;
-  `--workspace-id` 只吃完整 UUID(短 ID/slug 报 invalid)。个人项目多在 `my`。
-- **project title 为 None** → 靠 repo url 匹配,不靠标题。
-- **`--description` vs `--description-file`** → 多行/中文 body 一律用 file,`--description` 会解码
-  `\n`/`\t` 转义,长文本容易踩坑。
-- **dispatch 是三步,默认直接派发** → 光 `assign` 给 squad **不会**触发 pipeline(issue 停在 backlog、零 run);
-  必须再 `issue status <key> todo` 才 enqueue;**再验证 `issue runs` 有 queued/running**,零 run 就 `rerun` 兜底。
-  实测存在「assign+todo 后仍零 run」的卡死(follow-up issue 尤甚),没验证到 run 不算派发完成。
-  只有用户明确说「暂存不跑」时才保持 backlog。
-- **assign 目标是 "Dev Team" squad,不是 Team Lead 个人** → `--to "Dev Team"`(fuzzy)或
-  `--to-id <squad-uuid>`(从 `squad list` 取)。squad 内部会路由到 TL→FS→Reviewer→PR Manager。
-  CLI 参数是 `--to`/`--to-id`(不是 `--assignee`/`--assignee-id`)。
+回报 key、URL、run ID/状态、evidence、next owner/hold。W2(TL/Planner/FS/AI Reviewer)
+产出 PR 后交 W4 PR Manager;本 skill 只负责 issue 与受控 dispatch,不 merge、不代替接管验收。

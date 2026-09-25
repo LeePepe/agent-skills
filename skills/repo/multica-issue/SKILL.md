@@ -12,16 +12,21 @@ user-invocable: true
 1. **定位** —— 从当前 repo 反查它绑定的 Multica project(不 hardcode)。
 2. **分类 + 打磨** —— 判定 bug / 新功能 / 架构变更,按类型决定是否先用 speckit 把需求写清。
 3. **落 issue + dispatch/wait** —— 用 repo 自带的事实源(layer map + red_lines + test)填充 issue,
-   按依赖顺序建好,派发前**自动确保引用的 spec/ADR 已合进 `main`**(隔离 workdir 的 FS 只读 main),
-   再**默认直接派发**给 Dev Team squad(assign + 转 todo + 验证 run 起来),不停在 backlog。
+   按依赖顺序建好,派发前核验设计已进入默认分支执行基线、批准和唯一 writer。
+   就绪的实现 issue 才走受控 dispatch;等待记录与未解除 hold 保持不派发。
 
 **方法论借鉴**:distill 自 [`mattpocock/skills`](https://github.com/mattpocock/skills) 的四个
 适配技巧 —— AGENT-BRIEF 结构、diagnosing-bugs「先有失败信号」、to-issues「acceptance + blocker 先建」、
 grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** triage 的 label 状态机(Multica 无 label)
-和 to-issues 的 vertical-slice 强切所有层(与「按 layer 拆」冲突,见下)。
+或按 skill 固定跨层/单层切法;交付边界来自目标仓库定义,见下。
 
 **先读**:`references/multica-cli.md`(命令配方)、`references/issue-templates.md`(body 模板)、
 `references/speckit-bridge.md`(speckit / 架构流程)。这三个是执行细节,本文件是主流程。
+验证本 skill 的行为时读 [eval-cases.md](references/eval-cases.md)。
+
+**执行边界**:仓内修改遵守目标 repo `AGENTS.md` 和其固定版本协议;发布/合并由
+[W4 PR Manager](../../workflow/README.md) 接管。显式 human pause、Owner hold、未合并依赖
+都先于默认派发。规则冲突需要 Owner 决策,不是自动修改规则的授权。
 
 ---
 
@@ -36,25 +41,21 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || { echo "不在 git repo 内"; e
 
 ## 第 1 步:定位 project(repo → Multica project)
 
-不要 hardcode project id。按 `references/multica-cli.md` §「project 反查」执行:
-
-1. 取当前 repo 的 github remote URL(规范化:去 `.git` 后缀、转小写)。
-2. 反查:遍历 `multica project list` → 对每个 project 跑 `multica project resource list <id>` →
-   匹配 `resource_type == github_repo` 且 `resource_ref.url` == 本 repo remote → 命中即为目标 project。
-3. 命中 → 记住 `PROJECT_ID`;**未命中 → 停下**,告诉用户「本 repo 没绑定任何 Multica project」,
-   让用户手动指定 project id 或先 `multica project resource` 绑定。不要瞎猜。
+按 [CLI 配方的 workspace/project 反查](references/multica-cli.md) 读取当前 remote、明确的
+workspace 和 project resources。唯一匹配且查询成功才取得目标 ID;未知/多命中先报告,
+不猜缓存 ID,也不修改全局默认 workspace。完成条件是可复核的 repo → workspace/project 唯一对应。
 
 同时探测**上下文能力**(决定后续走哪条路、能填多少):
 
 ```bash
 ls .specify/memory/constitution.md 2>/dev/null   # 有宪法 → 任何路径先读它
-ls AGENTS.md 2>/dev/null                          # 有 layer map → 能按 layer 拆 + 带 red_lines
+ls AGENTS.md 2>/dev/null                          # 沿入口链接读取实际 layer map/resolver
 ls -d specs 2>/dev/null                           # 有 specs → 新功能走 speckit;看现有编号定新目录号
 ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 ADR 流
 ```
 
-**任何路径,动手前先读 `constitution.md`(若存在)**。若用户需求与红线冲突 → **先改宪法(ADR +
-版本 bump),再落 issue**,不要落一个注定被 Reviewer 打回的 issue。
+**任何路径,动手前先读 `constitution.md`(若存在)**。需求与红线冲突时,先提出 ADR/宪法变更,
+经仓库计划审查与 Owner 批准、合并后再派发实现;起草需求不等于获准放松红线。
 
 ---
 
@@ -90,12 +91,13 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 2. **检索问题历史**:按 `problem-history.md` 生成稳定 `problem_fingerprint`,搜索 active + closed issue。
    确认 `duplicate_of`、`ineffective_fix_for`、`regression_of` 或 `related_to`,并记录 affected
    version/build 与证据来源。标题相似只用于发现候选,不直接建立关系。
-3. **映射 layer**:从报错文件/路径对照 `AGENTS.md` 的 layer map,定位落在哪个 layer →
-   读该层 `CONTEXT.md` 的 frontmatter,取 `red_lines`(修的时候不能踩)+ `test`(修完跑哪条验证)。
+3. **映射 layer**:沿 `AGENTS.md` 链接到实际 layer map/resolver 定位,读取指定的叶子上下文:
+   repo-kit 使用 `tech-context.md` 的 `red_lines`/`gate`,旧仓使用 `CONTEXT.md` 的对应字段。
+   验证命令来自仓库事实源,不假定所有仓都用 Swift。
 4. **填 body**:用 bug 模板(Category / Current / Desired / Repro-信号 / Problem history / Key interfaces /
    Acceptance / Out-of-scope / 该层 red_lines + test)。
-5. **标题** `[Bug] <layer>: <一句话>`;设 `--priority`。单个 issue 即可,除非 bug 跨 2+ layer
-   → 按 layer 拆成子 issue(见下方「跨层拆分」)。
+5. **标题** `[Bug] <layer>: <一句话>`;设 `--priority`。按目标仓已有工作单元定 issue;
+   跨层依赖见下方「跨层拆分」,不因层数机械扩张或拆分。
 
 ### 路径 B —— 新功能(speckit 全链)
 
@@ -106,9 +108,9 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 2. `/speckit-clarify` 打磨模糊点(grilling 风格:一次一问 + 附推荐 + 能查码就查)。
 3. `/speckit-plan` → `plan.md`;`/speckit-tasks` → `tasks.md`。
    - plan / tasks **必须 reference constitution 章节**(不重述规则)。
-   - **按 layer 拆分,不用 vertical slice**:改动只落 1 层 = 一个 task;跨 2+ layer = 太大 =
-     拆成 N 个各自可 `swift build/test` 的子任务(一层一 commit)。这是 `AGENTS.md` §「按 layer
-     收窄」的硬规则,**压过** mattpocock to-issues 的「一片切所有层」。
+   - 按仓库定义的 layer/PR 工作单元映射需求、路径和验收,不由本 skill 重定义层边界。
+     跨层需求按接口依赖拆成可独立验证的交付,保留必要测试/文档和每步可构建性;
+     一个 spec 可对应多个依赖 task,不机械地一 package 一 layer 或按行数拆分。
 4. **逐 task 落 issue**(命令见 `references/multica-cli.md`):
    - 先建一个 **parent issue**(feature 总述,body 指向 `specs/NNN/spec.md`)。
    - 每个 task → 一个 sub-issue:`--parent <parent-key> --project $PROJECT_ID`,标题
@@ -117,8 +119,8 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
    - **有依赖顺序的 task 用 `--stage N`**:同一 stage 的 sub-issue 全部完成才唤醒 parent
      (Multica staged barrier),对应 tasks.md 的依赖组。**blocker 先建**,拿到真实 issue key
      后再让依赖方引用它。
-5. **dispatch**:把 parent(或第一个 stage 的 issues)assign 给 **"Dev Team" squad** + 状态转 `todo`
-   + 验证 run 起来(零 run 就 `rerun` 兜底)。默认直接派发,见第 4 步「默认直接派发」。
+5. **dispatch**:前置批准和依赖就绪后,按第 4 步及 CLI 配方给 **"Dev Team" squad** 派发。
+   先查 live run,再决定是否需要启动;不要同时启动 parent 和同一范围的子 issue。
 
 ### 路径 C —— 技术架构 / tech-context 变更
 
@@ -161,74 +163,52 @@ body 用 tech-context/ADR 模板(Decision / Context / Consequences / 受影响 l
   把用户手动开的分支冲掉(2026-07 已复现事故)。**落任何 issue 前确认这段在 body 里。**
 - **顺序**:blocker / parent 先建 → 拿到真实 `MY-XXXX` key → 依赖方引用它再建。
 
-### dispatch 前置门禁 —— 引用的 spec/ADR 必须先在 `main`(CRITICAL,全自动)
+### dispatch 前置门禁 —— 引用的 spec/ADR 必须先在执行基线
 
-**根因**:Multica FS agent 在**隔离 workdir** 从 `github/main` 起分支实现,只能读到 **main 上已合并**
-的文件。而 spec/ADR 常诞生在你的主 checkout working tree(还没提交/合并)。若 issue body 引用了
-`specs/...` 或 `docs/adr/...`,而这些文件**还没进 main**,则 FS/Reviewer 会因「引用了不存在的文件」
-困惑或打回(2026-07-19 已复现:MY-1281/1285 引用未合并的 ADR-0010,必须先补 PR #291)。
+执行者的隔离 worktree 读不到 Owner working tree 中未发布的设计。按
+`references/multica-cli.md`「spec 先入库门禁」核验 remote、默认分支和所有引用路径。
 
-**规则**:dispatch 前,对每个待派发 issue 做一次「引用文件在 main 存在性」检查。**全自动,不打断用户**——
-检测到缺失 → 自动开设计文档 PR、等合并、再 dispatch。步骤(命令见 `references/multica-cli.md` §「spec 先入库门禁」):
+- 缺失时,在专用 task worktree 准备一个设计文档 PR,经过正常 hooks、同入口 verify、计划审查及
+  W4;保留 Owner checkout 的分支、staged/unstaged/untracked 内容,不 stash 或切换它。
+- hook/CI 失败先修复原因或报告 blocker;不绕过 hooks,也不预判纯文档一定绿。
+- Draft/Owner hold、CODEOWNERS 批准、保护未安装等状态由 W4/Owner 解除;本 skill 不自行 merge。
+- 合并后刷新执行基线并逐路径复核,再检查 hold 与 live run,才可派发。
+- 多个 issue 共用设计时只补一个 PR。无外部引用的完整内联设计不需要文件存在性检查,
+  但仍遵守目标仓对 spec/ADR 和批准的要求。
 
-1. **扫引用**:从每个 issue body 里 grep `specs/\S+` 和 `docs/adr/\S+` 的路径。无引用 → 跳过本门禁,直接 dispatch。
-2. **查 main**:对每个被引用路径 `git cat-file -e github/main:<path>`(先 `git fetch github`)。全部存在 → 直接 dispatch。
-3. **有缺失 → 自动补 PR**:
-   - 从最新 `github/main` 切干净分支(`git fetch github` 后 `git checkout -b feat/<slug>-design-docs github/main`);
-     working tree 有挡路的无关 tracked 改动就先 `git stash push -- <那些文件>`,切完不动它们。
-   - **只 add 缺失的 spec/ADR + 它们依赖的规矩文件**(如宪法 bump、新 ADR);排除噪音(`firebase-debug.log`、
-     `.specify/feature.json`)和无关 specs。
-   - `git commit --no-verify` + `git push --no-verify -u github <branch>` + `gh pr create --base main`。
-   - **确认 lint 范围**:VitalStride 的 `.swiftlint.yml` `included:` 只含 app targets + Packages,**不含
-     `specs/`/`docs/`** → 纯文档 PR 不触发 `no_hardcoded_chinese`,CI 应全绿。别的 repo 先核对其 lint scope。
-   - **监督 CI 到终态**(Monitor 或轮询 `gh pr checks`):auto-merge 开着就等自动合;没开则 CI 绿后 `gh pr merge`。
-   - 合并后 `git fetch github` + `git cat-file -e github/main:<path>` 复核文件确已落 main。
-4. **再 dispatch**:文件在 main 后,才走下面的「默认直接派发」。
+### dispatch —— 就绪后默认派发
 
-> 例外:issue body **内联**了完整 spec(不靠 `specs/` 文件路径)时无需本门禁——但按 VitalStride 约定,
-> spec 应落 `specs/` 版本管理,内联仅用于极小改动。跨多个 sub-issue 引用同一 spec 时,**一个设计文档 PR
-> 覆盖全部引用**,不要每个 issue 开一个 PR。
-
-### dispatch —— 默认直接派发(不问、不暂存)
-
-**实现类 issue 的收尾动作就是「让 pipeline 真的跑起来」。实现类默认派发,不要停在 backlog 等人。**
-只有当用户**明确说**「先别跑 / 只暂存 / 存草稿 / park」时才保持 backlog;没这句话 = 派发。
+**就绪的实现类 issue 默认派发;未就绪时回报具体 hold 与下一 owner。**
+前置批准、依赖、运行状态均已核验就绪才执行默认派发。用户**明确说**「先别跑 / 只暂存 / 存草稿 / park」
+时保持 backlog;未解除的 Owner hold 同样阻止启动。
 
 Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wait owner/next event,不进入本 dispatch 流程。
 
-派发 = **三步,做完必须确认第 3 步为真**:
+执行 [CLI 配方](references/multica-cli.md) 的「dispatch / 收尾」,它是启动与重试的唯一流程源。
+成功查询到 active run 后才报告已接收;`waiting_local_directory` 是在途阻塞,不等于实现已运行。
+失败/超时/无效 JSON/截断响应表示状态未知,不是零 run。任何 retry 前重新确认 live run 和显式 hold。
 
-1. **assign** 给 **"Dev Team" squad**(不是 Team Lead 个人;`--to "Dev Team"` 或 `--to-id <squad-uuid>`)。
-2. **转 todo**:`issue status <key> todo`。光 assign 不触发,必须转 todo 才 enqueue。
-3. **验证 run 起来了**(关键,别省):`multica issue runs <uuid>` 看有没有 `queued`/`running`。
-   - 有 → 派发成功,回显 key + URL。
-   - **零 run**(assign+todo 没能 enqueue,已知会发生)→ **`multica issue rerun <uuid>` 兜底**,
-     再查一次 `runs` 确认变 `queued`。**没确认到 run 就不算派发完成**,不要回报「已派发」。
-
-> 为什么加第 3 步:实测存在「issue 已 assign+todo 但零 run」卡死(follow-up issue 尤甚),
-> Supervisor 的 autopilot @mention 无效、只会反复 escalate,唯一解锁靠人 assign+触发。
-> `rerun` 只对「有过 run」的 issue 有效——但 assign+todo 已经产生首个 run 记录后,rerun 就能兜底重入队。
-
-- **回显**:每条新建 issue 打印 `identifier`(MY-XXXX)+ URL + 当前 run 状态。提醒用户后续 pipeline 是
-  TL → FS(开 PR)→ AI Reviewer → TL merge(见 `AGENTS.md` §FS/TL workflow)。
+- **回显**:每条 issue 的 key、URL、run ID/真实状态、下一 owner 或 hold。W2 的
+  TL → Planner → FS → AI Reviewer 完成仓内交付后交 **PR Manager (W4)**;本 skill 不负责合并。
 
 ---
 
 ## 跨层拆分(贯穿 A-C 实现路径)
 
-实现改动落在 2+ layer = 太大。按 `AGENTS.md` 规则拆成每层一个 issue(或 speckit task),
-一层一 commit,各自可独立 `swift build/test`。单层内仍很大 → 按技术切面再拆(纯逻辑 → 输入/校验
-→ 处理/编排 → 输出转换 → fixture → 文档 → 迁移)。**收尾遗留记为新 issue,不回头扩大当前 issue。**
+读取 [仓库权威与角色分工](../../workflow/README.md),按仓库定义的 PR 单元、接口依赖和
+实际验证命令划任务;必要配套随实现,独立目的另片。发现相邻问题交回原 owner 重新定范围,
+不扩张当前 issue。PRM 不新增范围/大小审查,只消费已有 CI/review/审批并路由具体修复。
 
 ---
 
 ## 降级(repo 缺上下文时)
 
-这个 skill 是 repo-general 的。目标 repo 若缺某些文件,按存在与否降级,不报错硬停:
+这个 skill 是 repo-general 的。缺少可选工具可调整起草方式;缺少确定责任/验证/批准所需的事实时,
+先保留待澄清记录,补齐后再派发,不把文件不存在解释为没有规则:
 
 | 缺什么 | 降级 |
 |---|---|
 | 无 `.specify/` | 新功能路径跳过 speckit,退化为「直接起草一个 feature issue + acceptance」,提示用户可先 init speckit |
-| 无 `AGENTS.md` layer map | 跳过 layer 映射与 red_lines 填充,body 里 layer/red_lines 段留 TODO 让 dev team 补 |
-| 无 `constitution.md` | 跳过红线检查,正常落 issue |
+| 沿入口仍无实际 layer map/resolver | 标明责任/验证事实缺口,先保留待澄清记录;补齐前不派发未知范围 |
+| 无 `constitution.md` | 读取其他仓库架构/政策权威;不能据此推断没有红线 |
 | 无 `docs/adr/` | 架构变更退化为在 issue body 内联记录 Decision,提示用户补建 ADR 目录 |
