@@ -209,8 +209,9 @@ class VerifyTests(unittest.TestCase):
         # and every composed module, rather than a pre-integration suite count.
         for name in ("explicit_spec_resolves_ambiguous_worktree", "invalid_base_fails_closed",
                      "layered_spec_kit_worktree_surface", "unlayered_repository_declares_gaps"):
-            self.assertIn("(test_discover_review_context.DiscoveryTests.test_" + name + ") ... ok",
-                          result.stderr)
+            self.assertRegex(result.stderr, r"(?m)^test_" + name +
+                             r" \(test_discover_review_context\.DiscoveryTests(?:\.test_" + name +
+                             r")?\) \.\.\. ok$")
         for module in ("test_consumer_authority", "test_dispatch_safety",
                        "test_entrypoint_recipe", "test_layer_routing_recipe"):
             self.assertIn("(" + module + ".", result.stderr)
