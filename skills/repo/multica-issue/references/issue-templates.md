@@ -56,10 +56,11 @@ bug
 ## Out of scope
 - <明确不在本 issue 处理的相邻问题>
 
-## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
-- **layer**: <落在哪层>
+## 仓库工作单元与 Layer 约束(来自 AGENTS 实际路由)
+- **work unit / context**: <仓库定义的 PR 单元与实际根/叶子上下文路径>
+- **layer**: <该单元涉及的层及其责任>
 - **red_lines**(修的时候不能踩): <抄该层 frontmatter red_lines>
-- **test**(修完跑这条): `<抄该层 frontmatter test>`
+- **gate/test**(按实际上下文验证): `<读取实际上下文的 gate/test 命令>`
 ```
 
 ---
@@ -73,7 +74,7 @@ bug
 <parent feature issue 的 key,如 MY-1234;指向 specs/NNN-name/spec.md>
 
 ## What to build
-<这个 task 交付的端到端行为(在**本 layer 范围内**)。描述行为,不逐文件写实现。
+<这个 task 交付的端到端行为(在**仓库定义的工作单元与已授权范围内**)。描述行为,不逐文件写实现。
 若 speckit 的 plan/prototype 产出了精确的决策片段(状态机 / schema / 类型形状),可内联那几行。>
 
 ## Acceptance criteria
@@ -86,11 +87,12 @@ bug
 ## Constitution refs
 <reference 宪法章节,如「Constitution §III SPM Package 优先」;不重述规则。>
 
-## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
-- **layer**: <本 task 落在哪层>
+## 仓库工作单元与 Layer 约束(来自 AGENTS 实际路由)
+- **work unit / context**: <仓库定义的 PR 单元与实际根/叶子上下文路径>
+- **layer**: <本 task 涉及的层及必要配套>
 - **depends_on**: <该层允许依赖的 layer,别引入反向依赖>
 - **red_lines**: <抄该层 frontmatter red_lines>
-- **test**(交付前跑): `<抄该层 frontmatter test>`
+- **gate/test**(交付前跑): `<读取实际上下文的 gate/test 命令>`
 ```
 
 **Parent issue** body(feature 总述)简版:
@@ -132,14 +134,14 @@ specs/NNN-name/spec.md(+ plan.md / tasks.md)
 - <是否新增/删除 layer>
 
 ## Migration steps
-1. <迁移步骤,按 layer,一层一 commit>
+1. <按仓库定义的工作单元与接口依赖交付;保留必要配套和每步可构建性>
 2. ...
 
 ## ADR / Constitution
 <若违反现宪法:指向 docs/adr/NNNN-*.md 或宪法版本 bump。先有它,再有本 issue。>
 
 ## Acceptance criteria
-- [ ] frontmatter 防腐校验通过(depends_on / test 与实际一致)
+- [ ] 仓库定义的验证通过(depends_on / gate/test 与实际上下文一致)
 - [ ] <其他可测验收>
 ```
 
@@ -209,11 +211,11 @@ dispatch,所以不追加 Working Directory 尾段。
 ## 填充清单(落任何 issue 前自检)
 
 - [ ] 标题前缀对(`[Bug]` / `[T###] [Story]` / `[Arch]` / `[Outcome Check]`)
-- [ ] `## Layer 约束` 的 red_lines + test **来自该层 CONTEXT.md frontmatter**,不是编的
+- [ ] 工作单元、上下文路径及 red_lines / gate/test 来自 AGENTS 实际路由的权威,不是推造的
 - [ ] Acceptance 至少一条、且**可测**(能对应一条命令 / 一个可观察结果)
 - [ ] 行为契约段不绑文件路径(基线段可以,标 basis ref)
-- [ ] 跨 2+ layer → 已拆成多 issue,不是一个大 issue
-- [ ] 与宪法冲突 → 已先改宪法/写 ADR
+- [ ] 范围符合仓库定义的 PR 单元;跨层按接口依赖划分,不因层数拆掉必要配套
+- [ ] 与宪法冲突 → 所需 ADR/宪法变更已获审并合入执行基线
 - [ ] **每个实现类 body 末尾都带了 `## Working Directory` 强制尾段**(见上,防主 checkout 污染)
 - [ ] Bug 已生成 `problem_fingerprint` 并搜索 active + closed 历史;关系与 affected build 有证据
 - [ ] Outcome Check 有 wait owner / next event / wake condition,保持 backlog,且没有 Dev Team dispatch

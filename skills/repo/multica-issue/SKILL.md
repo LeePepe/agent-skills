@@ -126,10 +126,10 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 
 详见 `references/speckit-bridge.md` §架构。先判断改动性质:
 
-- **只是技术上下文补充/修正,不违反红线**(如补一层 CONTEXT.md 的说明、修正 test 命令) →
-  直接更新对应层 `Packages/<X>/CONTEXT.md`(含 frontmatter `depends_on`/`red_lines`/`test`)
-  或顶层 `CONTEXT.md` 的 `canonical_roles`,然后落一个「tech-context update」issue 记录变更
-  (frontmatter 防腐 hook / CI 会 gate 一致性)。
+- **只是技术上下文补充/修正,不违反红线**(如补职责说明、修正验证命令) →
+  在专用 task worktree 更新 AGENTS 实际路由的根/叶子上下文,保留其 depends_on、red_lines
+  和 gate/test 字段;可能是 repo-kit 的 `tech-context.md`,也可能是旧版 `CONTEXT.md`。
+  按仓库定义的工作单元记录变更并运行其验证,不从 package 名推造路径或保证已有 gate。
 - **改架构方向 / 违反现宪法**(加 layer、换依赖方向、放松并发或隐私约束) → **先** 写
   `docs/adr/NNNN-*.md`(或跑 `/speckit-constitution` 更新宪法 + 版本 bump),**再** 落实现 issue。
   对齐 `specs/README.md`「冲突先改宪法再写 spec」+ constitution「例外须 ADR 记录」。

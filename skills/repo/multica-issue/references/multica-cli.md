@@ -77,14 +77,42 @@ WAIT_OWNER 必须是明确的人,不是 agent/squad。记录 `outcome_wait` 的 
 下列 `REMOTE_NAME`、`DEFAULT_BRANCH`、`SPEC_PATH` 必须来自已核验的目标与 issue 引用。
 
 ```bash
-git remote get-url "$REMOTE_NAME"
+git remote get-url "$REMOTE_NAME" || exit 1
 git fetch "$REMOTE_NAME" "$DEFAULT_BRANCH" || exit 1
 BASE_SHA="$(git rev-parse --verify FETCH_HEAD^{commit})" || exit 1
-git cat-file -e "$BASE_SHA:$SPEC_PATH"
+python3 - "$BASE_SHA" "$SPEC_PATH" <<'PY'
+import os
+import subprocess
+import sys
+
+revision, path = sys.argv[1:]
+if path.startswith("/") or any(part in ("", ".", "..") for part in path.split("/")):
+    raise SystemExit("design path must be repository-relative")
+root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).strip()
+entry = subprocess.check_output(
+    ["git", "--literal-pathspecs", "ls-tree", "--full-tree", "-z", revision, "--", path], cwd=root)
+records = entry.split(b"\0")
+if len(records) != 2 or records[-1] != b"":
+    raise SystemExit("expected exactly one design document")
+metadata, name = records[0].split(b"\t", 1)
+mode, kind, oid = metadata.split()
+if name != os.fsencode(path) or mode not in (b"100644", b"100755") or kind != b"blob":
+    raise SystemExit("design document must be a regular tracked file")
+content = subprocess.check_output(["git", "cat-file", "blob", oid.decode("ascii")], cwd=root)
+try:
+    text = content.decode("utf-8-sig")
+except UnicodeDecodeError:
+    raise SystemExit("design document must be UTF-8 text")
+if b"\0" in content or not text.strip():
+    raise SystemExit("design document must contain usable text")
+PY
 ```
 
 先确认 fetch 成功,立即固定这次 FETCH_HEAD 的完整 SHA,再逐个核验 body 所有 spec/plan/tasks/ADR
 引用;不用可能过期的 remote-tracking ref 代替本次读取。引用路径按 Git tree 字面值核对。
+只接受该提交中 100644/100755 的普通 blob 与非空 UTF-8 文本;目录、gitlink、任何符号链接、
+空白/二进制/解码失败都阻止派发,不跟随链接猜测设计。对象可读不证明设计已获审或内容充分,
+仍需仓库要求的计划/Owner 审查。整个 probe 仅读 Git 对象,不 checkout 或执行设计内容。
 缺失时:
 
 1. 按目标 repo W3 建/复用专用分支与 task worktree,核验绝对路径、base 和唯一 writer。

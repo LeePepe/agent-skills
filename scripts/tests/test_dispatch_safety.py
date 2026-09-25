@@ -55,20 +55,31 @@ class DispatchSafetyTests(unittest.TestCase):
     def test_missing_design_requires_merge_and_readback(self):
         text = (ISSUE / "references/multica-cli.md").read_text()
         gate = text.split("## spec 先入库门禁", 1)[1].split("## dispatch", 1)[0]
-        for marker in ("git fetch", "git cat-file -e", "fetch 成功", "Owner checkout",
+        for marker in ("git fetch", "\"cat-file\", \"blob\"", "fetch 成功", "Owner checkout",
                        "scripts/verify", "PR Manager", "merged", "逐路径复核"):
             self.assertIn(marker, gate)
 
     def test_planning_consumes_repository_authority(self):
-        for path in (ISSUE / "SKILL.md", ISSUE / "references/speckit-bridge.md"):
+        for path in (ISSUE / "SKILL.md", ISSUE / "references/speckit-bridge.md",
+                     ISSUE / "references/issue-templates.md"):
             with self.subTest(path=path):
                 text = path.read_text()
                 self.assertIn("仓库定义", text)
                 self.assertNotIn("一层一 commit", text)
                 self.assertNotIn("跨 2+ layer = 太大", text)
                 self.assertNotIn("各自可独立 `swift build/test`", text)
+                self.assertNotIn("Packages/<layer>/CONTEXT.md", text)
+                self.assertNotIn("Packages/<X>/CONTEXT.md", text)
+                self.assertNotIn("跨 2+ layer → 已拆成多 issue", text)
         text = (ISSUE / "SKILL.md").read_text()
         self.assertIn("PRM 不新增范围", text)
+
+    def test_ci_runs_dispatch_guards_alongside_native_validation(self):
+        workflow = (ROOT / ".github/workflows/validate-skills.yml").read_text()
+        command = "python3 -I -B -m unittest discover -s scripts/tests -p test_dispatch_safety.py -v"
+        self.assertEqual(1, workflow.count(command))
+        for existing in ("python3 scripts/validate_skills.py", "python3 scripts/gen_registry.py --check"):
+            self.assertIn(existing, workflow)
 
     def test_local_reference_links_exist(self):
         for path in [ISSUE / "SKILL.md", *ISSUE.joinpath("references").glob("*.md")]:
@@ -113,13 +124,36 @@ class DesignBaselineProbeTests(unittest.TestCase):
                       git(caller, "diff", "--cached"), git(caller, "diff"),
                       git(caller, "status", "--porcelain"))
             (upstream / "spec.md").write_text("# New design\n")
-            git(upstream, "add", "spec.md")
+            (upstream / "executable.md").write_text("# Executable-mode design\n")
+            (upstream / "executable.md").chmod(0o755)
+            (upstream / "literal[1] name.md").write_text("# Literal path\n")
+            (upstream / "directory.md").mkdir()
+            (upstream / "directory.md/child.md").write_text("# Child, not the referenced file\n")
+            (upstream / "dangling.md").symlink_to("absent.md")
+            (upstream / "symlink.md").symlink_to("spec.md")
+            (upstream / "empty.md").write_bytes(b"")
+            (upstream / "blank.md").write_bytes(b" \n\t")
+            (upstream / "binary.md").write_bytes(b"# data\x00ignored")
+            (upstream / "invalid-utf8.md").write_bytes(b"\xff\xfe")
+            git(upstream, "add", ".")
+            git(upstream, "update-index", "--add", "--cacheinfo", "160000," +
+                git(upstream, "rev-parse", "HEAD").strip() + ",gitlink.md")
             git(upstream, "commit", "-qm", "design")
             text = (ISSUE / "references/multica-cli.md").read_text()
             gate = text.split("## spec 先入库门禁", 1)[1].split("## dispatch", 1)[0]
             probe = re.search(r"```bash\n(.*?)```", gate, re.S).group(1)
             for scenario, path, broken_remote, expected in (
                     ("newly-fetched-design", "spec.md", False, 0),
+                    ("executable-design", "executable.md", False, 0),
+                    ("literal-quoted-path", "literal[1] name.md", False, 0),
+                    ("directory", "directory.md", False, 1),
+                    ("dangling-symlink", "dangling.md", False, 1),
+                    ("valid-target-symlink", "symlink.md", False, 1),
+                    ("gitlink", "gitlink.md", False, 1),
+                    ("empty", "empty.md", False, 1),
+                    ("blank", "blank.md", False, 1),
+                    ("binary", "binary.md", False, 1),
+                    ("invalid-utf8", "invalid-utf8.md", False, 1),
                     ("missing-design", "absent.md", False, 1),
                     ("failed-fetch-stale-ref", "spec.md", True, 1)):
                 with self.subTest(scenario=scenario):
