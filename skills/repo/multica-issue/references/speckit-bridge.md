@@ -59,10 +59,12 @@
    - tasks.md 的依赖组 → `--stage N`(同 stage 全完成才唤醒 parent)
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
 4. **spec 先入库门禁**:feature 路径的 issue 必然引用 `specs/NNN/spec.md`。dispatch 前**先确保这些
-   spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进 `github/main`**——隔离 workdir 的 FS 只读 main,
-   spec 没进 main 会踩空。检测到缺失 → 自动开设计文档 PR、等合并、再 dispatch。命令见
+   spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进已核验的默认分支**——隔离 workdir 的 FS 读执行基线,
+   spec 没合并会踩空。缺失时在 task worktree 准备设计 PR,正常过 hooks/verify/计划审查与 Owner hold,
+   交 W4 PR Manager,合并后复核再 dispatch。命令见
    `references/multica-cli.md` §「spec 先入库门禁」;主流程见 `SKILL.md` 第 4 步同名小节。
-5. dispatch:parent(或第一个 stage 的 issues)assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)。
+5. dispatch:按 `multica-cli.md` 的唯一 dispatch 流程检查 hold、active/family runs,再启动就绪的
+   parent 或子任务,不同时重复启动重叠范围。
 
 > 若 repo 装了 speckit 的 `/speckit-taskstoissues`,它是用 **GitHub MCP** 建 GitHub issue 的
 > —— 与本 workflow(Multica issue)**不同**,**不要**用它。本 skill 走 Multica CLI。
@@ -77,8 +79,8 @@
 
 例:补一层 CONTEXT.md 的说明、修正一条 test 命令、澄清数据流。
 
-1. 直接编辑对应层 `Packages/<X>/CONTEXT.md`(含 frontmatter `layer`/`depends_on`/`red_lines`/`test`)
-   或顶层 `CONTEXT.md` 的 `canonical_roles`。
+1. 在专用 task worktree 编辑 AGENTS 指定的叶子上下文:repo-kit 的 `tech-context.md` 或旧仓
+   `CONTEXT.md`;保留现有 frontmatter 的 layer、依赖与 gate。
 2. 落一个 `[Arch]` issue 记录这次 tech-context 变更(模板 3),让 pipeline 的 frontmatter 防腐
    hook / CI 校验一致性。
 
@@ -88,7 +90,7 @@
 
 **顺序不能反:先立规矩,再落实现。**
 
-1. **先**更新宪法或写 ADR:
+1. **先**在 task worktree 提出宪法/ADR 变更,经计划审查与 Owner 批准后发布:
    - 跑 `/speckit-constitution` 更新 `.specify/memory/constitution.md` + 版本 bump;或
    - 写 `docs/adr/NNNN-<slug>.md`(记录 Decision / Context / Consequences / 例外原因)。
    - 依据:`specs/README.md`「与 Constitution 冲突 → 先改 Constitution(走 ADR + 版本 bump),

@@ -35,12 +35,16 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 | W6 | 运行恢复 | 故障/中断 | 运行维护者 / Supervisor | [`runtime-recovery`](runtime-recovery/SKILL.md) |
 | W7 | Owner 决策 | 需要新授权 | 主 agent → Owner | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md) |
 
-## 合并规则（所有 repo 一致）
+## 合并目标与实际门禁
 
-- 普通 PR：fail-closed 汇总 gate ✓ + `codex-review-target` ✓ → auto-merge；无需 Owner 批准。
+- 目标合同:普通 PR 的 fail-closed 汇总 gate ✓ + `codex-review-target` ✓ → auto-merge；无需 Owner 批准。
   codex 发现问题 → PR comment + check 失败 → 原作者修复 push → 新 SHA 重审。`kimi-review` 只评论，不阻塞。
 - 重要 PR：另需 Owner approve（CODEOWNERS：`.github/**`、policy/schema/gate、AGENTS/constitution、依赖 pin
-  升级、凭据/隐私/数据迁移）。过渡期（GitHub App 上线前）只以 `owner-review` label 提醒。
+  升级、凭据/隐私/数据迁移）。先回读目标 repo 的有效 ruleset 和 CODEOWNERS,不能假定各仓已经落实。
+- 尚未强制 Owner review,或存在显式 Owner hold 的候选保持 Draft + `owner-review`（若已有标签）。
+  标签不等于服务器门禁;批准/保护未就绪前不启用可立即执行的 auto-merge,也不关闭已有请求。
+- W4 PR Manager 负责 PR 生命周期;TL/issue 入口不自行 merge。settings/ruleset 需精确 old→new
+  和 Owner 授权,不是完成 repo-kit 文件就自动生效。
 - 新 push 使旧 review/check 过期；证据以 PR head SHA 为准，不另写本地回执。
 
 ## 交接最小字段
