@@ -56,7 +56,11 @@ agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 rep
 ## adopt：接入或升级共享库
 
 1. 读该库**目标版本**的 `ai/INTEGRATION.md`（新接入）或 `ai/MIGRATION.md`（升级），兼容性看 `ai/COMPATIBILITY.md`。
-2. 只改：依赖 pin（exact 版本 / 完整 SHA）、AGENTS 依赖段的版本指针、必要适配代码（放在消费方自己的 adapter layer）。
+2. 只改：实际 manifest/lockfile/caller 中的依赖 pin（exact 版本 / 完整 SHA）、维护中的版本文档引用/机器元数据、必要适配代码（放在消费方自己的 adapter layer）。
+   AGENTS 保持条件式链接目录，仅在入口目标变化时更新链接；依赖信息由实际配置与对应版本文档维护。
+   核对版本文档与实际 pin 匹配，所有 shared-ci caller 与协议链接的完整 SHA 一致。
+   旧固定版本保留该版支持的目录标题/完整 SHA 指针并按该版合同验证；仅在所选已发布版本支持时采用新机器元数据。
+   真实不兼容交 provider owner，不绕过 audit。
 3. `scripts/verify --all` 通过；PR 标为重要 PR（依赖 pin）。
 
 ## split：从现有 repo 拆出共享库
