@@ -17,3 +17,15 @@ jobs:
         run: python3 scripts/validate_skills.py
       - name: Check registry / plugin.json / README in sync
         run: python3 scripts/gen_registry.py --check
+      - name: Fetch immutable provider for routing scenarios
+        uses: actions/checkout@v4
+        with:
+          repository: LeePepe/shared-ci
+          ref: 8eb3a1194399973f85513f6de1790be6b1cd2093
+          path: .shared-ci-test-provider
+          persist-credentials: false
+      - name: Verify directory-authority recipes and provider routes
+        env:
+          SHARED_CI_SOURCE: ${{ github.workspace }}/.shared-ci-test-provider
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -B -m unittest discover -s scripts/tests -p 'test_*recipe.py' -v
