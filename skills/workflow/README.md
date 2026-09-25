@@ -1,8 +1,8 @@
 # Workflow（W0–W7）
 
 编排者（主 agent、Dev Team 角色）用的 workflow 索引。**repo 内的执行 agent 不依赖本目录**：它们只读目标
-repo 的 `AGENTS.md` 与其中固定 SHA 引用的 `shared-ci/ai/agent-protocol.md`，并由 hooks / required CI /
-ruleset 强制。
+repo 的 `AGENTS.md` 条件目录,沿链接读取层上下文、验证/交付权威及版本协议。依赖 pin 位于实际
+manifest/lockfile/caller,不从 AGENTS prose 取值;hooks / required CI / ruleset 提供强制。
 
 ```
 Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委派/核验）
@@ -39,6 +39,9 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 
 - 目标合同:普通 PR 的 fail-closed 汇总 gate ✓ + `codex-review-target` ✓ → auto-merge；无需 Owner 批准。
   codex 发现问题 → PR comment + check 失败 → 原作者修复 push → 新 SHA 重审。`kimi-review` 只评论，不阻塞。
+- 普通授权范围内的测试编辑/删除不因测试变更本身要求 Owner approve、Decision ID 或执行 hold;
+  仍说明测试损失的理由并接受正常质量检查与适用的 AI Plan-Review。AI 审查通过后不把普通测试
+  再转成 Owner 执行批准;这不是跳过 AI loop 的测试类豁免。产品/范围/policy/permission 决策另行判断。
 - 重要 PR：另需 Owner approve（CODEOWNERS：`.github/**`、policy/schema/gate、AGENTS/constitution、依赖 pin
   升级、凭据/隐私/数据迁移）。先回读目标 repo 的有效 ruleset 和 CODEOWNERS,不能假定各仓已经落实。
 - 尚未强制 Owner review,或存在显式 Owner hold 的候选保持 Draft + `owner-review`（若已有标签）。

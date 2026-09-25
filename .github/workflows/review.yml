@@ -18,5 +18,9 @@ concurrency:
 jobs:
   codex-review-target:
     uses: LeePepe/shared-ci/.github/workflows/codex-review.yml@761fe6b0b3ca5e2c57d244182d495ab8041851fa
+    with:
+      rules-file: docs/repository-gates.md
   kimi-review:
     uses: LeePepe/shared-ci/.github/workflows/kimi-review.yml@761fe6b0b3ca5e2c57d244182d495ab8041851fa
+    with:
+      rules-file: docs/repository-gates.md

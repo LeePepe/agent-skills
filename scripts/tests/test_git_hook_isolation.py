@@ -49,11 +49,18 @@ class HookIsolationTests(unittest.TestCase):
         self.repo = Path(self.scratch.name).resolve() / "outer"
         self.repo.mkdir()
         self.git("init", "-q")
-        for name in ("AGENTS.md", "CLAUDE.md", "scripts/verify", ".githooks/pre-push",
+        for name in ("CLAUDE.md", "scripts/verify", "scripts/check_entrypoint.py", ".githooks/pre-push",
                      ".github/workflows/ci.yml", ".github/pull_request_template.md", ".github/CODEOWNERS"):
             target = self.repo / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, target)
+        # This harness exercises hook isolation, not migration of the provider's
+        # AGENTS schema. Use the published provider's own fixture format here;
+        # test_repo_contract still requires the actual candidate audit to pass.
+        pin = subprocess.check_output(["python3", str(ROOT / "scripts/check_entrypoint.py"),
+                                       "--root", str(ROOT), "--pin"], env=self.env, text=True).strip()
+        legacy = (ROOT / ".shared-ci/templates/AGENTS.md").read_text().replace("<40-char-sha>", pin)
+        self.write("AGENTS.md", legacy + f"\n[Protocol](https://github.com/LeePepe/shared-ci/blob/{pin}/ai/agent-protocol.md)\n")
         self.write(".gitignore", ".shared-ci/\n")
         self.write("docs/architecture/tech-context.md", """---
 layer: _root

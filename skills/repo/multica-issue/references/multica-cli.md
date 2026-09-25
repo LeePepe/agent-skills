@@ -89,7 +89,8 @@ git cat-file -e "$REMOTE_NAME/$DEFAULT_BRANCH:$SPEC_PATH"
    Owner checkout 的分支、index、working tree 和未跟踪文件保持原样。只复制已授权设计内容;
    有冲突或来源不清停下,不 stash 或切换 Owner checkout。
 2. 只提交缺失设计及必要依赖,正常 hooks + `scripts/verify`;失败修根因或报告 blocker。
-   计划/宪法变更走目标 repo 的审查和 Owner 授权,不为派发放松 gate。
+   计划变更保留适用的 AI Plan-Review;产品/宪法/policy/permission 等独立决定才等待对应 Owner 授权。
+   普通范围内测试变更的审查边界按 workflow 索引,不把 AI 计划关间接变成测试类 Owner 执行 hold。
 3. 用目标 PR 模板创建默认分支 PR,把 URL/head/验证/hold 交 W4 PR Manager。
    重要路径或显式 hold 保持 Owner 审核;保护尚未生效时 Draft,不启用可立即执行的 auto-merge。
 4. W4 确认 merged 后,刷新默认分支并逐路径复核。PR 存在或 CI 绿不等于设计已进入执行基线。

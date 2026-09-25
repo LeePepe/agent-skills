@@ -19,7 +19,7 @@ otherwise make the stacked branch conflict).
 
 ## Removed or weakened tests or policy
 
-<!-- Every removed/skipped/weakened test or assertion and every policy/gate/ruleset change, each with its reason and approver. Write "none" if none. Non-empty → add the owner-review label. -->
+<!-- Explain test edits/deletions, lost coverage and replacement evidence for normal quality/AI review. Ordinary in-scope test changes do not require an Owner approver or owner-review label by themselves; applicable AI Plan-Review still runs. Separately identify policy/gate/permission changes and their required Owner decision (pending when not approved). Write "none" when neither applies. -->
 
 ## Test evidence
 

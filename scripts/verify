@@ -18,8 +18,7 @@ while IFS= read -r git_variable; do
 done <<< "$git_local_env"
 export PYTHONDONTWRITEBYTECODE=1
 python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else "Python 3.11+ is required")'
-pin="$(sed -n 's|.*LeePepe/shared-ci@\([0-9a-f]\{40\}\)/ai/agent-protocol\.md.*|\1|p' AGENTS.md)"
-[[ "$pin" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid or ambiguous shared-ci protocol pin" >&2; exit 1; }
+pin="$(python3 scripts/check_entrypoint.py --pin)"
 shared_ci="$root/.shared-ci"
 if [ ! -e "$shared_ci" ] && [ ! -L "$shared_ci" ]; then
   git init -q "$shared_ci"
@@ -34,6 +33,7 @@ if [ -L "$shared_ci" ] || [ ! -d "$shared_ci/.git" ] ||
   exit 1
 fi
 context="$shared_ci/scripts/context/_context.py"
+python3 scripts/check_entrypoint.py
 python3 "$context" audit
 python3 "$shared_ci/scripts/lint/workflows.py" --root "$root"
 layers="$(python3 "$context" layers --all)"

@@ -40,9 +40,8 @@
   - 跨 2+ layer → 拆成 N 个各自可独立 `swift build/test` 的子任务,一层一 commit。
   - 单层内仍很大 → 按技术切面再拆(纯逻辑 → 输入/校验 → 处理/编排 → 输出转换 → fixture → 文档 → 迁移)。
 
-  > 这条**覆盖** mattpocock to-issues 的「每个 slice 切穿所有层」。VitalStride 的 `AGENTS.md`
-  > §「按 layer 收窄」明确要求按 layer 拆(层是 agent 的工作单元,一层一 commit 便于 `swift test`
-  > 秒级验证 + 减少跨层 PR 冲突)。服从 repo 规则。
+  > 这条**覆盖** mattpocock to-issues 的「每个 slice 切穿所有层」。按目标 repo 入口链接到的
+  > 架构权威与 layer 边界拆分,不要求 AGENTS 自身携带规则正文。
 
 ### 4. 逐 task 落 Multica issue(不跑 speckit-implement)
 
@@ -60,7 +59,8 @@
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
 4. **spec 先入库门禁**:feature 路径的 issue 必然引用 `specs/NNN/spec.md`。dispatch 前**先确保这些
    spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进已核验的默认分支**——隔离 workdir 的 FS 读执行基线,
-   spec 没合并会踩空。缺失时在 task worktree 准备设计 PR,正常过 hooks/verify/计划审查与 Owner hold,
+   spec 没合并会踩空。缺失时在 task worktree 准备设计 PR,正常过 hooks/verify/适用 AI 计划审查,
+   保留已有的独立产品/政策/权限决定与显式 human hold,不因普通测试修改另加 Owner 执行关,
    交 W4 PR Manager,合并后复核再 dispatch。命令见
    `references/multica-cli.md` §「spec 先入库门禁」;主流程见 `SKILL.md` 第 4 步同名小节。
 5. dispatch:按 `multica-cli.md` 的唯一 dispatch 流程检查 hold、active/family runs,再启动就绪的

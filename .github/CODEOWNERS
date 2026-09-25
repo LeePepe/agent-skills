@@ -7,10 +7,17 @@
 /docs/architecture/               @LeePepe
 **/tech-context.md                @LeePepe
 /docs/repository-gates.md         @LeePepe
-/scripts/                        @LeePepe
+/scripts/verify                  @LeePepe
+/scripts/check_entrypoint.py     @LeePepe
+/scripts/check_syntax.py          @LeePepe
+/scripts/validate_skills.py       @LeePepe
+/scripts/gen_registry.py          @LeePepe
+/scripts/install-symlinks.sh       @LeePepe
 /policy/                          @LeePepe
 /schemas/                         @LeePepe
 /skills/workflow/                 @LeePepe
+# Ordinary executable test fixtures do not acquire a policy hold from their parent directory.
+/skills/workflow/multica-delivery-supervisor/tests/
 /skills/repo/multica-issue/        @LeePepe
 /skills/repo/repo-kit/             @LeePepe
 /skills/repo/auto-review-merge/    @LeePepe

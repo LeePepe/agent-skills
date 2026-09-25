@@ -22,3 +22,6 @@ from ownership. Root support paths remain subject to contract audit and importan
 Catalog Markdown and bundled code have different validation depth: local links/frontmatter,
 registry consistency, Python/shell syntax and existing deterministic script tests run here.
 Consumer-template builds and model behavioral evaluations are not implied by those checks.
+
+There is no separate constitution. Repository-wide privacy, worktree and review constraints are maintained
+in [repository policy](../repository-gates.md#review-rules); layer-specific constraints live in the leaves.

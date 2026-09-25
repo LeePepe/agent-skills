@@ -53,7 +53,7 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || { echo "不在 git repo 内"; e
 
 ```bash
 ls .specify/memory/constitution.md 2>/dev/null   # 有宪法 → 任何路径先读它
-ls AGENTS.md 2>/dev/null                          # 有 layer map → 能按 layer 拆 + 带 red_lines
+ls AGENTS.md 2>/dev/null                          # 沿入口链接读取实际 layer map/resolver
 ls -d specs 2>/dev/null                           # 有 specs → 新功能走 speckit;看现有编号定新目录号
 ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 ADR 流
 ```
@@ -95,7 +95,7 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 2. **检索问题历史**:按 `problem-history.md` 生成稳定 `problem_fingerprint`,搜索 active + closed issue。
    确认 `duplicate_of`、`ineffective_fix_for`、`regression_of` 或 `related_to`,并记录 affected
    version/build 与证据来源。标题相似只用于发现候选,不直接建立关系。
-3. **映射 layer**:按 `AGENTS.md` 的 layer map/resolver 定位,读取指定的叶子上下文:
+3. **映射 layer**:沿 `AGENTS.md` 链接到实际 layer map/resolver 定位,读取指定的叶子上下文:
    repo-kit 使用 `tech-context.md` 的 `red_lines`/`gate`,旧仓使用 `CONTEXT.md` 的对应字段。
    验证命令来自仓库事实源,不假定所有仓都用 Swift。
 4. **填 body**:用 bug 模板(Category / Current / Desired / Repro-信号 / Problem history / Key interfaces /
@@ -113,8 +113,8 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 3. `/speckit-plan` → `plan.md`;`/speckit-tasks` → `tasks.md`。
    - plan / tasks **必须 reference constitution 章节**(不重述规则)。
    - **按 layer 拆分,不用 vertical slice**:改动只落 1 层 = 一个 task;跨 2+ layer = 太大 =
-     拆成 N 个各自可 `swift build/test` 的子任务(一层一 commit)。这是 `AGENTS.md` §「按 layer
-     收窄」的硬规则,**压过** mattpocock to-issues 的「一片切所有层」。
+     拆成 N 个各自可独立验证的子任务(一层一 commit)。以入口指向的架构权威为准,
+     **压过** mattpocock to-issues 的「一片切所有层」。
 4. **逐 task 落 issue**(命令见 `references/multica-cli.md`):
    - 先建一个 **parent issue**(feature 总述,body 指向 `specs/NNN/spec.md`)。
    - 每个 task → 一个 sub-issue:`--parent <parent-key> --project $PROJECT_ID`,标题
@@ -212,6 +212,6 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
 | 缺什么 | 降级 |
 |---|---|
 | 无 `.specify/` | 新功能路径跳过 speckit,退化为「直接起草一个 feature issue + acceptance」,提示用户可先 init speckit |
-| 无 `AGENTS.md` layer map | 跳过 layer 映射与 red_lines 填充,body 里 layer/red_lines 段留 TODO 让 dev team 补 |
+| 沿入口仍无实际 layer map/resolver | 跳过 layer 映射与 red_lines 填充,body 里 layer/red_lines 段留 TODO 让 dev team 补 |
 | 无 `constitution.md` | 跳过红线检查,正常落 issue |
 | 无 `docs/adr/` | 架构变更退化为在 issue body 内联记录 Decision,提示用户补建 ADR 目录 |
