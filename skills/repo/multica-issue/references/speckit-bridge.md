@@ -35,14 +35,11 @@
 
 **两条硬约束**(写进 plan/tasks,也是 review 时会被 gate 的点):
 - **reference constitution 章节**,不重述规则(如「见 Constitution §II Swift 6 Strict Concurrency」)。
-- **按 layer 拆,不用 vertical slice**:
-  - 改动只落 1 个 layer → 一个 task。
-  - 跨 2+ layer → 拆成 N 个各自可独立 `swift build/test` 的子任务,一层一 commit。
-  - 单层内仍很大 → 按技术切面再拆(纯逻辑 → 输入/校验 → 处理/编排 → 输出转换 → fixture → 文档 → 迁移)。
+- 按仓库定义的 layer/PR 单元、接口依赖和真实验证命令划分,而非固定一层一提交或 Swift 命令。
+  跨层需求保留必要测试/文档和每步可构建性;一个 spec 可以对应多个依赖 task。
+  若已有单元无法承接,先交 Planner/原 owner 明确合同变化,不由起草者扩大边界。
 
-  > 这条**覆盖** mattpocock to-issues 的「每个 slice 切穿所有层」。VitalStride 的 `AGENTS.md`
-  > §「按 layer 收窄」明确要求按 layer 拆(层是 agent 的工作单元,一层一 commit 便于 `swift test`
-  > 秒级验证 + 减少跨层 PR 冲突)。服从 repo 规则。
+目标仓的架构与开发指南是来源;本 skill 不添加另一套 PR 范围门禁。
 
 ### 4. 逐 task 落 Multica issue(不跑 speckit-implement)
 
@@ -54,15 +51,18 @@
 2. tasks.md 每个 task → 一个 sub-issue:
    - `--parent <parent-key>` `--project $PROJECT_ID`
    - 标题原样用 tasks.md 的 `[T###] [Story] Brief`
-   - body 用 feature-task 模板,**Layer 约束段从该 task 所属 layer 的 CONTEXT.md frontmatter 抄**
-     (red_lines + depends_on + test)
+   - body 用 feature-task 模板,从 AGENTS 指向的该层 `tech-context.md` / 旧版 `CONTEXT.md` 填入
+     red_lines、depends_on 和实际 gate/test,不假定单一仓库格式
    - tasks.md 的依赖组 → `--stage N`(同 stage 全完成才唤醒 parent)
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
 4. **spec 先入库门禁**:feature 路径的 issue 必然引用 `specs/NNN/spec.md`。dispatch 前**先确保这些
-   spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进 `github/main`**——隔离 workdir 的 FS 只读 main,
-   spec 没进 main 会踩空。检测到缺失 → 自动开设计文档 PR、等合并、再 dispatch。命令见
+   spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进已核验的默认分支**——隔离 workdir 的 FS 读执行基线,
+   spec 没合并会踩空。缺失时在 task worktree 准备设计 PR,正常过 hooks/verify/适用 AI 计划审查,
+   保留已有的独立产品/政策/权限决定与显式 human hold,不因普通测试修改另加 Owner 执行关,
+   交 W4 PR Manager,合并后复核再 dispatch。命令见
    `references/multica-cli.md` §「spec 先入库门禁」;主流程见 `SKILL.md` 第 4 步同名小节。
-5. dispatch:parent(或第一个 stage 的 issues)assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)。
+5. dispatch:按 `multica-cli.md` 的唯一 dispatch 流程检查 hold、active/family runs,再启动就绪的
+   parent 或子任务,不同时重复启动重叠范围。
 
 > 若 repo 装了 speckit 的 `/speckit-taskstoissues`,它是用 **GitHub MCP** 建 GitHub issue 的
 > —— 与本 workflow(Multica issue)**不同**,**不要**用它。本 skill 走 Multica CLI。
@@ -77,8 +77,8 @@
 
 例:补一层 CONTEXT.md 的说明、修正一条 test 命令、澄清数据流。
 
-1. 直接编辑对应层 `Packages/<X>/CONTEXT.md`(含 frontmatter `layer`/`depends_on`/`red_lines`/`test`)
-   或顶层 `CONTEXT.md` 的 `canonical_roles`。
+1. 在专用 task worktree 编辑 AGENTS 指定的叶子上下文:repo-kit 的 `tech-context.md` 或旧仓
+   `CONTEXT.md`;保留现有 frontmatter 的 layer、依赖与 gate。
 2. 落一个 `[Arch]` issue 记录这次 tech-context 变更(模板 3),让 pipeline 的 frontmatter 防腐
    hook / CI 校验一致性。
 
@@ -88,7 +88,7 @@
 
 **顺序不能反:先立规矩,再落实现。**
 
-1. **先**更新宪法或写 ADR:
+1. **先**在 task worktree 提出宪法/ADR 变更,经计划审查与 Owner 批准后发布:
    - 跑 `/speckit-constitution` 更新 `.specify/memory/constitution.md` + 版本 bump;或
    - 写 `docs/adr/NNNN-<slug>.md`(记录 Decision / Context / Consequences / 例外原因)。
    - 依据:`specs/README.md`「与 Constitution 冲突 → 先改 Constitution(走 ADR + 版本 bump),

@@ -29,3 +29,5 @@ jobs:
           SHARED_CI_SOURCE: ${{ github.workspace }}/.shared-ci-test-provider
           PYTHONDONTWRITEBYTECODE: "1"
         run: python3 -B -m unittest discover -s scripts/tests -p 'test_*recipe.py' -v
+      - name: Check dispatch safety guards
+        run: python3 -I -B -m unittest discover -s scripts/tests -p test_dispatch_safety.py -v
