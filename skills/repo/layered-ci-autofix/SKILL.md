@@ -27,17 +27,13 @@ CI 失败读结构化信号做**按 layer 收窄的自动修复** → 修完 pus
 
 ## 前置(precondition):目标 repo 应已被 repo-kit 铺过
 
-本 skill 的自动修复**靠分层信号收窄范围**。理想前置:
+本 skill 的自动修复靠**权威路径归属**收窄范围,信号只提供诊断。
+先按 [signal-contract](references/signal-contract.md) §1–3 从 AGENTS.md 目录路由找到
+仓库选定版本的 resolver、根 ownership map、叶约束及验证入口,验证格式与唯一归属。
 
-- `AGENTS.md` 有 **Layer 索引**(失败路径 → layer 的映射源)。
-- 每层 `tech-context.md` frontmatter 有 **`red_lines`(修的时候不能踩)+ `test`(只跑本层的验证命令)**。
-- CI required 会吐**结构化失败信号**(见 `references/signal-contract.md`)。
-
-**缺前置时降级(不硬失败)**:
-- 无 layer 索引 / frontmatter → 退化为"整仓库级"修复:仍能监督 CI + 尝试修,但**不能按 layer 收窄、
-  不能带 red_lines**,风险更高。**先提示用户"建议先跑 repo-kit 再用本 skill"**,
-  用户坚持再降级跑。
-- 无 auto-review-merge 门 → 只盯**原生 CI required checks**(`gh pr checks`),跳过 review 门那一路。
+- 无法验证路由/权威、归属缺失或歧义 → **停止自动写入**,报告缺项;仍可只读监督 CI。
+- 已有 legacy CONTEXT.md 按选定版本契约继续使用;待合并模板不是升级依据。
+- 无 auto-review-merge 门 → 只盯原生 required checks,不自行补造合并授权。
 
 ## 执行流程
 
@@ -48,7 +44,7 @@ REPO="$(git rev-parse --show-toplevel)"; cd "$REPO"
 git remote -v | head -1                                   # 有无 remote(无则只能本地,PR 那段跳过)
 gh auth status 2>&1 | head -3                             # gh 是否登录
 BASE="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo main)"
-ls AGENTS.md 2>/dev/null && grep -q 'Layer 索引\|Layer Map' AGENTS.md && echo "有 layer 索引" || echo "⚠️ 无 layer 索引 → 降级"
+# 读取 AGENTS.md 的条件路由,按 signal-contract §1–3 验证实际权威;不以标题探测。
 gh pr status 2>/dev/null | head -20                       # 当前分支有无已开 PR
 ```
 
@@ -103,33 +99,28 @@ done
 
 ### 第 3 步:CI 红 → 读结构化信号 → 按 layer 收窄自动修(核心)
 
-CI 失败**不是**丢一坨日志就去猜。按 `references/signal-contract.md` 解析出结构化信号:
+按 [signal-contract](references/signal-contract.md) 取当前 head 的失败证据,用选定版本
+resolver 唯一定位文件。信号 layer/red_lines 不授予写入权;冲突先核实,不覆盖真实权威。
+读取返回的 context/chain 和声明 ownership,逐个复核拟改路径。顶层 app 和外置测试
+也可以有显式 owner;support/excluded 另查仓库授权,无主/重叠/无效权威则停止自动写入。
 
+每个修复任务在已确认的 owner 范围内执行;根因在范围外或需修改架构/约束,停手升级。
+这不是“一层一个 PR”的新政策,PR 单元仍由仓库职责/接口/测试所有权决定。
+
+派修复 subagent 的 prompt 骨架(或当前 agent 直接采用):
 ```
-{ layer, path, kind: test|lint|build|typecheck|arch-lint, detail, red_lines }
+你在修复当前 head=<sha> 的 CI 失败。
+- 失败证据:<kind/path/detail>。权威 owner=<layer>,context/chain=<resolver 输出>。
+- 已验证声明的 ownership=<owns 或 scope/test_paths>,不是文档目录。
+- 拟改每个路径须重新 resolve 到已授权 owner;范围外根因返回升级建议,不自动扩面。
+- 有效 red_lines/指南约束:<当前权威>,不得用 signal 放宽。
+- 运行适用层验证:<实际 gate/test>;再运行项目 required verification:<仓库要求>。
+- 贴出两类验证证据;无法验证归属/约束/必需门禁时停止自动写入并报告。
 ```
-
-拿到信号后,**每个失败落到它的 layer**,派一个**只在该层内工作**的修复(当前 agent 直接修,
-或 `Agent()` 派 subagent),严格遵守 repo-kit 方法论 §5.2 的两条修复约束:
-
-1. **只在失败所在 layer 内改**;根因在别层 → **不跨层改**,记为新任务并**升级给人**(不自作主张扩面)。
-2. **带着该层 `red_lines` 修**;修完**只跑该层 `test`** 验证(frontmatter 里的命令),再 push。
-
-派修复 subagent 的 prompt 骨架(把信号字段填进去):
-```
-你在修复 CI 失败,严格限定在 layer=<layer> 内。
-- 失败:<kind> @ <path> — <detail>
-- 本层 red_lines(修的时候一条都不能踩):<red_lines>
-- 修完只跑本层验证:<该层 frontmatter 的 test 命令>,贴出通过证据再返回。
-- 若根因不在本层 → 不要跨层改;返回 {escalate: true, reason, suspected_layer}。
-```
-
-> **red_lines 是硬约束**:典型反面教材是"为了过测试把敏感数据打进日志 debug",而该层 red_line
-> 明写"敏感数据禁止进日志"。修复 subagent 必须带着 red_lines,**过测试不是唯一目标**。
 
 ### 第 4 步:修完 → 回到第 1 步 push → 重新等 CI(有界循环)
 
-一轮修复 = 一次"改(单层)→ 本层 test 绿 → commit → push → 重新监督 CI"。循环直到:
+一轮修复 = 一次"授权范围内改 → 层验证 + 项目 required verification 绿 → commit → push → 重新监督 CI"。循环直到:
 
 - **全绿** → 进第 5 步。
 - **同一 layer 连修达重试上限 N** → **停手升级**(附:每轮改了什么、本层 test 结果、仍红的 check)。
@@ -153,7 +144,7 @@ CI 失败**不是**丢一坨日志就去猜。按 `references/signal-contract.md
 - PR 链接 + 最终 CI 状态(全绿 / 升级 / 待人工合)。
 - **每轮自动修复**:第几轮、落在哪个 layer、改了什么、带的 red_lines、本层 test 结果。
 - **升级项**(如有):为什么停手(跨层根因 / 超重试 / 触红线),建议的新任务。
-- 降级说明(如有):无 layer 索引 → 整仓库级修复,风险提示。
+- 权威缺项/冲突(如有):停止自动写入的原因与恢复所需证据。
 
 ---
 
@@ -161,7 +152,7 @@ CI 失败**不是**丢一坨日志就去猜。按 `references/signal-contract.md
 
 - **run-time 消费者,不是 setup 脚手架**:读 repo-kit 铺的信号,不重铺脚手架。
 - **门不自造**:review/merge 门是 auto-review-merge 的事;本 skill 只对门的红/绿**反应**。
-- **修复严格按 layer 收窄**:只在失败层内改、带该层 red_lines、只跑该层 test;跨层根因**升级不偷改**。
+- **修复严格按 layer 收窄**:按声明 ownership 限定改动、带权威 red_lines,跑层验证及项目 required verification;范围外根因**升级不偷改**。
 - **有界自治**:重试上限 + 触红线/跨层/架构变更即升级;**不无限烧、不绕门、不自己 merge**。
 - **监督覆盖全终态**:盯 CI 要覆盖 failure/cancelled/timed_out,不只 success(否则崩溃=看似还在跑)。
 - **每轮真过门**:不 `--no-verify`、不 admin-merge;闭环价值在"每轮都真过门"。
