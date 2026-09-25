@@ -35,10 +35,28 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 | W6 | 运行恢复 | 故障/中断 | 运行维护者 / Supervisor | [`runtime-recovery`](runtime-recovery/SKILL.md) |
 | W7 | Owner 决策 | 需要新授权 | 主 agent → Owner | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md) |
 
+## 仓库先定义，角色再执行
+
+layer 与 PR 的规范属于仓库，不由 Planner、FS 或 PRM 临时定义。统一合同在目标仓固定版本的
+`shared-ci/ai/repo-contract.md`（Repository development contract）；[repo-kit](../repo/repo-kit/SKILL.md)
+在接入时把它落实为本仓 layer 表、各层职责/依赖/验证、开发指南中的 PR 工作单元，以及相应 CI 接线。
+AGENTS 只作这些文档的目录。这里不再维护第二份 layer/PR 定义。
+
+- **Dev Team**：Planner 读取仓库规范，把需求/spec 验收项映射到已有 PR 单元，再给出 task、路径/不做项、依赖与验证。
+  现有 spec/plan gate 通过后 TL 派发、FS 执行；一个跨层 spec 可以对应多个依赖 task，不能借任务划分重定义仓库边界。
+- **其他 agent**：同样从 AGENTS 目录读取仓库开发规范并遵循；无需额外套用 Dev Team 的 Planner/task 流程。
+- **CI / Review**：按同一仓库合同验证路径归属、声明依赖、实际构建/测试与已有审查要求。缺少检查时记录真实缺口；
+  不把 layer 声明、相同行数或 CI 绿当作实现/PR 意图已被证明。
+- **PRM**：消费已有 CI/review 和审批结果、路由具体修复、推进合并；不新增范围大小反馈或另一轮范围审查。
+
+规范缺失先通过 repo-kit 补齐仓库合同；规范变更按实际架构/政策变更处理，不由任务或 label 自行豁免。
+没有统一行数/文件数上限；规则源修改不等于消费者、现网角色和服务器保护已经更新。
+
 ## 合并规则（所有 repo 一致）
 
 - 普通 PR：fail-closed 汇总 gate ✓ + `codex-review-target` ✓ → auto-merge；无需 Owner 批准。
   codex 发现问题 → PR comment + check 失败 → 原作者修复 push → 新 SHA 重审。`kimi-review` 只评论，不阻塞。
+- 普通测试代码删改仍走普通 PR 的 CI / AI review，不单独要求 Owner；修改实际 gate、policy 或权限仍按重要 PR 处理。
 - 重要 PR：另需 Owner approve（CODEOWNERS：`.github/**`、policy/schema/gate、AGENTS/constitution、依赖 pin
   升级、凭据/隐私/数据迁移）。过渡期（GitHub App 上线前）只以 `owner-review` label 提醒。
 - 新 push 使旧 review/check 过期；证据以 PR head SHA 为准，不另写本地回执。
@@ -51,9 +69,9 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 |---|---|
 | target | repo full_name、base 分支/SHA |
 | intent | 目标、验收、禁止事项（行为/UX 默认不变） |
-| scope | owned 路径（layer），不在其中的不改 |
+| scope | 引用仓库已有 PR 单元与当前任务；Dev Team 另带 Planner task，不另造 layer/PR 规则 |
 | owner | 唯一执行者；来源（dev-team / subagent / owner） |
-| evidence | PR URL、head SHA、required checks 结果 |
+| evidence | PR URL、head SHA、已有 required checks/review 与所需审批结果 |
 | next | 下一动作的唯一 owner 与唤醒条件，或明确 hold |
 
 发送 ≠ 被接受；run completed ≠ 交付；merge ≠ 发布/消费。

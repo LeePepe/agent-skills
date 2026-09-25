@@ -10,14 +10,16 @@ description: 用 shared-ci 的模板与检查器让一个 repo 满足统一的 r
 | 需要 | 读取（`shared-ci@<SHA>`） |
 |---|---|
 | repo 最少要有什么 | `ai/repo-contract.md`（机器可读：`schemas/repo-contract-v1.json`） |
+| 如何定义本仓 layer 与 PR | 同版本 `ai/repo-contract.md` 的 Repository development contract；格式见 `docs/context-cli-contract.md` |
 | 执行 agent 在 repo 内怎么工作 | `ai/agent-protocol.md` |
-| 模板 | `templates/`（`AGENTS.md`、`tech-context.md`、`pull_request_template.md`、`CODEOWNERS`、`ci.yml`、`verify`） |
+| 模板 | `templates/`（目录入口、root/leaf tech-context、`development.md`、PR 模板、CODEOWNERS、CI、verify） |
 | 检查 | `scripts/context audit`（合同）、`resolve <path>`（路径→唯一 layer） |
 
 先取当前 shared-ci 发布 SHA（其 release notes / README 顶部），整个任务只用这一个 SHA。
 
 ## 共同前置
 
+- 仓库先定义 layer/PR/验证规范，各种 agent 都从 AGENTS 目录读取它；Dev Team 的 Planner/task 流程只是消费者，不是规则来源。
 - 在目标 repo 建专用分支/worktree；原 checkout 的未提交内容不动。
 - worktree 只建在本机的 agent worktree 根下（见下节）；Owner 的主 checkout 不作为 agent 的写入位置。
 - 读目标 repo 现有 `AGENTS.md`、`CLAUDE.md`、constitution、`docs/`，**保留业务事实和红线**，只改结构。
@@ -36,22 +38,19 @@ agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 rep
 ## init：新建或补齐 repo 合同
 
 1. **探测**：栈（SPM / npm / Python / Xcode）、package/target 列表、测试根、现有 hooks 与 CI、ruleset 当前 required checks（`gh api repos/<o>/<r>/rules/branches/main`）。
-2. **layer 表**：每个 package/target 一个 layer。每个 layer 目录放 `tech-context.md`，frontmatter：
-   ```yaml
-   layer: VoxDomain
-   owns: [Packages/VoxDomain/**]
-   depends_on: []
-   gate: {build: "swift build --package-path Packages/VoxDomain", test: "swift test --package-path Packages/VoxDomain"}
-   red_lines: ["不依赖 UI/平台框架"]
-   ```
-   根目录 `docs/architecture/tech-context.md` 放一张总表（layer → 路径 → 依赖），并声明 `support`（docs 等）排除项。
-   每个可执行路径恰好属于一个 layer；`resolve` 对全部 `git ls-files` 无 unmapped/overlap。
-3. **AGENTS.md**：按模板，≤150 行。只写：必读顺序、协议指针（SHA）、`scripts/verify` 用法、required checks 名单（与 ruleset 一致）、本仓红线与已批准例外、交付要求。
+2. **layer 合同**：从稳定职责、接口与依赖确定边界，不机械地把每个 package/target 当一层，也不为一次任务新增假 layer。
+   按目标版本的 root/leaf 模板生成总表与各层 `tech-context.md`：实现和对应测试的归属、依赖、验证命令、职责/不做项与红线。
+   每个 tracked 路径唯一归属 layer 或有理由的 support；不把整个脚本/源码目录默认排除。实际 import 边界检查接入本仓验证命令。
+3. **PR 与开发规范**：适配已有开发指南，或从 `templates/development.md` 生成 `docs/development.md`。
+   根据本仓 layer 与 CI/docs/review 等支持职责列 PR 工作单元、允许的必要配套、验证和审查来源；引用 layer 的路径权威，不复制第二套 globs。
+   检查需求/spec 跨层时能按接口依赖独立交付，测试/必要文档随实现；记录检查的 enforced/manual/planned/N/A 与证据，不让模板示例冒充已接入。
+4. **AGENTS.md**：只作目录，每个入口说明何时读取哪份权威文档，必须能找到上面的开发/PR 指南、架构与验证/审查来源。
+   使用目标版本的目录模板，保留其机器必需的标题/固定版本指针；读取不到新合同/模板时报告版本迁移依赖，不复制旧 handbook 细则。
    `CLAUDE.md` 等其他 agent 文件只写“先读 AGENTS.md”加该工具特有注意，不重复事实。
-4. **verify**：`scripts/verify [--changed|--all]` 调 resolver 选 layer 并跑其 gate；`.githooks/pre-push` 与 CI 都调它。
-5. **CI**：`.github/workflows/ci.yml` 调 `LeePepe/shared-ci/.github/workflows/quality.yml@<SHA>` 与 review workflows；保留原 required check 名，或在同一 PR 里给出 ruleset 名单映射。
-6. **PR 模板 + CODEOWNERS**：模板原样使用；CODEOWNERS 覆盖重要路径。
-7. **验收**：`audit` 零发现；PR 上汇总 gate 与 review 通过；合并后回读 ruleset（required 含汇总 gate，原有 required 不减少）。
+5. **verify**：`scripts/verify [--changed|--all]` 调 resolver 选 layer 并跑其 gate；`.githooks/pre-push` 与 CI 都调它。
+6. **CI**：`.github/workflows/ci.yml` 调 `LeePepe/shared-ci/.github/workflows/quality.yml@<SHA>` 与 review workflows，传本仓命令；保留原 required check 名，或在同一 PR 里给出 ruleset 名单映射。
+7. **PR 模板 + CODEOWNERS**：模板让作者引用仓库 PR 单元，不要求另造范围；CODEOWNERS 覆盖实际重要路径。
+8. **验收**：从 AGENTS 可找到全部规则；示例已替换为本仓事实；归属/依赖 audit 零发现且本仓验证有真实结果；PR 上汇总 gate 与 review 通过；合并后回读 ruleset（required 含汇总 gate，原有 required 不减少）。
    ruleset 变更是重要操作：列出 old→new 给 Owner，获批后再改。
 
 ## adopt：接入或升级共享库
