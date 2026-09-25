@@ -17,3 +17,5 @@ jobs:
         run: python3 scripts/validate_skills.py
       - name: Check registry / plugin.json / README in sync
         run: python3 scripts/gen_registry.py --check
+      - name: Check dispatch safety guards
+        run: python3 -I -B -m unittest discover -s scripts/tests -p test_dispatch_safety.py -v
