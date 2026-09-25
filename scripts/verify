@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Full catalog entry for local validation, pre-push and CI.
+# Bootstrap/admission is adapted from the published shared-ci template.
+set -euo pipefail
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != "--all" ]; }; then
+    echo "usage: scripts/verify [--all]" >&2; exit 2
+fi
+export PYTHONDONTWRITEBYTECODE=1
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+shared_ci="${SHARED_CI:-$root/.shared-ci}"
+# Bootstrap reads only the pin envelope; the pinned audit validates the complete
+# metadata/guide/workflow contract before any caller gate runs.
+pin="$(python3 -I -B - <<'PY_PIN'
+import json
+import pathlib
+import re
+import subprocess
+
+metadata = pathlib.Path('.github/repo-contract.json')
+if metadata.is_symlink() or metadata.parent.is_symlink():
+    raise SystemExit('repository metadata must not traverse a symlink')
+if metadata.exists():
+    if not metadata.is_file():
+        raise SystemExit('repository metadata must be a regular file')
+    rows = subprocess.check_output(['git', 'ls-files', '--stage', '--', str(metadata)], text=True).splitlines()
+    if len(rows) != 1 or not re.fullmatch(r'100(?:644|755) [0-9a-f]+ 0\t\.github/repo-contract\.json', rows[0]):
+        raise SystemExit('repository metadata must be tracked and unconflicted')
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate metadata key: ' + key)
+            result[key] = value
+        return result
+    data = json.loads(metadata.read_text(encoding='utf-8'), object_pairs_hook=unique)
+    if not isinstance(data, dict) or set(data) != {'schema', 'guide', 'shared_ci', 'dependencies'}:
+        raise SystemExit('invalid repository metadata fields')
+    if type(data['schema']) is not int or data['schema'] != 1:
+        raise SystemExit('unsupported repository metadata schema')
+    if not isinstance(data['guide'], str) or not isinstance(data['dependencies'], dict):
+        raise SystemExit('invalid repository metadata types')
+    pin = data['shared_ci']
+else:
+    text = pathlib.Path('AGENTS.md').read_text(encoding='utf-8')
+    pins = set(re.findall(r'(?:LeePepe/shared-ci@|github\.com/LeePepe/shared-ci/blob/)([0-9a-f]{40})/ai/agent-protocol\.md', text))
+    if len(pins) != 1:
+        raise SystemExit('expected one legacy shared-ci pin or .github/repo-contract.json')
+    pin = pins.pop()
+if not isinstance(pin, str) or not re.fullmatch(r'[0-9a-f]{40}', pin):
+    raise SystemExit('shared_ci must be a full lowercase 40-char SHA')
+print(pin)
+PY_PIN
+)"
+
+# Hook-local Git variables belong to the caller, never the provider. Keep the
+# caller environment unchanged for its index/audit and verification commands.
+provider_git() (
+    for name in $(git rev-parse --local-env-vars); do unset "$name"; done
+    git -C "$shared_ci" "$@"
+)
+# Normalize the parent (including platform temp aliases), reject a symlink cache. Never
+# delete, reset, fetch into or checkout an existing caller-owned cache.
+shared_ci="$(python3 -I -B - "$shared_ci" <<'PY_PATH'
+import os
+import pathlib
+import sys
+path = pathlib.Path(os.path.abspath(sys.argv[1]))
+if path.is_symlink():
+    raise SystemExit('provider path must not traverse a symlink')
+print(path.parent.resolve() / path.name)
+PY_PATH
+)"
+if [ ! -e "$shared_ci" ]; then
+    if [ -n "${SHARED_CI:-}" ]; then
+        echo "[verify] supplied SHARED_CI must already exist at the declared pin" >&2; exit 1
+    fi
+    mkdir "$shared_ci"
+    provider_git init -q
+    provider_git fetch -q --depth=1 https://github.com/LeePepe/shared-ci.git "$pin"
+    provider_git checkout -q --detach FETCH_HEAD
+fi
+if [ ! -d "$shared_ci" ] ||
+   [ "$(provider_git rev-parse --show-toplevel 2>/dev/null || true)" != "$shared_ci" ] ||
+   [ "$(provider_git rev-parse HEAD 2>/dev/null || true)" != "$pin" ]; then
+    echo "[verify] preserve existing provider path; require a checkout at the declared pin" >&2; exit 1
+fi
+# Git status can hide modified code behind assume-unchanged / skip-worktree
+# flags. Reject these (including sparse layouts) rather than altering the index.
+provider_git ls-files -v -z | python3 -I -B -c '
+import sys
+if any(not row.startswith(b"H ") for row in sys.stdin.buffer.read().split(b"\0") if row):
+    raise SystemExit("[verify] preserve provider index flags; require an ordinary clean checkout")
+'
+status="$(provider_git status --porcelain --untracked-files=all --ignored)" || {
+    echo "[verify] cannot inspect provider checkout; refusing to execute it" >&2; exit 1
+}
+if [ -n "$status" ]; then
+    echo "[verify] preserve dirty provider checkout; supply a separate clean pinned checkout" >&2; exit 1
+fi
+context() { python3 -I -B "$shared_ci/scripts/context/_context.py" "$@"; }
+
+context audit
+python3 -I -B "$shared_ci/scripts/lint/workflows.py" --root "$root"
+# Tests receive the admitted provider, never a caller-supplied fixture override.
+export SHARED_CI_SOURCE="$shared_ci"
+layers="$(context layers --all)"
+[ -n "$layers" ] || { echo "[verify] no verification layers resolved" >&2; exit 1; }
+while IFS= read -r layer; do
+    context run "$layer" --mode "${VERIFY_MODE:-local}"
+done <<< "$layers"
+git diff --check
+git diff --cached --check
+echo "[verify] full Catalog/Tooling and pinned contract passed"

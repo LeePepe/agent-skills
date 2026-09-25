@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -14,7 +15,13 @@ SCRIPT = Path(__file__).with_name("discover_review_context.py")
 
 
 def run(*args: str, cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(args, cwd=cwd, text=True, capture_output=True, check=check)
+    # Hooks export the caller's gitdir/index/config. Fixture children belong to
+    # their own repositories, including the discovery command's Git subprocesses.
+    env = os.environ.copy()
+    names = subprocess.check_output(["git", "rev-parse", "--local-env-vars"], text=True)
+    for name in names.splitlines():
+        env.pop(name, None)
+    return subprocess.run(args, cwd=cwd, env=env, text=True, capture_output=True, check=check)
 
 
 def write(root: Path, relative: str, content: str) -> None:
@@ -25,8 +32,11 @@ def write(root: Path, relative: str, content: str) -> None:
 
 class DiscoveryTests(unittest.TestCase):
     def make_repo(self) -> Path:
-        root = Path(tempfile.mkdtemp(prefix="code-review-test-"))
+        temporary = tempfile.TemporaryDirectory(prefix="code-review-test-")
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
         run("git", "init", "-b", "main", cwd=root)
+        run("git", "config", "maintenance.auto", "false", cwd=root)
         run("git", "config", "user.email", "test@example.invalid", cwd=root)
         run("git", "config", "user.name", "Test", cwd=root)
         return root

@@ -4,6 +4,8 @@
 每个 skill 是 `skills/<category>/<name>/` 下的一个目录,含 `SKILL.md`(frontmatter + 指令)
 与可选 `references/`、`scripts/`、`assets/`、`templates/`。
 
+仓库开发、验证与评审入口见 [AGENTS.md](./AGENTS.md)；完整规则见 [repository gates](./docs/repository-gates.md)。
+
 ## Skills
 
 > 下表由 `scripts/gen_registry.py` 从各 `SKILL.md` 的 frontmatter **自动生成**,勿手改。

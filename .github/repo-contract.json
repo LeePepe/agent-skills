@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "guide": "docs/repository-gates.md",
+  "shared_ci": "9b411bc8c523c536efc65a01fbe204d75c5fc869",
+  "dependencies": {}
+}

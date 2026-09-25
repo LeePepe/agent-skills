@@ -6,3 +6,8 @@
 
 # tool logs
 firebase-debug.log
+
+# Local verification provider and generated Python caches
+/.shared-ci/
+__pycache__/
+*.py[cod]

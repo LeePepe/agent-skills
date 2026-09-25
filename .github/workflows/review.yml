@@ -1,0 +1,54 @@
+name: review
+
+# Source-only activation: the complete guide must exist on trusted base.
+# The hosted completion gate fails closed if Codex is unavailable; Kimi is advisory.
+# Runner and effective required-check setup need separate authorization/readback.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  codex-review-target:
+    if: vars.SHARED_CI_REVIEW_RUNNER == 'true'
+    uses: LeePepe/shared-ci/.github/workflows/codex-review.yml@9b411bc8c523c536efc65a01fbe204d75c5fc869
+    with:
+      rules-file: docs/repository-gates.md
+
+  codex-review-gate:
+    if: ${{ always() }}
+    needs: [codex-review-target]
+    runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Require completed Codex review
+        shell: sh
+        env:
+          CODEX_RESULT: ${{ needs.codex-review-target.result }}
+        run: |
+          case "${CODEX_RESULT:-}" in
+            success)
+              echo "Codex review completed successfully."
+              ;;
+            *)
+              echo "::error::Codex review must complete with success; skipped, failed, cancelled or unavailable review cannot pass."
+              echo "Check SHARED_CI_REVIEW_RUNNER and trusted runner availability, inspect the Codex review job, then re-run review for this PR head."
+              echo "Owner approval and Kimi success do not substitute for completed Codex review."
+              exit 1
+              ;;
+          esac
+
+  kimi-review:
+    if: vars.SHARED_CI_REVIEW_RUNNER == 'true'
+    uses: LeePepe/shared-ci/.github/workflows/kimi-review.yml@9b411bc8c523c536efc65a01fbe204d75c5fc869
+    with:
+      rules-file: docs/repository-gates.md

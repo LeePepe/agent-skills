@@ -1,0 +1,33 @@
+# Important paths need Owner review (enforced once the ruleset requires code-owner review).
+# @OWNER is a setup-held placeholder; resolve an eligible review owner before activation.
+/.github/                         @OWNER
+/.githooks/                       @OWNER
+/docs/repository-gates.md         @OWNER
+/AGENTS.md                        @OWNER
+/CLAUDE.md                        @OWNER
+/.specify/memory/constitution.md  @OWNER
+/docs/architecture/               @OWNER
+**/tech-context.md                @OWNER
+/scripts/verify                   @OWNER
+/scripts/check_syntax.py           @OWNER
+/scripts/run_tests.py              @OWNER
+/scripts/validate_skills.py        @OWNER
+/scripts/gen_registry.py           @OWNER
+/scripts/install-symlinks.sh        @OWNER
+/policy/                          @OWNER
+/schemas/                         @OWNER
+/skills/workflow/                  @OWNER
+# Ordinary test fixtures have normal AI/quality review, not a test-only Owner hold.
+/skills/workflow/multica-delivery-supervisor/tests/
+/skills/repo/multica-issue/         @OWNER
+/skills/repo/repo-kit/              @OWNER
+/skills/repo/auto-review-merge/      @OWNER
+# Dependency manifests and lockfiles (pin upgrades)
+**/Package.swift                  @OWNER
+**/Package.resolved               @OWNER
+**/project.yml                    @OWNER
+**/package.json                   @OWNER
+**/package-lock.json              @OWNER
+**/pyproject.toml                 @OWNER
+**/uv.lock                        @OWNER
+**/requirements*.txt              @OWNER

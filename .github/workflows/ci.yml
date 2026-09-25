@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    uses: LeePepe/shared-ci/.github/workflows/quality.yml@9b411bc8c523c536efc65a01fbe204d75c5fc869
+    with:
+      runs-on: ubuntu-latest
+      changed-only: false
+      verify-command: scripts/verify --all
+      lint-command: ""
+      build-command: ""
+      test-command: ""
