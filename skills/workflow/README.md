@@ -35,6 +35,24 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 | W6 | 运行恢复 | 故障/中断 | 运行维护者 / Supervisor | [`runtime-recovery`](runtime-recovery/SKILL.md) |
 | W7 | Owner 决策 | 需要新授权 | 主 agent → Owner | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md) |
 
+## PR 范围与大小
+
+一个 PR 只交付一个可独立验证、可独立合并的目的；“同一 repo / layer / 总计划”不是把多个目的装在一起的理由。
+实现与其必要测试、文档一起交付。目录整理、独立旧缺陷、工具扩展、审批政策变更分别切片；本次改动引入的缺陷必须在本片修好。
+
+- 默认上限：完整 PR 的 `additions + deletions <= 400` 且 `changed_files <= 10`，不是净增行、最后一个 commit 或本次 push。
+  测试、文档、锁文件、生成文本都计入；二进制仍计文件数，行数为零不证明风险低。目标仓有更严格预算时从严。
+- **派发前**：Planner/W0 在现有 intent/scope 中写清一个目的、owned 路径、不做项、预计规模和依赖；超过预算先重切，不先开写。
+- **执行中**：新增独立需求或越出 scope，交原 TL/W0 调整后续任务；不要不断向当前分支追加。每次提交前检查拟提交的完整补丁，push 前重算整 PR。
+- **审查时**：Reviewer/PRM 依据实际 diff 检查目的、范围和规模；不合格退回原实现者/TL 重切，不请求 Owner 替超大 PR 兜底。
+  限制通过也不代表目的单一；审批政策和实际服务器保护仍单独适用。
+- **接入 CI**：使用目标 repo 固定版本 shared-ci 的汇总门禁核验当前 head 的完整 PR 统计；缺失、过期或无法读取的数据不是通过。
+  旧 provider 没有此检查时，流程预算仍适用，但必须报告机械门禁尚未接入；不得声称所有仓库已经强制执行。
+
+依赖按实际接口先后合入，保持每步可构建、测试且保留既有门禁；不要为压行数拆开不可分离的实现/测试、删覆盖、压缩代码或伪装生成物。
+说明、label、已批准的大计划、分成多次提交都不是预算豁免。若一片无法独立落在预算内，先返回 TL/W0 改切片设计；不自行放宽上限或改变保护。
+上述规则属于共享 workflow/CI；AGENTS 只提供读取入口，不复制这些规则。
+
 ## 合并规则（所有 repo 一致）
 
 - 普通 PR：fail-closed 汇总 gate ✓ + `codex-review-target` ✓ → auto-merge；无需 Owner 批准。
@@ -51,9 +69,9 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 |---|---|
 | target | repo full_name、base 分支/SHA |
 | intent | 目标、验收、禁止事项（行为/UX 默认不变） |
-| scope | owned 路径（layer），不在其中的不改 |
+| scope | 单一目的的 owned 路径（layer）、不做项、PR 预算与预计规模；不在其中的不改 |
 | owner | 唯一执行者；来源（dev-team / subagent / owner） |
-| evidence | PR URL、head SHA、required checks 结果 |
+| evidence | PR URL、head SHA、完整 PR 增删行/文件数、required checks 结果 |
 | next | 下一动作的唯一 owner 与唤醒条件，或明确 hold |
 
 发送 ≠ 被接受；run completed ≠ 交付；merge ≠ 发布/消费。

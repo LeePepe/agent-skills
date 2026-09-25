@@ -18,6 +18,8 @@ description: 用 shared-ci 的模板与检查器让一个 repo 满足统一的 r
 
 ## 共同前置
 
+- init/adopt/split 是流程，不是“把整次升级塞进一个 PR”。先按[共享 PR 预算](../../workflow/README.md#pr-范围与大小)切成独立可合并的单目的任务。
+  配置接线、独立工具改进、目录整理、审批政策变更不因同一次 init 合并成总包；有真实依赖就顺序接入，保留原验证入口和门禁。
 - 在目标 repo 建专用分支/worktree；原 checkout 的未提交内容不动。
 - worktree 只建在本机的 agent worktree 根下（见下节）；Owner 的主 checkout 不作为 agent 的写入位置。
 - 读目标 repo 现有 `AGENTS.md`、`CLAUDE.md`、constitution、`docs/`，**保留业务事实和红线**，只改结构。
