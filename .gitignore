@@ -6,3 +6,8 @@
 
 # tool logs
 firebase-debug.log
+
+# Immutable verification dependency and interpreter caches
+/.shared-ci/
+__pycache__/
+*.pyc

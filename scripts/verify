@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Same full verification entry for local hooks and hosted CI.
+set -euo pipefail
+case "${1:-}" in
+  ""|--all) ;;
+  *) echo "usage: scripts/verify [--all]" >&2; exit 2 ;;
+esac
+[ "$#" -le 1 ] || { echo "usage: scripts/verify [--all]" >&2; exit 2; }
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+# Resolve the intended caller first, then detach child Git commands from hook
+# repository selection/config. Otherwise -C can still address the outer gitdir,
+# and cache/fixture operations can mutate its index, config or refs. Do not use
+# `set --` here: verification arguments must remain the caller's arguments.
+git_local_env="$(git rev-parse --local-env-vars)"
+while IFS= read -r git_variable; do
+  unset "$git_variable"
+done <<< "$git_local_env"
+export PYTHONDONTWRITEBYTECODE=1
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else "Python 3.11+ is required")'
+pin="$(sed -n 's|.*LeePepe/shared-ci@\([0-9a-f]\{40\}\)/ai/agent-protocol\.md.*|\1|p' AGENTS.md)"
+[[ "$pin" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid or ambiguous shared-ci protocol pin" >&2; exit 1; }
+shared_ci="$root/.shared-ci"
+if [ ! -e "$shared_ci" ] && [ ! -L "$shared_ci" ]; then
+  git init -q "$shared_ci"
+  git -C "$shared_ci" fetch -q --depth=1 https://github.com/LeePepe/shared-ci.git "$pin"
+  git -C "$shared_ci" checkout -q --detach FETCH_HEAD
+fi
+if [ -L "$shared_ci" ] || [ ! -d "$shared_ci/.git" ] ||
+   [ "$(git -C "$shared_ci" rev-parse --show-toplevel)" != "$shared_ci" ] ||
+   [ "$(git -C "$shared_ci" rev-parse HEAD)" != "$pin" ] ||
+   [ -n "$(git -C "$shared_ci" status --porcelain --untracked-files=all)" ]; then
+  echo "shared-ci cache is invalid, dirty or at the wrong revision; preserved for inspection" >&2
+  exit 1
+fi
+context="$shared_ci/scripts/context/_context.py"
+python3 "$context" audit
+python3 "$shared_ci/scripts/lint/workflows.py" --root "$root"
+layers="$(python3 "$context" layers --all)"
+[ -n "$layers" ] || { echo "no verification layers resolved" >&2; exit 1; }
+while IFS= read -r layer; do
+  python3 "$context" run "$layer" --mode "${VERIFY_MODE:-local}"
+done <<< "$layers"
+git diff --check
+git diff --cached --check
+echo "[verify] full catalog/tooling and pinned contract passed"
