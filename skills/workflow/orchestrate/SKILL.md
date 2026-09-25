@@ -19,13 +19,13 @@ description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成�
 ## 2. 切片
 
 - W0 明确各 repo 的目标、验收和真实依赖；跨 repo 按 provider → 发布 → 消费者（W5）。
-- 交给 Dev Team 的目标由其 [Planner 在规划阶段拆需求/spec/layer task](../README.md#dev-teamplanner-给出任务范围w2)，W0 不代替 Planner 定义 FS 的任务范围。
-  直接交其他 agent 的任务按目标仓 AGENTS 目录下的开发文档执行，不额外要求 Planner 拆分或统一 PR 范围检查。
+- 先读[仓库已有的 layer/PR 规范](../README.md#仓库先定义角色再执行)。Dev Team 的 Planner 据此拆需求/spec task，W0 不另定义架构边界。
+  其他 agent 也遵循同一仓库规范，但不要求 Dev Team 的 Planner/task 流程；合同缺失先按 repo-kit 补齐，而非让角色各定一套。
 - 依赖只按真实的数据/接口关系排；无依赖的切片并行，但**同一 repo 同一路径只有一个写者**。
 - 共享接口、迁移、全局重构串行；机械推广（多仓同一模板）可并行。
 - 需求不清先问 Owner（W7）或用 grilling；架构迁移不夹带功能/UX 改动。
 
-完成条件：目标、验收、依赖和承接者明确；Dev Team 的实现就绪条件由 Planner 与既有 spec/plan gate 保证。
+完成条件：仓库合同可读取，目标、验收、依赖和承接者明确；Dev Team 的任务拆分由 Planner 与既有 spec/plan gate 保证。
 
 ## 3. 选来源并派发
 
@@ -33,7 +33,7 @@ description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成�
 |---|---|
 | 产品功能/bug、需要 Planner 拆解、要留 issue 历史 | 模板推广、脚手架、调研、一次性工具、Dev Team 不可用时 |
 
-派发内容包含[交接最小字段](../README.md#交接最小字段)。给 Dev Team 的目标交其 Planner 产出任务图；
+派发内容包含[交接最小字段](../README.md#交接最小字段)，并指向仓库规范。给 Dev Team 的目标交其 Planner 按这些规范产出任务图；
 直接派发其他 agent 时写明目标 repo/base、任务与验收、“从 AGENTS.md 目录读取开发指南”、禁止事项及完成时回报 PR URL。
 携带当前任务需要的指针，不假设执行者或部署角色会自动读到个人 skills 的更新。
 

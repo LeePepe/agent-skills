@@ -35,31 +35,22 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 | W6 | 运行恢复 | 故障/中断 | 运行维护者 / Supervisor | [`runtime-recovery`](runtime-recovery/SKILL.md) |
 | W7 | Owner 决策 | 需要新授权 | 主 agent → Owner | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md) |
 
-## Dev Team：Planner 给出任务范围（W2）
+## 仓库先定义，角色再执行
 
-以下拆分要求只适用于 Dev Team，不是所有 PR 的统一范围门禁，也不设行数/文件数上限。
-范围在 **Planner 产出 spec/plan/tasks 时**给出，经现有 spec/plan gate 后由 TL 派发，FS 开始实现前已确定。
+layer 与 PR 的规范属于仓库，不由 Planner、FS 或 PRM 临时定义。统一合同在目标仓固定版本的
+`shared-ci/ai/repo-contract.md`（Repository development contract）；[repo-kit](../repo/repo-kit/SKILL.md)
+在接入时把它落实为本仓 layer 表、各层职责/依赖/验证、开发指南中的 PR 工作单元，以及相应 CI 接线。
+AGENTS 只作这些文档的目录。这里不再维护第二份 layer/PR 定义。
 
-1. **Planner 拆需求/spec**：独立需求或不同 spec 的工作分别列出；一个 spec 可覆盖多个 layer，但每个 FS task 只实现其中一个 layer 的验收子集。
-   跨层行为用接口契约和 task 依赖连接；必要时先规划可独立验证的接口/基础任务，再规划消费者任务，不合成一个跨层 FS task。
-2. **Planner 产出 task 表**：每个 task 都有下列信息，同一 layer 内的独立需求也分 task；CI、独立文档整理、reviewer 规则按各自职责单列任务。
+- **Dev Team**：Planner 读取仓库规范，把需求/spec 验收项映射到已有 PR 单元，再给出 task、路径/不做项、依赖与验证。
+  现有 spec/plan gate 通过后 TL 派发、FS 执行；一个跨层 spec 可以对应多个依赖 task，不能借任务划分重定义仓库边界。
+- **其他 agent**：同样从 AGENTS 目录读取仓库开发规范并遵循；无需额外套用 Dev Team 的 Planner/task 流程。
+- **CI / Review**：按同一仓库合同验证路径归属、声明依赖、实际构建/测试与已有审查要求。缺少检查时记录真实缺口；
+  不把 layer 声明、相同行数或 CI 绿当作实现/PR 意图已被证明。
+- **PRM**：消费已有 CI/review 和审批结果、路由具体修复、推进合并；不新增范围大小反馈或另一轮范围审查。
 
-   | task 字段 | 内容 |
-   |---|---|
-   | 来源 | task ID、需求/spec 路径及版本、对应验收项 ID |
-   | 范围 | 一个 layer 或非代码责任域、允许修改的路径、明确不做项 |
-   | 交付 | 必要实现/测试/配套文档、task-local 验收、依赖 task 与合入顺序 |
-   | 验证 | 所属 layer 的验证、受影响 CI、对应 reviewer 职责 |
-
-3. **审查与派发**：现有 spec/plan gate 检查需求 → spec 验收项 → task 的完整对应和边界；TL 按已通过的任务图派发，不把多个 task 合成一个 FS 实现包。
-   Planner 的规划文档交付与 FS 的实现交付分开；必要的实现配套文档、测试仍在对应 FS task 内。
-4. **FS 执行**：一个已就绪 task 对应独立分支/PR，只改该 task 的内容。需要改另一 layer、spec 或新增需求时，在继续实现前交 TL 返回 Planner 调整任务并重过原规划关。
-   当前 task 的必要测试和修复要完成；不可独立构建/验证的拆法在规划阶段重设计，不交给 FS 凑片段。
-5. **PRM 接手**：只按已有规则跟进 CI/review、路由具体修复和合并；不判断或反馈“PR 范围过大”，不要求额外范围报告，也不新增范围阻塞项。
-
-非 Dev Team 的 agent 直接从目标仓 `AGENTS.md` 目录进入开发指南/固定版本协议、相关 layer 文档和验证/审查规则，按用户任务开发。
-不要求它们补 Planner task 图、范围声明或通过范围大小检查；既有用户授权、CI/review 和重要路径保护仍适用。
-这些开发细则放在目录指向的权威文档，不放进 AGENTS 正文。修改本规则源不等于已经更新现网角色或消费者版本。
+规范缺失先通过 repo-kit 补齐仓库合同；规范变更按实际架构/政策变更处理，不由任务或 label 自行豁免。
+没有统一行数/文件数上限；规则源修改不等于消费者、现网角色和服务器保护已经更新。
 
 ## 合并规则（所有 repo 一致）
 
@@ -78,7 +69,7 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 |---|---|
 | target | repo full_name、base 分支/SHA |
 | intent | 目标、验收、禁止事项（行为/UX 默认不变） |
-| scope | Dev Team 引用 Planner 的 task 及范围；其他来源简述任务即可，无须补统一范围声明 |
+| scope | 引用仓库已有 PR 单元与当前任务；Dev Team 另带 Planner task，不另造 layer/PR 规则 |
 | owner | 唯一执行者；来源（dev-team / subagent / owner） |
 | evidence | PR URL、head SHA、已有 required checks/review 与所需审批结果 |
 | next | 下一动作的唯一 owner 与唤醒条件，或明确 hold |
