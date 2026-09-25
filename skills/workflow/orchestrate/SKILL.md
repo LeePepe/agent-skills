@@ -18,13 +18,14 @@ description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成�
 
 ## 2. 切片
 
-- 一个切片 = 一个 repo 内符合[PR 范围](../README.md#pr-范围)的可独立 merge PR；代码层、CI、文档、reviewer 规则按实际责任域切分。
-  先确定目的、允许路径/不做项、layer、CI 验证和审查责任；必要跨域配套在派发前说明，独立目的分别派发。跨 repo 按 provider → 发布 → 消费者（W5）。
+- W0 明确各 repo 的目标、验收和真实依赖；跨 repo 按 provider → 发布 → 消费者（W5）。
+- 交给 Dev Team 的目标由其 [Planner 在规划阶段拆需求/spec/layer task](../README.md#dev-teamplanner-给出任务范围w2)，W0 不代替 Planner 定义 FS 的任务范围。
+  直接交其他 agent 的任务按目标仓 AGENTS 目录下的开发文档执行，不额外要求 Planner 拆分或统一 PR 范围检查。
 - 依赖只按真实的数据/接口关系排；无依赖的切片并行，但**同一 repo 同一路径只有一个写者**。
 - 共享接口、迁移、全局重构串行；机械推广（多仓同一模板）可并行。
 - 需求不清先问 Owner（W7）或用 grilling；架构迁移不夹带功能/UX 改动。
 
-完成条件：每片只有一个可独立接受的结果，路径边界、验证和审查责任明确，包含必要测试/文档且合入顺序清楚。
+完成条件：目标、验收、依赖和承接者明确；Dev Team 的实现就绪条件由 Planner 与既有 spec/plan gate 保证。
 
 ## 3. 选来源并派发
 
@@ -32,20 +33,20 @@ description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成�
 |---|---|
 | 产品功能/bug、需要 Planner 拆解、要留 issue 历史 | 模板推广、脚手架、调研、一次性工具、Dev Team 不可用时 |
 
-派发内容必须包含[交接最小字段](../README.md#交接最小字段)。subagent prompt 里写明：目标 repo 与 base、
-“先读该 repo AGENTS.md”、该片的完整范围声明、验收、禁止事项、完成时回报 PR URL。
-显式携带越界退回原 TL/W0 的责任，不假设执行者或部署角色会自动读到个人 skills 的更新。
+派发内容包含[交接最小字段](../README.md#交接最小字段)。给 Dev Team 的目标交其 Planner 产出任务图；
+直接派发其他 agent 时写明目标 repo/base、任务与验收、“从 AGENTS.md 目录读取开发指南”、禁止事项及完成时回报 PR URL。
+携带当前任务需要的指针，不假设执行者或部署角色会自动读到个人 skills 的更新。
 
 ## 4. 观察
 
-- 以 PR 为观察单位：CI 结果、review comment、是否卡住。实现/检查失败交回**原作者**；范围问题交 TL；确需新审批、权限或运行边界决策才交 Owner。不开第二个写者。
-- 观察整 PR 的路径、责任域和目的是否漂移，不只看最近一次 push。越界或出现第二目的，交原 TL/实现者重切；规模信号不自动变成 Owner 审批要求。
+- 以 PR 为观察单位：CI 结果、review comment、是否卡住。实现/检查失败交回**原作者**；Dev Team 的规划调整由 TL 返回 Planner；确需新审批、权限或运行边界决策才交 Owner。不开第二个写者。
+- 不给 PRM 增加 PR 大小/范围反馈或验收职责；它按现有 CI/review 与合并条件推进。
 - 主 agent 可以安全停止失控的执行，但不手工替代 Supervisor/PRM 去推进，否则如实记为手工介入。
 - 故障（Multica/NAS/daemon/runner 不可用）走 [W6](../runtime-recovery/SKILL.md)，不重复重试。
 
 ## 5. 验收与报告
 
-- 切片完成 = 目的/范围及对应审查复核通过 + PR merged + 验收项在 PR 上有证据（CI、review、必要时截图/消费者 build）。
+- 交付完成 = PR merged + 验收项在 PR 上有证据（CI、review、必要时截图/消费者 build），不追加通用范围门禁。
 - 目标完成 = 所有切片完成 + goal 的整体验收项逐条有证据；不从“CI 绿”推断“已消费/已发布”。
 - 向 Owner 报告：完成了什么（链接）、还剩什么、哪些等 Owner、下一步。不写过程流水账。
 

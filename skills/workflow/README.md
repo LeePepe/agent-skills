@@ -35,32 +35,31 @@ Owner ──目标/决策──► W0 总体编排（主 agent；只计划/委�
 | W6 | 运行恢复 | 故障/中断 | 运行维护者 / Supervisor | [`runtime-recovery`](runtime-recovery/SKILL.md) |
 | W7 | Owner 决策 | 需要新授权 | 主 agent → Owner | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md) |
 
-## PR 范围
+## Dev Team：Planner 给出任务范围（W2）
 
-PR 大小由范围约束，不设统一行数或文件数上限。一个 PR = 一个可独立验收的目的 + 一个主要责任域 + 完成它必需的配套改动。
-责任域按目标仓已有的路径归属、layer、CI 验证职责和 reviewer 分工确定，可以是某个代码层、CI 接线、文档或 reviewer 规则；不是只按文件扩展名分组。
+以下拆分要求只适用于 Dev Team，不是所有 PR 的统一范围门禁，也不设行数/文件数上限。
+范围在 **Planner 产出 spec/plan/tasks 时**给出，经现有 spec/plan gate 后由 TL 派发，FS 开始实现前已确定。
 
-**派发前**，Planner/W0 在现有 intent/scope 中确定以下内容，执行者按此改动：
+1. **Planner 拆需求/spec**：独立需求或不同 spec 的工作分别列出；一个 spec 可覆盖多个 layer，但每个 FS task 只实现其中一个 layer 的验收子集。
+   跨层行为用接口契约和 task 依赖连接；必要时先规划可独立验证的接口/基础任务，再规划消费者任务，不合成一个跨层 FS task。
+2. **Planner 产出 task 表**：每个 task 都有下列信息，同一 layer 内的独立需求也分 task；CI、独立文档整理、reviewer 规则按各自职责单列任务。
 
-| 范围字段 | 要求 |
-|---|---|
-| 目的 / 主责任域 | 一个验收结果；同一 repo、layer、reviewer 或总计划都不足以合并多个独立目的 |
-| 允许路径 / 不做项 | 具体文件或有界目录，包括必要测试、文档；不能以整个仓库作兜底范围 |
-| layer / 依赖 | 从仓库既有 layer 表解析；support 路径也要说明所属目的，不能成为无限附加项 |
-| CI 验证 | 按实际 diff、依赖影响和既有强制全量规则确定检查；多跑依赖层不扩大可修改范围 |
-| 审查责任 | 指定对应 Reviewer 职责与需要 Owner 决策的受保护事项；从可信规则判定，不靠作者选 label |
+   | task 字段 | 内容 |
+   |---|---|
+   | 来源 | task ID、需求/spec 路径及版本、对应验收项 ID |
+   | 范围 | 一个 layer 或非代码责任域、允许修改的路径、明确不做项 |
+   | 交付 | 必要实现/测试/配套文档、task-local 验收、依赖 task 与合入顺序 |
+   | 验证 | 所属 layer 的验证、受影响 CI、对应 reviewer 职责 |
 
-- **切片**：某层实现携带其必要测试和配套文档；独立 CI 改造、文档整理、reviewer 规则或审批政策变更各自成片。
-  即使在同一路径内也按目的拆分。确实不能独立合并的跨域改动，派发前列明最小配套路径、不可分离原因及全部 CI/审查责任。
-- **执行**：检查整 PR 的实际 diff，不只看最后一次 push。新独立问题另开任务；范围不足先回 TL/W0，不能由执行者追加目录或改范围声明来追认越界。
-  当前补丁引入的缺陷仍须修好；必要修复越界时先修订任务或重切，保留每片可构建、可验证的状态。
-- **审查**：Reviewer 对照原任务范围与整 PR diff 检查每处改动是否必要，路径在范围内也不能夹带第二目的。
-  PRM 核对当前 head 的范围审查、required CI 和审批证据，不重复代码审查。越界退原实现者/TL，不自动转交 Owner review 整个大包。
-- **自动化边界**：路径解析、CI layer selection、范围准入是不同检查。现有 selection 决定测试影响面，不证明改动在授权范围内；
-  尚未实现或采纳的范围门禁要明确报告，不能把 CI 绿或行数少当作范围合格。所有既有 required checks 与服务器保护继续适用。
+3. **审查与派发**：现有 spec/plan gate 检查需求 → spec 验收项 → task 的完整对应和边界；TL 按已通过的任务图派发，不把多个 task 合成一个 FS 实现包。
+   Planner 的规划文档交付与 FS 的实现交付分开；必要的实现配套文档、测试仍在对应 FS task 内。
+4. **FS 执行**：一个已就绪 task 对应独立分支/PR，只改该 task 的内容。需要改另一 layer、spec 或新增需求时，在继续实现前交 TL 返回 Planner 调整任务并重过原规划关。
+   当前 task 的必要测试和修复要完成；不可独立构建/验证的拆法在规划阶段重设计，不交给 FS 凑片段。
+5. **PRM 接手**：只按已有规则跟进 CI/review、路由具体修复和合并；不判断或反馈“PR 范围过大”，不要求额外范围报告，也不新增范围阻塞项。
 
-行数/文件数可作估算和发现范围膨胀的信号，不是验收标准；按职责和目的重新切片，保留必要测试/文档，不为凑数字删覆盖或拆出不可构建的片段。
-上述规则属于共享 workflow/CI；AGENTS 只提供读取入口，不复制这些规则。
+非 Dev Team 的 agent 直接从目标仓 `AGENTS.md` 目录进入开发指南/固定版本协议、相关 layer 文档和验证/审查规则，按用户任务开发。
+不要求它们补 Planner task 图、范围声明或通过范围大小检查；既有用户授权、CI/review 和重要路径保护仍适用。
+这些开发细则放在目录指向的权威文档，不放进 AGENTS 正文。修改本规则源不等于已经更新现网角色或消费者版本。
 
 ## 合并规则（所有 repo 一致）
 
@@ -79,9 +78,9 @@ PR 大小由范围约束，不设统一行数或文件数上限。一个 PR = �
 |---|---|
 | target | repo full_name、base 分支/SHA |
 | intent | 目标、验收、禁止事项（行为/UX 默认不变） |
-| scope | [PR 范围](#pr-范围)中的主责任域、允许路径/不做项、layer、CI 验证和审查责任；不在其中的不改 |
+| scope | Dev Team 引用 Planner 的 task 及范围；其他来源简述任务即可，无须补统一范围声明 |
 | owner | 唯一执行者；来源（dev-team / subagent / owner） |
-| evidence | PR URL、head SHA、整 PR 范围审查结论、required checks 与所需审批结果 |
+| evidence | PR URL、head SHA、已有 required checks/review 与所需审批结果 |
 | next | 下一动作的唯一 owner 与唤醒条件，或明确 hold |
 
 发送 ≠ 被接受；run completed ≠ 交付；merge ≠ 发布/消费。

@@ -18,8 +18,7 @@ description: 用 shared-ci 的模板与检查器让一个 repo 满足统一的 r
 
 ## 共同前置
 
-- init/adopt/split 是流程，不是 PR 范围。先按[共享 PR 范围](../../workflow/README.md#pr-范围)的路径、layer、CI 验证及审查责任拆任务。
-  CI 接线、文档整理、reviewer/审批规则、工具实现各自成片并携带必要测试/文档；不可分离的最小配套须在派发前列清，有依赖就顺序接入。
+- 开发步骤从目标仓 AGENTS 目录指向的指南/固定版本协议读取；Dev Team 按 Planner task 执行，其他来源不强制套用其 task 拆分和范围声明。
 - 在目标 repo 建专用分支/worktree；原 checkout 的未提交内容不动。
 - worktree 只建在本机的 agent worktree 根下（见下节）；Owner 的主 checkout 不作为 agent 的写入位置。
 - 读目标 repo 现有 `AGENTS.md`、`CLAUDE.md`、constitution、`docs/`，**保留业务事实和红线**，只改结构。
@@ -48,7 +47,8 @@ agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 rep
    ```
    根目录 `docs/architecture/tech-context.md` 放一张总表（layer → 路径 → 依赖），并声明 `support`（docs 等）排除项。
    每个可执行路径恰好属于一个 layer；`resolve` 对全部 `git ls-files` 无 unmapped/overlap。
-3. **AGENTS.md**：按模板，≤150 行。只写：必读顺序、协议指针（SHA）、`scripts/verify` 用法、required checks 名单（与 ruleset 一致）、本仓红线与已批准例外、交付要求。
+3. **AGENTS.md**：只作目录，每个入口说明何时读取哪份权威文档。开发步骤、验证/CI、审查、红线与交付细则写在所指文档/配置中。
+   使用目标版本支持的目录模板，保留其机器必需的标题/固定版本指针；旧合同仍要求内联细则时先报告迁移依赖，不向目录复制规则来凑检查。
    `CLAUDE.md` 等其他 agent 文件只写“先读 AGENTS.md”加该工具特有注意，不重复事实。
 4. **verify**：`scripts/verify [--changed|--all]` 调 resolver 选 layer 并跑其 gate；`.githooks/pre-push` 与 CI 都调它。
 5. **CI**：`.github/workflows/ci.yml` 调 `LeePepe/shared-ci/.github/workflows/quality.yml@<SHA>` 与 review workflows；保留原 required check 名，或在同一 PR 里给出 ruleset 名单映射。
