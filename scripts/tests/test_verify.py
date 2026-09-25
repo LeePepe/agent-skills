@@ -205,7 +205,15 @@ class VerifyTests(unittest.TestCase):
         result = run(self.repo.root, "git", "-c", "core.hooksPath=.githooks", "push",
                      "fixture", "HEAD:refs/heads/verified", env=self.env, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("Ran 4 tests", result.stderr)
+        # Catalog now includes the reviewed recipes. Check the original cases
+        # and every composed module, rather than a pre-integration suite count.
+        for name in ("explicit_spec_resolves_ambiguous_worktree", "invalid_base_fails_closed",
+                     "layered_spec_kit_worktree_surface", "unlayered_repository_declares_gaps"):
+            self.assertIn("(test_discover_review_context.DiscoveryTests.test_" + name + ") ... ok",
+                          result.stderr)
+        for module in ("test_consumer_authority", "test_dispatch_safety",
+                       "test_entrypoint_recipe", "test_layer_routing_recipe"):
+            self.assertIn("(" + module + ".", result.stderr)
         self.assertIn("preserve_outer_repository", result.stderr)
         self.assertIn("full Catalog/Tooling", result.stdout)
         self.assertEqual({name: (gitdir / name).read_bytes() for name in before}, before)

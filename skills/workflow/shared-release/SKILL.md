@@ -27,7 +27,11 @@ provider 改动与消费者改动是**不同 PR、不同 owner**；不在消费�
 
 ## 3. 消费者升级
 
-- 每个消费 repo 一个 PR，只改：依赖 pin（manifest/lockfile/`uses:@SHA`）、`AGENTS.md` 依赖段的版本指针、必要的适配代码。
+- 每个消费 repo 一个 PR，只改：实际 manifest/lockfile/caller 中的依赖 pin（exact 版本 / 完整 SHA）、维护中的版本文档引用/机器元数据、必要适配代码。
+  AGENTS 保持条件式链接目录，仅在入口目标变化时更新链接；依赖信息由实际配置与对应版本文档维护。
+  核对版本文档与实际 pin 匹配，所有 shared-ci caller 与协议链接的完整 SHA 一致。
+  旧固定版本保留该版支持的目录标题/完整 SHA 指针并按该版合同验证；仅在所选已发布版本支持时采用新机器元数据。
+  真实不兼容交 provider owner，不绕过 audit。
 - 按新版本的 `MIGRATION.md` 执行；消费者自己的 required CI 通过即完成。依赖 pin 升级属于**重要 PR**，需 Owner approve。
 - 消费者之间互不等待；某个消费者失败只阻塞它自己，provider 缺陷回到 provider 修，新版本再发。
 

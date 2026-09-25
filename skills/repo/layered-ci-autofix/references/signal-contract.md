@@ -1,133 +1,93 @@
-# Signal Contract — CI 失败信号怎么解析成"按 layer 收窄的修复范围"
+# Signal Contract — 失败定位与权威修复边界
 
-本 skill 的自动修复靠**结构化失败信号**收窄范围。信号的**生产方**是 layered-agent-context
-铺的 CI required(方法论 §5.1);**消费方**是本 skill。本文定义:信号长什么样、从 CI 里怎么取、
-取不到时怎么降级、以及怎么把它映射成一个"只在某层内、带该层 red_lines"的修复任务。
+## 1. 先沿目录找到实际权威
 
-## 1. 信号的规范形状(生产方保证)
+`AGENTS.md` 是目录入口:按失败定位/架构/验证条件跟随链接,读仓库指南、根层表、
+叶文档和实际 resolver 的契约。目录链接说明去哪里读,本身不证明路径归属。
+记录仓库选定版本(精确 pin/实现)、根文档、resolver 入口及其支持的格式;
+核对元数据与 workflow pin 一致。不能用 AGENTS 内某个标题是否存在判定支持,
+也不能把 package、文档所在目录或最长路径前缀当 layer。
 
-layered-agent-context 方法论 §5.1 规定 CI 失败要能解析出**定位 + 约束**:
+**选定版本分支**:
+- 若选定 provider 支持简化 `tech-context.md`:按其实际根发现规则读取
+  `docs/architecture/tech-context.md` 或根 `tech-context.md`,根表指向叶,
+  叶的 `owns` 是仓库相对 ownership globs;根 `support` 是带 reason 的排除声明。
+- 若使用 legacy `CONTEXT.md`:保留该版本 index routes/exclusions 与 leaf
+  `scope`/`test_paths` 分支。测试路径与实现路径共同参与唯一归属;
+  root `CONTEXT.md` 存在时不得自行改选旁边的简化表。
+- 按选定版本的契约验证,不把待合并模板当作已发布能力。当前 shared-ci schema-1
+  CLI 的格式/输出见该精确版本的 `docs/context-cli-contract.md`。
+  无法证明格式支持、路由断链或权威冲突 → **停止自动写入**,报告依赖/升级;
+  可继续只读诊断与 CI 监督,不得通过换 resolver 或扩大范围恢复自动修复。
 
-```jsonc
-{
-  "layer":      "<失败落在哪个 layer>",     // 由失败路径映射(见 §3)
-  "path":       "<出错文件:行>",
-  "kind":       "test | lint | build | typecheck | arch-lint",
-  "detail":     "<失败摘要:哪个测试 / 哪条规则 / 哪个反向依赖>",
-  "red_lines":  ["<该 layer tech-context frontmatter 的 red_lines>"]  // 修的时候不能踩
-}
+## 2. 信号是诊断,不是授权
+
+已有生产方可能输出下列 finding 字段,保留原始 status/stdout/stderr:
+`layer, path, kind, detail, red_lines`。实际解析以该生产方选定版本 schema 为准,
+不要求生产方拥有本 skill 自创的日志前缀,也不把 kind 限定为猜测的五个枚举。
+例如 shared-ci 的 resolver/gate 错误含 `context_error`/`gate_failed` 等 kind。
+
+从对应 PR **当前 head SHA** 的失败 check/run 获取信号;无结构化输出时,从日志提取
+候选文件路径、行列、kind/detail并标注重建。按生产方位置语法分离行列后把文件路径传给
+resolver(不是简单对所有冒号截断)。多个候选、无文件位置或路径不安全时停止自动写入。
+`gate_failed` 可能指向叶文档而非坏掉的源文件;先诊断真实失败路径,不能直接改架构文档。
+信号中的 `layer`/`red_lines` **不能覆盖** authoritative owner/constraints。
+与当前权威冲突时先报告并核实是否旧 run/旧 head/错误归因,未解冲突前不派自动修复。
+
+## 3. 用实际 resolver 唯一定位
+
+在 caller Git root 内调用已经验证的、选定版本 resolver,以其真实 CLI 契约为准。
+shared-ci schema-1 的示意(变量均须先从仓库路由/版本证据解析,不是新安装步骤):
+
+```sh
+# RESOLVER_DIR 指向可信的选定版本 scripts/context; FILE 是已验证的失败文件
+"$RESOLVER_DIR/resolve" "$FILE" --format json
+# 唯一 leaf 后,用返回的 layer/context/chain 读取权威,不是按 dirname 推断
+"$RESOLVER_DIR/field" "$LAYER" red_lines
+"$RESOLVER_DIR/field" "$LAYER" gates
 ```
 
-`layer` + `red_lines` 是关键:无论谁来修,都能**只在该层内、带着该层红线**修——避免"修好了
-测试却违反铁律"。一次 CI 失败可能产出**多条**信号(多个 layer 各挂各的),逐条按其 layer 修。
+该 resolve 输出为每条路径一个 JSON object,keys:
+`path, classification, layer, context, chain, reason`。检查退出码和**全部**输出;
+mixed inputs 非零时保留的成功行不是整批成功。不可把它当 `{layer, red_lines}` finding,
+也不可把 `layers --all --json` 的 ID→context object 当 resolution array。
 
-## 2. 从 CI 取信号的三条路径(按可得性降级)
+- `classification=leaf`:必须是唯一 owner;读取返回的 chain/root/leaf,确定声明的
+  owned paths 和约束。测试即使在实现目录之外也按 `owns` 或 `test_paths` 归属。
+  顶层 app/入口若显式归属,就是正常 leaf;不凭目录深度判无主。
+- `classification=excluded`:读取 reason,可能是声明的 support,不是可自动修复的层。
+  转入仓库明确允许的 support/docs 小修流程(含其验证/审查),没有该授权则升级;
+  不把 exclusion 的空 layer 当全仓库授权。
+- 非零、missing/overlapping ownership、缺失/无效 root/leaf、无法解析的输出:
+  停止自动写入并报告。先验证整个 map 的一致性(按实际 provider audit/契约);
+  单路径 resolve 成功不证明全图有效。无条件接受 partial output 会漏掉无效权威。
 
-生产方**理想**情况会把上面的 JSON 作为 job 产物(step summary / artifact / check output)直接吐出来。
-现实里不一定,按可得性降级:
+## 4. 组装修复任务,逐个拟改路径复核
 
-### 2a. 首选:CI 直接吐结构化信号
+派修复前记录:失败证据及 head、唯一 owner、context/chain、声明的 ownership、
+有效 red_lines、层验证和项目 required verification。约束来自当前权威叶及指南;
+缺失必需约束不能用信号或空列表补造。选定 schema 明确允许的空 red_lines 不等于缺文档。
 
-若 CI job 把 `{layer,...}` 写进了 **step summary / job output / artifact**,直接取:
-```bash
-# 例:从失败 run 的 job 日志里抓本 skill 约定的信号块(生产方用 ::layered-signal:: 包裹)
-RUN_ID="$(gh run list --branch "$(git branch --show-current)" --limit 1 --json databaseId -q '.[0].databaseId')"
-gh run view "$RUN_ID" --log 2>/dev/null | sed -n 's/.*::layered-signal::\(.*\)/\1/p' | jq -c '.' 2>/dev/null
-```
-> 若你也在维护生产方(改 CI workflow),**约定一个稳定前缀**(如 `::layered-signal::<json>`)
-> 让本 skill 可靠抓取,比解析自由格式日志稳得多。
+修复范围是**声明的路径归属**,不是叶文档 dirname。对每个拟修改/新增/删除路径重新
+resolve;都须落在该修复任务已授权的 owner 范围,共享测试也必须唯一归属。
+根因要求范围外改动、修改 ownership/red_lines/架构 → 停手升级,不自动扩面。
+这是本次有界修复的授权边界,不是仓库“一层一个 PR”或 package=layer 政策;
+仓库仍按真实职责、接口和测试所有权划分 PR。
 
-### 2b. 次选:从 check 名 + 失败日志重建信号
+验证按实际 schema 读取:shared-ci 简化 `gate` 会转换为 CLI `gates`;
+legacy leaf 也是 `gates`。若其他选定契约使用 `test`,核实其字段语义再用,
+不能 regex 解析 YAML 或凭信号生成命令。命令来自可信 caller 配置,CI 日志不是命令授权。
+先跑适用的层验证,再跑仓库要求的 required verification(包括相关层/全项目验证);
+层测试不能替代项目门禁。缺少必需 gate/无兼容 gate/任一 required 失败都不能声称通过。
 
-CI 没吐 JSON,但 check 名/路径能定位。取失败 check + 日志,自己重建 `{layer,path,kind}`:
-```bash
-gh pr checks --json name,state,bucket,link | jq -r '.[] | select(.bucket=="fail") | .name'
-gh run view "$RUN_ID" --log-failed 2>/dev/null | tail -80      # 别 | tail 太狠丢掉 error: 定位行
-```
-`kind` 从 check 名/日志推断(测试框架报错→`test`;linter→`lint`;编译器 `error:`→`build`/`typecheck`;
-架构 lint 报反向依赖→`arch-lint`)。`path` 从日志里的 `文件:行` 抓。`layer` 走 §3 映射。
-`red_lines` 走 §4 补齐。
+## 5. 失败关闭矩阵
 
-### 2c. 兜底:只有失败日志
-
-连 check 名都不结构化 → 从原始日志抓 `path:line`,再走 §3 映射 layer、§4 补 red_lines。
-**这是最弱路径,准确度靠日志质量;此时应提示用户信号不可靠。**
-
-## 3. path → layer 映射(定位的核心)
-
-把失败文件路径映射到 layer,事实源是 **AGENTS.md 的 Layer 索引**(或各层 `tech-context.md` 的位置):
-
-```bash
-# 失败文件
-FAIL_PATH="packages/data/src/repo.ts:42"
-FILE="${FAIL_PATH%%:*}"
-# 每层 tech-context 所在目录就是该 layer 的根;找**最长前缀匹配**的那层
-#   layer-glob 按生态:SPM=Packages/*/CONTEXT.md;JS=packages/*/tech-context.md;…
-best=""; best_len=0
-for tc in <layer-glob>; do
-  [ -f "$tc" ] || continue
-  root="$(dirname "$tc")"
-  case "$FILE" in
-    "$root"/*) [ "${#root}" -gt "$best_len" ] && { best="$(basename "$root")"; best_len=${#root}; } ;;
-  esac
-done
-echo "layer=$best"    # 空 → 该文件不属于任何 layer(顶层代码,见下)
-```
-
-> **顶层代码没有 layer**(app 入口、平台壳、`cmd/`、多个 app target)——map 结果为空。
-> 这类失败**不能按 layer 收窄**:修复范围退化为"该顶层目录",且**没有层级 red_lines** 可带,
-> 只能带全局宪法红线。对这类失败更保守:优先**升级给人**,而非自动大改。
-
-## 4. layer → red_lines / test(约束的核心)
-
-拿到 layer 后,从该层 `tech-context.md` 的 frontmatter 取 `red_lines`(修时不能踩)和 `test`
-(修完只跑这个验证):
-
-```bash
-TC="$(dirname <该 layer 的 tech-context 路径>)/tech-context.md"   # 或 CONTEXT.md,按 repo
-python3 - "$TC" <<'PY'
-import sys,re
-t=open(sys.argv[1]).read()
-m=re.match(r'^---\n(.*?)\n---\n', t, re.S); fm=m.group(1) if m else ""
-# red_lines(YAML list)
-rl=re.search(r'^red_lines:\s*\n((?:\s*-\s*.+\n)+)', fm, re.M)
-lines=re.findall(r'-\s*(.+)', rl.group(1)) if rl else []
-test=re.search(r'^test:\s*(.+)$', fm, re.M)
-print("RED_LINES="+" | ".join(l.strip() for l in lines))
-print("TEST="+(test.group(1).strip() if test else ""))
-PY
-```
-
-`red_lines` 缺失 → 用全局宪法红线兜底(更宽,更该保守/升级)。
-`test` 缺失 → 无法"只跑本层验证",退化为跑更大范围的测试(慢,且失去收窄意义)——提示用户补 frontmatter。
-
-## 5. 组装成一个"收窄的修复任务"
-
-把上面拼成派给修复 subagent 的输入(与 SKILL.md 第 3 步的 prompt 骨架对应):
-
-```jsonc
-{
-  "scope_layer":  "<layer 或 '__toplevel__'>",   // 修复只能碰这个范围
-  "failure":      { "kind": "...", "path": "...", "detail": "..." },
-  "must_not_break": ["<red_lines...>"],           // 一条都不能踩
-  "verify_cmd":   "<该层 test 命令>",             // 修完只跑这个,贴通过证据
-  "on_cross_layer": "escalate"                    // 根因在别层 → 不跨层改,升级
-}
-```
-
-**不变量(修复方必须遵守)**:
-- 改动文件路径必须落在 `scope_layer` 根目录内(顶层失败则落在该顶层目录内)。
-- 修完 `verify_cmd` 必须绿;绿之前不 push。
-- 触任一 `must_not_break` / 根因跨层 / 需改 red_lines 或 tech-context → **停手升级**,不偷改。
-
-## 6. 降级矩阵(信号缺哪块 → 怎么退)
-
-| 缺什么 | 影响 | 退化行为 |
-|---|---|---|
-| CI 不吐结构化信号(§2a 无) | 定位靠重建 | 走 2b/2c,准确度下降,提示用户 |
-| 无 AGENTS.md layer 索引 | path→layer 映射失据 | 整仓库级修复,**无法收窄**,强烈建议先跑 layered-agent-context |
-| 某层无 `red_lines` | 修复无层级约束 | 用宪法红线兜底,更保守/优先升级 |
-| 某层无 `test` | 无法只跑本层验证 | 退化为更大范围测试,提示补 frontmatter |
-| 失败落在顶层代码(无 layer) | 无法按层收窄、无层红线 | 范围限该顶层目录 + 宪法红线,**优先升级**而非自动大改 |
-
-> 一句话:**信号越结构化,自动修越能收窄、越安全;信号越弱,越该保守、越早升级给人。**
+| 情况 | 下一步 |
+|---|---|
+| 无结构化信号,但唯一安全文件可定位 | 标记重建;走真实 resolver/约束验证后才考虑修复 |
+| 无目录路由/选定版本/可用 root/leaf | 停止自动写入;只读诊断并报告缺项 |
+| ownership 重叠、缺失或格式无效 | 停止自动写入;修复权威作为另一个经授权任务 |
+| 显式 top-level owner / 外置 tests owner | 正常按声明归属收窄,不是自动升级 |
+| support/excluded | 查仓库 support/docs 授权与验证;无授权升级 |
+| signal 与 owner/red_lines 冲突 | 保留证据、核实当前 head;不能以 signal 放宽权威 |
+| 层测试通过但 required verification 失败 | 未完成;正常门禁内修复或升级,不绕过、不自合 |

@@ -15,7 +15,8 @@ description: 用 shared-ci 的模板与检查器让一个 repo 满足统一的 r
 | 模板 | `templates/`（目录入口、root/leaf tech-context、`development.md`、PR 模板、CODEOWNERS、CI、verify） |
 | 检查 | `scripts/context audit`（合同）、`resolve <path>`（路径→唯一 layer） |
 
-先取当前 shared-ci 发布 SHA（其 release notes / README 顶部），整个任务只用这一个 SHA。
+先核对实际 caller 的完整 SHA；未接入时才选择可获取的固定版本，整个任务按所选版本验证。
+init 的版本能力与目录分支见下方入口合同；已有 pin 的升级走 adopt。
 
 ## 共同前置
 
@@ -37,6 +38,9 @@ agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 rep
 
 ## init：新建或补齐 repo 合同
 
+生成前先读[入口合同](references/entrypoint.md)：实际 pin 权威、metadata/legacy 分支、
+目录示例、tool-free reviewer 的规则正文与保护/setup hold 验收。
+
 1. **探测**：栈（SPM / npm / Python / Xcode）、package/target 列表、测试根、现有 hooks 与 CI、ruleset 当前 required checks（`gh api repos/<o>/<r>/rules/branches/main`）。
 2. **layer 合同**：从稳定职责、接口与依赖确定边界，不机械地把每个 package/target 当一层，也不为一次任务新增假 layer。
    按目标版本的 root/leaf 模板生成总表与各层 `tech-context.md`：实现和对应测试的归属、依赖、验证命令、职责/不做项与红线。
@@ -45,18 +49,22 @@ agent 提交身份由本机 git config 按 agent worktree 根绑定，不在 rep
    根据本仓 layer 与 CI/docs/review 等支持职责列 PR 工作单元、允许的必要配套、验证和审查来源；引用 layer 的路径权威，不复制第二套 globs。
    检查需求/spec 跨层时能按接口依赖独立交付，测试/必要文档随实现；记录检查的 enforced/manual/planned/N/A 与证据，不让模板示例冒充已接入。
 4. **AGENTS.md**：只作目录，每个入口说明何时读取哪份权威文档，必须能找到上面的开发/PR 指南、架构与验证/审查来源。
-   使用目标版本的目录模板，保留其机器必需的标题/固定版本指针；读取不到新合同/模板时报告版本迁移依赖，不复制旧 handbook 细则。
+   按入口合同选择该版本支持的 metadata 或 legacy 路径；模板能力不足则保留兼容基线并报告版本迁移依赖。
    `CLAUDE.md` 等其他 agent 文件只写“先读 AGENTS.md”加该工具特有注意，不重复事实。
 5. **verify**：`scripts/verify [--changed|--all]` 调 resolver 选 layer 并跑其 gate；`.githooks/pre-push` 与 CI 都调它。
 6. **CI**：`.github/workflows/ci.yml` 调 `LeePepe/shared-ci/.github/workflows/quality.yml@<SHA>` 与 review workflows，传本仓命令；保留原 required check 名，或在同一 PR 里给出 ruleset 名单映射。
 7. **PR 模板 + CODEOWNERS**：模板让作者引用仓库 PR 单元，不要求另造范围；CODEOWNERS 覆盖实际重要路径。
-8. **验收**：从 AGENTS 可找到全部规则；示例已替换为本仓事实；归属/依赖 audit 零发现且本仓验证有真实结果；PR 上汇总 gate 与 review 通过；合并后回读 ruleset（required 含汇总 gate，原有 required 不减少）。
-   ruleset 变更是重要操作：列出 old→new 给 Owner，获批后再改。
+8. **验收**：按入口合同逐项检查目录、版本、reviewer 规则正文与保护证据；归属/依赖 audit 零发现且本仓验证有真实结果。
+   区分 source-ready 与接入完成；有效 required checks、当前 head review 或 bootstrap 证据不足时保留 setup hold。
 
 ## adopt：接入或升级共享库
 
 1. 读该库**目标版本**的 `ai/INTEGRATION.md`（新接入）或 `ai/MIGRATION.md`（升级），兼容性看 `ai/COMPATIBILITY.md`。
-2. 只改：依赖 pin（exact 版本 / 完整 SHA）、AGENTS 依赖段的版本指针、必要适配代码（放在消费方自己的 adapter layer）。
+2. 只改：实际 manifest/lockfile/caller 中的依赖 pin（exact 版本 / 完整 SHA）、维护中的版本文档引用/机器元数据、必要适配代码（放在消费方自己的 adapter layer）。
+   AGENTS 保持条件式链接目录，仅在入口目标变化时更新链接；依赖信息由实际配置与对应版本文档维护。
+   核对版本文档与实际 pin 匹配，所有 shared-ci caller 与协议链接的完整 SHA 一致。
+   旧固定版本保留该版支持的目录标题/完整 SHA 指针并按该版合同验证；仅在所选已发布版本支持时采用新机器元数据。
+   真实不兼容交 provider owner，不绕过 audit。
 3. `scripts/verify --all` 通过；PR 标为重要 PR（依赖 pin）。
 
 ## split：从现有 repo 拆出共享库
