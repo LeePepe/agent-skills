@@ -29,7 +29,7 @@ CI 失败读结构化信号做**按 layer 收窄的自动修复** → 修完 pus
 
 本 skill 的自动修复**靠分层信号收窄范围**。理想前置:
 
-- `AGENTS.md` 有 **Layer 索引**(失败路径 → layer 的映射源)。
+- `AGENTS.md` 链接到维护中的 **layer map/resolver**(失败路径 → layer 的映射源),无需在入口内嵌表格。
 - 每层 `tech-context.md` frontmatter 有 **`red_lines`(修的时候不能踩)+ `test`(只跑本层的验证命令)**。
 - CI required 会吐**结构化失败信号**(见 `references/signal-contract.md`)。
 
@@ -48,7 +48,7 @@ REPO="$(git rev-parse --show-toplevel)"; cd "$REPO"
 git remote -v | head -1                                   # 有无 remote(无则只能本地,PR 那段跳过)
 gh auth status 2>&1 | head -3                             # gh 是否登录
 BASE="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo main)"
-ls AGENTS.md 2>/dev/null && grep -q 'Layer 索引\|Layer Map' AGENTS.md && echo "有 layer 索引" || echo "⚠️ 无 layer 索引 → 降级"
+test -f AGENTS.md && echo "先沿 AGENTS 链接读取实际 layer map/resolver;确认目标存在后再判断是否降级"
 gh pr status 2>/dev/null | head -20                       # 当前分支有无已开 PR
 ```
 

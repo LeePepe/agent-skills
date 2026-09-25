@@ -71,8 +71,9 @@ Claude Code plugin marketplace:
 ## 校验
 
 ```bash
-python3 scripts/validate_skills.py
-python3 scripts/gen_registry.py --check
+scripts/verify --all
 ```
 
-CI(`.github/workflows/validate-skills.yml`)在每个 PR 上运行同样的检查。
+本地 pre-push 与共享 CI 使用同一入口,包含原有 frontmatter/链接与 registry 同步检查、
+确定性测试、脚本语法和固定版本合同 audit。原 `.github/workflows/validate-skills.yml` 保留。
+先读 [AGENTS.md](AGENTS.md);[门禁状态与提案](docs/repository-gates.md) 明确区分仓内文件和远端 enforcement。

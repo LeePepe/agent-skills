@@ -55,7 +55,8 @@ gh run view "$RUN_ID" --log-failed 2>/dev/null | tail -80      # 别 | tail 太�
 
 ## 3. path → layer 映射(定位的核心)
 
-把失败文件路径映射到 layer,事实源是 **AGENTS.md 的 Layer 索引**(或各层 `tech-context.md` 的位置):
+沿 AGENTS 条件目录读取实际 layer map/resolver,以该权威的 owns/依赖/叶子上下文映射失败路径。
+AGENTS 里没有内嵌表格不等于没有 layer map。已有 resolver 时直接调用它;以下仅用于无 resolver 的旧仓:
 
 ```bash
 # 失败文件
@@ -125,7 +126,7 @@ PY
 | 缺什么 | 影响 | 退化行为 |
 |---|---|---|
 | CI 不吐结构化信号(§2a 无) | 定位靠重建 | 走 2b/2c,准确度下降,提示用户 |
-| 无 AGENTS.md layer 索引 | path→layer 映射失据 | 整仓库级修复,**无法收窄**,强烈建议先跑 layered-agent-context |
+| 沿入口仍找不到实际 layer map/resolver | path→layer 映射失据 | 整仓库级修复,**无法收窄**,建议先跑 repo-kit |
 | 某层无 `red_lines` | 修复无层级约束 | 用宪法红线兜底,更保守/优先升级 |
 | 某层无 `test` | 无法只跑本层验证 | 退化为更大范围测试,提示补 frontmatter |
 | 失败落在顶层代码(无 layer) | 无法按层收窄、无层红线 | 范围限该顶层目录 + 宪法红线,**优先升级**而非自动大改 |
