@@ -21,6 +21,7 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 ## 2. 自动恢复（MacBook）
 
 - daemon 与 self-hosted runner 各由一个 LaunchAgent 托管：`KeepAlive`（崩溃/登录后自动拉起）。
+- runner 需重新注册或 repo 缺少 runner 时，按 [repo-kit 的 self-hosted runner 配方](../../repo/repo-kit/SKILL.md) 操作。
 - 健康检查（同一 LaunchAgent 的定时任务，或 `StartInterval`）：睡眠唤醒、网络切换后，daemon 或 runner 连续失败则重启该进程。
 - 恢复后触发一次 Pipeline Supervisor sweep，让被中断的 issue 继续。
 - NAS 侧 runtime 不在自动恢复范围内（Owner 暂缓）。
