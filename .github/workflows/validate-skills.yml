@@ -1,3 +1,5 @@
+# ci-aggregate is the stable required status context.
+# Add new CI jobs to its needs and check their results in the aggregate gate.
 name: validate-skills
 
 on:
@@ -17,3 +19,26 @@ jobs:
         run: python3 scripts/validate_skills.py
       - name: Check registry / plugin.json / README in sync
         run: python3 scripts/gen_registry.py --check
+
+  aggregate:
+    name: ci-aggregate
+    if: ${{ always() }}
+    needs: [validate]
+    runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Require all CI jobs to succeed
+        shell: sh
+        env:
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+        run: |
+          case "${VALIDATE_RESULT:-}" in
+            success)
+              echo "All CI jobs completed successfully."
+              ;;
+            *)
+              echo "::error::All CI jobs must complete with success; skipped, failed, cancelled or unavailable jobs cannot pass."
+              exit 1
+              ;;
+          esac
