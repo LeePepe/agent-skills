@@ -261,6 +261,16 @@ def load_config(home, path=None, owner=None):
         raise Refusal("Invalid host config") from None
 
 
+def require_start_config(home, config):
+    # The installed launchd prefix passes neither --config nor --owner.
+    try:
+        start_config = load_config(home)
+    except Refusal:
+        raise Refusal("Runner start config differs from install config") from None
+    require((start_config.owner, start_config.python) == (config.owner, config.python),
+            "Runner start config differs from install config")
+
+
 def store_secret(home, key, data):
     require(key in ALLOWED_KEYS, "Unsupported client key name")
     require(b"\n" not in data and b"\r" not in data, "Multiline key rejected")
@@ -421,7 +431,8 @@ def plan(home, python, add_runners=(), config=None):
             require(runners[label] == entry, "Runner label already has different values")
         else:
             require(review_home != LEGACY_REVIEW_HOME and
-                    review_home not in {review for _, review in runners.values()},
+                    review_home not in {review for _, review in
+                                        [*runners.values(), *config.default_runners.values()]},
                     "New runner requires an independent review home")
             runners[label] = entry
             added.append(label)
@@ -486,6 +497,7 @@ def write_manifest(path, doc):
 def apply(home, python, approved, add_runners=(), config=None):
     config = config or load_config(home)
     # First validate without creating directories or locks.
+    require_start_config(home, config)
     current = plan(home, python, add_runners, config)
     require(approved == current["id"], "Plan approval missing or stale")
     secret = parse_env(read_file(home / PRIVATE, secret=True)["bytes"])
@@ -691,6 +703,7 @@ def main():
             print("No files written; private key NOT read; no service or model requests.")
     elif args.command == "secret-write":
         require(args.apply and not args.dry_run, "Secret persistence requires explicit --apply")
+        require_start_config(home, config)
         require(args.approve_plan == plan(home, python, config=config)["id"], "Plan approval missing or stale")
         store_secret(home, args.key, sys.stdin.buffer.read(4097))
         print("Existing client key persisted owner-only; value not displayed.")
@@ -711,7 +724,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (Refusal, OSError, ValueError, KeyError, TypeError, plistlib.InvalidFileException):
+    except Exception:
         # Parser errors can embed source text: never print exception strings or tracebacks.
         print("REFUSED: unsafe, changed, missing or invalid setup input; no credential contents shown.", file=sys.stderr)
         sys.exit(2)

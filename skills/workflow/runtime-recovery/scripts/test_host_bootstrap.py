@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import runpy
 import stat
 import subprocess
 import sys
@@ -363,17 +364,92 @@ class BootstrapTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertNotIn(b"INPUT_MARKER", result.stdout + result.stderr)
 
-    def test_config_override_loaded_for_install_run_and_rollback(self):
+    def assert_installed_plist_runs(self, *options):
+        self.store()
+        runner, review = DEFAULT_RUNNERS[SHARED_LABEL]
+        self.write(runner + "/runsvc.sh",
+                   b'#!/bin/sh\nprintf "stub-ran:%s\\n" "$CODEX_REVIEW_HOME"\n', 0o700)
+        result = self.cli("install", *options)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        public, _ = json.JSONDecoder().raw_decode(result.stdout.decode())
+        result = self.cli("install", "--apply", "--approve-plan", public["plan_id"], *options)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        installed = plistlib.loads((self.home / self.plist(SHARED_LABEL)).read_bytes())
+        original = plistlib.loads(self.original[self.plist(SHARED_LABEL)])
+        self.assertEqual(installed["ProgramArguments"],
+                         [PYTHON, str(self.home / b.LAUNCHER), "run", "--label", SHARED_LABEL, "--"] +
+                         original["ProgramArguments"])
+        self.assertEqual((self.home / b.LAUNCHER).read_bytes(), (ROOT / "host-bootstrap.py").read_bytes())
+        before = self.snapshot()
+        result = subprocess.run(installed["ProgramArguments"], capture_output=True,
+                                cwd=installed["WorkingDirectory"],
+                                env={"HOME": str(self.home), "PATH": "/usr/bin:/bin"})
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        self.assertEqual(result.stdout.decode(), f"stub-ran:{self.home / review}\n")
+        self.assertEqual(before, self.snapshot())
+
+    def test_installed_plist_exact_arguments_start_with_default_config(self):
+        self.assert_installed_plist_runs()
+
+    def test_matching_alternate_config_installs_and_starts(self):
+        alternate = self.write("alternate-host.json", json.dumps(self.host_config).encode())
+        # Only owner/python must match; launchd does not need the install-time defaults or sources.
+        self.write_config(default_runners={}, legacy_labels=[], daily_config="unused/config.toml")
+        self.assert_installed_plist_runs("--config", str(alternate))
+
+    def assert_start_config_mismatches_refused(self, command):
+        self.write_allowlist()
+        alternate = self.write("alternate-host.json", json.dumps(self.host_config).encode())
+        if command == "install":
+            self.store()
+        other_owner = {**self.host_config, "owner": "other-owner", "default_runners": {}, "legacy_labels": []}
+        no_owner = {k: v for k, v in self.host_config.items() if k != "owner"}
+        cases = {
+            "alternate-owner": (other_owner, ["--config", str(alternate)]),
+            "alternate-python": ({**self.host_config, "python": str(self.home / "other-python")},
+                                 ["--config", str(alternate)]),
+            "missing-default": (None, ["--config", str(alternate)]),
+            "invalid-default": (b'{"INPUT_MARKER":', ["--config", str(alternate)]),
+            "owner-override": (other_owner, ["--owner", OWNER]),
+            "missing-default-owner": (no_owner, ["--owner", OWNER]),
+        }
+        for name, (doc, options) in cases.items():
+            with self.subTest(case=name):
+                path = self.home / b.HOST_CONFIG
+                if doc is None:
+                    path.unlink()
+                else:
+                    self.write(b.HOST_CONFIG, doc if isinstance(doc, bytes) else json.dumps(doc).encode())
+                before = self.snapshot()
+                paths = sorted(self.home.rglob("*"))
+                result = self.cli("install", "--dry-run", *options)
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
+                public, _ = json.JSONDecoder().raw_decode(result.stdout.decode())
+                result = self.cli(command, "--apply", "--approve-plan", public["plan_id"],
+                                  *options, stdin=b"synthetic-client-key")
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(b"REFUSED", result.stderr)
+                self.assertNotIn(b"INPUT_MARKER", result.stdout + result.stderr)
+                self.assertNotIn(b"synthetic-client-key", result.stdout + result.stderr)
+                self.assertNotIn(b"Traceback", result.stderr)
+                self.assertEqual(before, self.snapshot())
+                self.assertEqual(paths, sorted(self.home.rglob("*")))
+
+    def test_install_refuses_start_config_mismatches_before_writes(self):
+        self.assert_start_config_mismatches_refused("install")
+
+    def test_secret_write_refuses_start_config_mismatches_before_writes(self):
+        self.assert_start_config_mismatches_refused("secret-write")
+
+    def test_config_override_loaded_for_dry_run_and_rollback(self):
         self.store()
         manifest = self.install()
-        target = self.write("actions-runner-shared-ci/runsvc.sh", b"#!/bin/sh\nexit 0\n", 0o700)
         self.host_config.pop("owner")
         path = self.write_config()
         alternate = path.with_name("alternate-host.json")
         path.rename(alternate)
         before = self.snapshot()
-        commands = [[], ["run", "--label", SHARED_LABEL, "--", str(target)],
-                    ["rollback", "--manifest", str(manifest)]]
+        commands = [["install", "--dry-run"], ["rollback", "--manifest", str(manifest)]]
         for command in commands:
             with self.subTest(command=command):
                 result = self.cli(*command)
@@ -430,6 +506,12 @@ class BootstrapTests(unittest.TestCase):
 
     def test_add_runner_reusing_existing_dedicated_review_home_refused(self):
         self.write_allowlist()
+        self.write_runner_plist()
+        self.assert_review_reuse_refused([f"{ADDED_LABEL}={ADDED_RUNNER}:.codex-review-shared-ci"])
+
+    def test_add_runner_reusing_unallowlisted_default_review_home_refused(self):
+        label = next(iter(DEFAULT_RUNNERS))
+        self.write_allowlist({label: DEFAULT_RUNNERS[label]})
         self.write_runner_plist()
         self.assert_review_reuse_refused([f"{ADDED_LABEL}={ADDED_RUNNER}:.codex-review-shared-ci"])
 
@@ -1313,6 +1395,23 @@ class BootstrapTests(unittest.TestCase):
                           stdin=marker + b"\nsecond-line")
         self.assertEqual(result.returncode, 2)
         self.assertNotIn(marker, result.stderr + result.stdout)
+
+    def test_main_unexpected_exception_is_generic_refusal(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        before = self.snapshot()
+        with mock.patch.object(sys, "argv", ["host-bootstrap.py"]), \
+             mock.patch.object(Path, "home", side_effect=RuntimeError("INPUT_MARKER")) as home, \
+             contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as error:
+                runpy.run_path(str(ROOT / "host-bootstrap.py"), run_name="__main__")
+        home.assert_called_once_with()
+        self.assertEqual(error.exception.code, 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(),
+                         "REFUSED: unsafe, changed, missing or invalid setup input; no credential contents shown.\n")
+        self.assertNotIn("INPUT_MARKER", stdout.getvalue() + stderr.getvalue())
+        self.assertNotIn("Traceback", stderr.getvalue())
+        self.assertEqual(before, self.snapshot())
 
     def test_interrupted_apply_journal_allows_guarded_partial_rollback(self):
         self.store()
