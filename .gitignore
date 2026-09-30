@@ -6,3 +6,7 @@
 
 # tool logs
 firebase-debug.log
+
+# Python test artifacts
+__pycache__/
+*.py[cod]
