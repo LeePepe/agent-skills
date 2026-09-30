@@ -33,7 +33,9 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 - `launchctl bootout` 返回时 job 可能还没卸载完，紧接着 `bootstrap` 会报 `5: Input/output error`。安装脚本要在两者之间等待 `launchctl print` 失败（即 job 已卸载）后再 bootstrap。
 - 替换 runner/daemon 的 plist 前先备份原件；其他安装器若按 SHA 校验 plist，替换后它的回滚会拒绝执行，需要先从备份恢复。
 
-LaunchAgent plist 与脚本属于本机私有配置，**不放进公开 repo**。
+自托管 runner 调用本地模型 provider 时，可参考 [scripts/host-bootstrap.py](scripts/host-bootstrap.py) 的 launchd 包装器：默认 dry-run，写入需 plan-id 批准，并生成 rollback manifest。
+非密钥 `host.json` 提供 `owner/default_runners/legacy_labels/known_prior_launcher_sha256/daily_config/python` 等主机配置；每个新 runner 使用独立的 `review_home`。
+实际 LaunchAgent plist、主机配置与密钥属于本机私有数据，**不放进公开 repo**。
 
 ## 3. 写操作结果未知
 
