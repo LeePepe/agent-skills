@@ -35,6 +35,8 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 
 自托管 runner 调用本地模型 provider 时，可参考 [scripts/host-bootstrap.py](scripts/host-bootstrap.py) 的 launchd 包装器：默认 dry-run，写入需 plan-id 批准，并生成 rollback manifest。
 非密钥 `host.json` 提供 `owner/default_runners/legacy_labels/known_prior_launcher_sha256/daily_config/python` 等主机配置；每个新 runner 使用独立的 `review_home`。
+launchd 每次启动 runner 都读取默认 `~/.config/raven-actions/host.json`（不带 `--config` / `--owner`）；该文件缺失或无效时，所有 runner 都无法启动。
+`install --apply` / `secret-write` 在默认配置缺失或无效，或安装配置的 `owner/python` 与默认配置不一致时拒绝写入。
 实际 LaunchAgent plist、主机配置与密钥属于本机私有数据，**不放进公开 repo**。
 
 ## 3. 写操作结果未知
