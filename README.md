@@ -1,6 +1,6 @@
 # agent-skills
 
-可复用的 Claude Code / Codex agent skills,按 **workflow / design / repo / research / meta** 组织。
+可复用的 Claude Code / Codex agent skills,按 **workflow / design / repo / research / meta** 分类组织。
 每个 skill 是 `skills/<category>/<name>/` 下的一个目录,含 `SKILL.md`(frontmatter + 指令)
 与可选 `references/`、`scripts/`、`assets/`、`templates/`。
 
