@@ -504,6 +504,7 @@ def apply(home, python, approved, add_runners=(), config=None):
     require(current["public"]["connection"]["env_key"] in secret, "Required client key name missing")
     del secret
     with lock(home):
+        require_start_config(home, config)
         current = plan(home, python, add_runners, config)
         require(approved == current["id"], "Plan changed after approval")
         changes = [c for c in current["changes"] if c["action"] != "unchanged"]
@@ -724,7 +725,8 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except Exception as error:
         # Parser errors can embed source text: never print exception strings or tracebacks.
-        print("REFUSED: unsafe, changed, missing or invalid setup input; no credential contents shown.", file=sys.stderr)
+        print(f"REFUSED: {type(error).__name__}; unsafe, changed, missing or invalid setup input; "
+              "no credential contents shown.", file=sys.stderr)
         sys.exit(2)

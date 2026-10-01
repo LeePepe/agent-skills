@@ -16,6 +16,10 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 | PR 的 `codex-review-target` 长时间 pending | `gh api repos/<o>/<r>/actions/runners` 状态 | self-hosted runner 是否 online |
 | 执行 agent 中断 | worktree `git status`、进程列表、最后 push 的 SHA | 是否有未推送工作、是否仍有写者 |
 
+诊断/测试子进程设置执行时限，并在启动时创建、记录本任务专用进程组（例如 `subprocess.Popen(..., start_new_session=True)`）。
+超时清理只向确认属于本任务的该组发送 `SIGTERM`，在限定宽限期后仍有成员才向同一组发送 `SIGKILL`，并有界等待、回收直接子进程。
+直接子进程退出不代表组内后代已退出；不要按 `ppid` 递归查找清理，孤儿进程会被重新托管。无法确认组归属时报告阻塞，不向其他会话或未知归属的进程组发信号。
+
 控制面不可达且无家庭直连时：把受影响动作标 **BLOCKED（等直连）**，写一行进台账，停止重试。
 
 ## 2. 自动恢复（MacBook）
@@ -36,6 +40,7 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 自托管 runner 调用本地模型 provider 时，可参考 [scripts/host-bootstrap.py](scripts/host-bootstrap.py) 的 launchd 包装器：默认 dry-run，写入需 plan-id 批准，并生成 rollback manifest。
 非密钥 `host.json` 提供 `owner/default_runners/legacy_labels/known_prior_launcher_sha256/daily_config/python` 等主机配置；每个新 runner 使用独立的 `review_home`。
 launchd 每次启动 runner 都读取默认 `~/.config/raven-actions/host.json`（不带 `--config` / `--owner`）；该文件缺失或无效时，所有 runner 都无法启动。
+安装完成后再编辑默认主机配置，也可能使后续 runner 启动失败；安装时校验通过不保证之后每次启动仍可用。
 `install --apply` / `secret-write` 在默认配置缺失或无效，或安装配置的 `owner/python` 与默认配置不一致时拒绝写入。
 实际 LaunchAgent plist、主机配置与密钥属于本机私有数据，**不放进公开 repo**。
 
