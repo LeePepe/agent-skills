@@ -391,6 +391,9 @@ class BootstrapTests(unittest.TestCase):
     def test_installed_plist_exact_arguments_start_with_default_config(self):
         self.assert_installed_plist_runs()
 
+    def test_matching_owner_override_installs_and_starts(self):
+        self.assert_installed_plist_runs("--owner", OWNER)
+
     def test_matching_alternate_config_installs_and_starts(self):
         alternate = self.write("alternate-host.json", json.dumps(self.host_config).encode())
         # Only owner/python must match; launchd does not need the install-time defaults or sources.
@@ -440,6 +443,47 @@ class BootstrapTests(unittest.TestCase):
 
     def test_secret_write_refuses_start_config_mismatches_before_writes(self):
         self.assert_start_config_mismatches_refused("secret-write")
+
+    def test_apply_rechecks_start_config_under_lock_before_writes(self):
+        self.store()
+        config = b.load_config(self.home)
+        approved = b.plan(self.home, PYTHON, config=config)["id"]
+        original_lock = b.lock
+        cases = {
+            "owner": {**self.host_config, "owner": "other-owner", "default_runners": {}, "legacy_labels": []},
+            "python": {**self.host_config, "python": str(self.home / "other-python")},
+            "missing": None,
+            "invalid": b'{"INPUT_MARKER":',
+        }
+        for name, doc in cases.items():
+            with self.subTest(drift=name):
+                self.write_config()
+                before, paths = None, None
+
+                @contextlib.contextmanager
+                def drifting_lock(home):
+                    nonlocal before, paths
+                    with original_lock(home):
+                        path = home / b.HOST_CONFIG
+                        if doc is None:
+                            path.unlink()
+                        else:
+                            self.write(b.HOST_CONFIG, doc if isinstance(doc, bytes) else json.dumps(doc).encode())
+                        # Lock infrastructure already exists; no transaction or target may be written.
+                        lock_path = home / b.STATE / "operation.lock"
+                        self.assertTrue(lock_path.is_file())
+                        before = self.snapshot()
+                        before.pop(str(lock_path.relative_to(home)))
+                        paths = sorted(p for p in home.rglob("*") if p != lock_path)
+                        yield
+
+                with mock.patch.object(b, "lock", side_effect=drifting_lock):
+                    with self.assertRaisesRegex(b.Refusal, "^Runner start config differs from install config$"):
+                        b.apply(self.home, PYTHON, approved, config=config)
+                self.assertIsNotNone(before)
+                self.assertEqual(before, self.snapshot())
+                self.assertEqual(paths, sorted(self.home.rglob("*")))
+                self.assertEqual(list((self.home / b.STATE).iterdir()), [])
 
     def test_config_override_loaded_for_dry_run_and_rollback(self):
         self.store()
@@ -1397,21 +1441,26 @@ class BootstrapTests(unittest.TestCase):
         self.assertNotIn(marker, result.stderr + result.stdout)
 
     def test_main_unexpected_exception_is_generic_refusal(self):
-        stdout, stderr = io.StringIO(), io.StringIO()
         before = self.snapshot()
-        with mock.patch.object(sys, "argv", ["host-bootstrap.py"]), \
-             mock.patch.object(Path, "home", side_effect=RuntimeError("INPUT_MARKER")) as home, \
-             contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-            with self.assertRaises(SystemExit) as error:
-                runpy.run_path(str(ROOT / "host-bootstrap.py"), run_name="__main__")
-        home.assert_called_once_with()
-        self.assertEqual(error.exception.code, 2)
-        self.assertEqual(stdout.getvalue(), "")
-        self.assertEqual(stderr.getvalue(),
-                         "REFUSED: unsafe, changed, missing or invalid setup input; no credential contents shown.\n")
-        self.assertNotIn("INPUT_MARKER", stdout.getvalue() + stderr.getvalue())
-        self.assertNotIn("Traceback", stderr.getvalue())
-        self.assertEqual(before, self.snapshot())
+        message = "INPUT_MARKER OPENAI_API_KEY=SYNTHETIC_EXCEPTION_SECRET\nprivate exception details"
+        for exception_type in (RuntimeError, ValueError, OSError):
+            with self.subTest(exception_type=exception_type.__name__):
+                stdout, stderr = io.StringIO(), io.StringIO()
+                with mock.patch.object(sys, "argv", ["host-bootstrap.py"]), \
+                     mock.patch.object(Path, "home", side_effect=exception_type(message)) as home, \
+                     contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    with self.assertRaises(SystemExit) as error:
+                        runpy.run_path(str(ROOT / "host-bootstrap.py"), run_name="__main__")
+                home.assert_called_once_with()
+                self.assertEqual(error.exception.code, 2)
+                self.assertEqual(stdout.getvalue(), "")
+                self.assertEqual(stderr.getvalue(),
+                                 f"REFUSED: {exception_type.__name__}; unsafe, changed, missing or invalid setup input; "
+                                 "no credential contents shown.\n")
+                for marker in ("INPUT_MARKER", "OPENAI_API_KEY", "SYNTHETIC_EXCEPTION_SECRET", "private exception details"):
+                    self.assertNotIn(marker, stdout.getvalue() + stderr.getvalue())
+                self.assertNotIn("Traceback", stderr.getvalue())
+                self.assertEqual(before, self.snapshot())
 
     def test_interrupted_apply_journal_allows_guarded_partial_rollback(self):
         self.store()
