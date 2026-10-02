@@ -12,6 +12,9 @@
 - **该层 red_lines** —— 从 `Packages/<layer>/CONTEXT.md` frontmatter 的 `red_lines` 抄,修的时候不能踩。
 - **该层 test** —— 从同 frontmatter 的 `test` 抄,修完跑这条验证。
 
+实现类 body 同时引用固定的方案版本、Owner 对本版执行的确认、唯一执行方和所用 guide/shared 版本。
+涉及多个层时分别列出适用约束，不据层数机械拆 issue；已有 plan/tasks 直接引用并补齐缺项。
+
 > **路径规则的放松**:AGENT-BRIEF 原则是「不写文件路径,会过时」。VitalStride 现有 issue(如 MY-1070)
 > 会带一段 `## 现状基线(basis: main)` 列具体文件/行号 —— 这是**刻意**的,给 dev team 一个精确起点。
 > 所以本模板**允许**一段带 `basis:<ref>` 标注的现状基线;但**行为契约段(Desired/Acceptance)仍不绑路径**,
@@ -73,7 +76,7 @@ bug
 <parent feature issue 的 key,如 MY-1234;指向 specs/NNN-name/spec.md>
 
 ## What to build
-<这个 task 交付的端到端行为(在**本 layer 范围内**)。描述行为,不逐文件写实现。
+<这个 task 在仓库已定义 PR 单元内交付的行为。描述行为,不逐文件写实现。
 若 speckit 的 plan/prototype 产出了精确的决策片段(状态机 / schema / 类型形状),可内联那几行。>
 
 ## Acceptance criteria
@@ -87,7 +90,7 @@ bug
 <reference 宪法章节,如「Constitution §III SPM Package 优先」;不重述规则。>
 
 ## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
-- **layer**: <本 task 落在哪层>
+- **layer**: <本 task 涉及哪些层;逐层列出下方约束>
 - **depends_on**: <该层允许依赖的 layer,别引入反向依赖>
 - **red_lines**: <抄该层 frontmatter red_lines>
 - **test**(交付前跑): `<抄该层 frontmatter test>`
@@ -132,7 +135,7 @@ specs/NNN-name/spec.md(+ plan.md / tasks.md)
 - <是否新增/删除 layer>
 
 ## Migration steps
-1. <迁移步骤,按 layer,一层一 commit>
+1. <迁移步骤,按真实依赖;注明完成条件和下一动作>
 2. ...
 
 ## ADR / Constitution
@@ -185,23 +188,20 @@ dispatch,所以不追加 Working Directory 尾段。
 ## 强制尾段 —— Working Directory 隔离(每个实现类 issue 都要带,CRITICAL)
 
 **每一个实现类** issue body(bug / feature-task / arch 三类)末尾**必须**追加下面这段,
-原样照抄(`<project-slug>` 换成小写项目名,如 `vitalstride`)。放在 body 最后。
+放在 body 最后；工作树位置从当前任务运行信息核实，不猜测本机目录。
 
 ```markdown
 ## Working Directory(CRITICAL — 禁止污染用户主 checkout)
 
-daemon 已在 `~/multica_workspaces/<workspace>/<task-id>/workdir/` 下为你建好隔离 worktree。
-**只在那个 workdir 里工作。**
+从 daemon 的当前任务运行信息核实隔离 worktree 的绝对路径、分支和任务归属。
+**只在已核实且符合 Owner 允许根目录的任务 worktree 内工作。**
 
-- **绝对不要** `cd ~/Development/<Project>`,**绝对不要**在用户主 checkout 里 `git checkout` / `git checkout -b` / `git fetch` / `git push`。
+- 保留用户主 checkout 的分支和未提交内容；不在那里执行实现、分支切换或提交。
 - 分支操作(建分支、commit、push、开 PR)全部在 daemon 给的 workdir 内完成。
-- `git push` 用 `--no-verify`(pre-push hook 在 workdir 内无效,且会超时)。
+- 使用配置的 agent 身份，运行正常 hooks、验证和 PR 审查；hook 失败报告具体阻塞，不使用 `--no-verify` 绕过。
 ```
 
-> **为什么(不删这段)**:FS/TL agent 的默认行为是在用户的 `~/Development/<Project>` 里直接
-> `git checkout -b`,并把新分支 upstream 错设成用户当前分支 → 用户手动开的分支被 agent 的 push 覆盖。
-> 这是已复现的事故(2026-07 一次 TestFlight 发版 PR 分支被 i18n pipeline 冲掉,根因即此)。
-> issue body 没这段 = FS 回退到污染主 checkout 的默认路径。**这段是护栏,不是可选说明。**
+> 这段防止执行者误用用户 checkout 或错误 upstream；缺少可验证的工作树归属时停止写入并报告。
 
 ---
 
@@ -211,8 +211,8 @@ daemon 已在 `~/multica_workspaces/<workspace>/<task-id>/workdir/` 下为你建
 - [ ] `## Layer 约束` 的 red_lines + test **来自该层 CONTEXT.md frontmatter**,不是编的
 - [ ] Acceptance 至少一条、且**可测**(能对应一条命令 / 一个可观察结果)
 - [ ] 行为契约段不绑文件路径(基线段可以,标 basis ref)
-- [ ] 跨 2+ layer → 已拆成多 issue,不是一个大 issue
-- [ ] 与宪法冲突 → 已先改宪法/写 ADR
+- [ ] 按单目标、真实依赖和仓库 PR 单元拆分，各项有验收；没有按 layer 数机械切分
+- [ ] 与宪法冲突 → 已获相应政策授权并完成所需 ADR/宪法审查，没有自行放松规则
 - [ ] **每个实现类 body 末尾都带了 `## Working Directory` 强制尾段**(见上,防主 checkout 污染)
 - [ ] Bug 已生成 `problem_fingerprint` 并搜索 active + closed 历史;关系与 affected build 有证据
 - [ ] Outcome Check 有 wait owner / next event / wake condition,保持 backlog,且没有 Dev Team dispatch

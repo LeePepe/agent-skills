@@ -1,11 +1,13 @@
 ---
 name: owner-decision-loop
-description: Resolve delivery decisions through reusable owner calibration. Use when Team Lead cannot determine Planner or Fullstack content from repository authority because product intent, acceptance, scope, architecture, policy, terminology, or conflicting evidence requires the owner's choice; do not use for routine implementation decisions already delegated to a role.
+description: Resolve delivery decisions and unresolved repair escalations with the owner. Use when repository authority leaves a product, scope, architecture, policy, terminology, or evidence conflict, or Team Lead diagnosis cannot resolve a repeated repair failure. Routine implementation choices remain with the delegated role.
 ---
 
 # Owner Decision Loop
 
-Turn one unresolved delivery conflict into an explicit owner choice, route that choice to the role that owns the content, and make the result reusable for later decisions.
+Turn one unresolved delivery conflict into an explicit owner choice, or report a repair blocker that Team Lead cannot resolve. Route decisions to the role that owns the content.
+
+Read the [workflow contract](../../workflow/README.md) for fixed execution versions and the two-round repair escalation trigger. An escalation does not authorize a new version, replacement executor, or weaker acceptance.
 
 ## 1. Prove that a decision is needed
 
@@ -19,7 +21,9 @@ Build a decision packet from the triggering issue, exact artifacts or SHA, confl
 
 Reuse an existing decision only when its scope, assumptions, and effective revision still match and no higher-precedence source supersedes it. Cite the source and route the work without asking again. A governing constraint may eliminate options without selecting the remaining product outcome; open a narrower owner decision when more than one compliant outcome remains.
 
-Return routine implementation choices inside accepted scope to Fullstack Engineer. Return planning synthesis already determined by repository authority to Planner Lead. Ask the owner only when a real choice remains.
+Return routine implementation choices inside accepted scope to the original Fullstack Engineer. Return planning synthesis already determined by repository authority to Planner Lead. Ask the owner when a real choice remains, or escalate when TL diagnosis/coordination still cannot resolve the repair blocker—even when the technical cause is unknown.
+
+For repeated repairs, attach each attempted fix, verification and review result to the same finding. TL diagnoses why progress stopped; distinguish established causes from hypotheses and unknowns. Preserve evidence, keep the affected work blocked, and continue independent work rather than retrying indefinitely or deferring the current defect as a next-version improvement.
 
 ## 2. Ask a decision-sized question
 
@@ -45,6 +49,8 @@ Reply with A/B/C or a replacement decision.
 
 Keep orthogonal choices separate. Do not hide a second decision inside an option. Make no content or shipping mutation while awaiting the answer.
 
+For an unresolved technical blocker, send the failed requirement and impact, fixed task/plan revision, attempts and results, established cause or `unknown`, and recommended next step with any help/decision needed. Do not invent A/B/C choices or pretend the owner knows the root cause. The hold applies to affected work, not unrelated tasks.
+
 ## 3. Record the decision
 
 After the owner answers, publish an interim issue decision record containing:
@@ -69,6 +75,8 @@ TL owns the interim record and routing, not the canonical content edit. Place du
 
 Use references instead of copying one decision into several sources.
 
+Distinguish agreement with a design idea from approval to execute a whole version. Changes to an in-flight design go into the next-version draft; record explicit whole-version execution approval before handing that version to implementers. In-scope implementation/test supplementation and current-version defect repair remain in the current plan. A genuine blocker stays visible until resolved; a discussion record alone is not implementation authority.
+
 ## 4. Route and learn
 
 - Send planning, domain, ADR, constitution, and tech-context persistence to Planner Lead with the exact owner decision.
@@ -80,4 +88,4 @@ Future runs may decide automatically from the recorded source when the scope and
 
 Use [eval-cases.md](references/eval-cases.md) when changing this skill or checking whether a runtime preserves the automatic-decision, owner-question, and role-boundary branches.
 
-Finish with a cited automatic decision, one pending owner question, or a recorded decision routed to the exact owning role.
+Finish with a cited automatic decision, one pending owner question/blocker report, or a recorded decision routed to the exact owning role.
