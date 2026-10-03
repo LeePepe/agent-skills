@@ -3,7 +3,8 @@
 本 skill 不重新实现 speckit,它**编排**已装好的 speckit skill(`/speckit-specify` 等)+
 把产出**桥接**到 Multica issue。前提:目标 repo 有 `.specify/`(否则走 SKILL.md §降级)。
 
-参照 `specs/README.md` 的既有约定 —— 本文件是它的可执行展开。
+参照 `specs/README.md` 的既有约定。先复用、校验、补齐已有 spec/plan/tasks；以下生成步骤只用于缺失产物，
+已有计划继续走必要 spec/plan 审查。设计修改/workflow refine 的基本方案由 Owner 与 CLI 先确定，团队负责实现。
 
 ---
 
@@ -35,14 +36,8 @@
 
 **两条硬约束**(写进 plan/tasks,也是 review 时会被 gate 的点):
 - **reference constitution 章节**,不重述规则(如「见 Constitution §II Swift 6 Strict Concurrency」)。
-- **按 layer 拆,不用 vertical slice**:
-  - 改动只落 1 个 layer → 一个 task。
-  - 跨 2+ layer → 拆成 N 个各自可独立 `swift build/test` 的子任务,一层一 commit。
-  - 单层内仍很大 → 按技术切面再拆(纯逻辑 → 输入/校验 → 处理/编排 → 输出转换 → fixture → 文档 → 迁移)。
-
-  > 这条**覆盖** mattpocock to-issues 的「每个 slice 切穿所有层」。VitalStride 的 `AGENTS.md`
-  > §「按 layer 收窄」明确要求按 layer 拆(层是 agent 的工作单元,一层一 commit 便于 `swift test`
-  > 秒级验证 + 减少跨层 PR 冲突)。服从 repo 规则。
+- **按目标、真实依赖和目标仓 PR 单元拆**，不以 layer 数机械切任务。plan 记录本次方案版本、任务、依赖、
+  完成条件与下一动作，引用适用版本的 repo guide/shared 文档；通用政策留在这些来源。
 
 ### 4. 逐 task 落 Multica issue(不跑 speckit-implement)
 
@@ -54,14 +49,13 @@
 2. tasks.md 每个 task → 一个 sub-issue:
    - `--parent <parent-key>` `--project $PROJECT_ID`
    - 标题原样用 tasks.md 的 `[T###] [Story] Brief`
-   - body 用 feature-task 模板,**Layer 约束段从该 task 所属 layer 的 CONTEXT.md frontmatter 抄**
+   - body 用 feature-task 模板，Layer 约束段引用该 task 涉及层的 CONTEXT.md frontmatter
      (red_lines + depends_on + test)
    - tasks.md 的依赖组 → `--stage N`(同 stage 全完成才唤醒 parent)
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
-4. **spec 先入库门禁**:feature 路径的 issue 必然引用 `specs/NNN/spec.md`。dispatch 前**先确保这些
-   spec(+ 相关 plan/tasks、若有新 ADR/宪法 bump)已合进 `github/main`**——隔离 workdir 的 FS 只读 main,
-   spec 没进 main 会踩空。检测到缺失 → 自动开设计文档 PR、等合并、再 dispatch。命令见
-   `references/multica-cli.md` §「spec 先入库门禁」;主流程见 `SKILL.md` 第 4 步同名小节。
+4. **spec 先入库门禁**：核实引用的 spec/plan/tasks/ADR 在实际执行基线可读且匹配批准版本。
+   缺失时保持待派发，只在授权内补文档 PR，通过既有 gates 和审批后复核；详见 `SKILL.md` 第 4 步与
+   `multica-cli.md` §「spec 先入库门禁」。
 5. dispatch:parent(或第一个 stage 的 issues)assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)。
 
 > 若 repo 装了 speckit 的 `/speckit-taskstoissues`,它是用 **GitHub MCP** 建 GitHub issue 的
@@ -86,7 +80,8 @@
 
 例:加 layer、换依赖方向、放松并发或隐私约束。
 
-**顺序不能反:先立规矩,再落实现。**
+先确认 Owner 与 CLI 已定基本方案；政策/权限变化另需明确授权，不能为了实现自行放松红线。
+仍在讨论的新方案属于下一版，Owner 确认整版可以执行后才交接。
 
 1. **先**更新宪法或写 ADR:
    - 跑 `/speckit-constitution` 更新 `.specify/memory/constitution.md` + 版本 bump;或
@@ -94,7 +89,7 @@
    - 依据:`specs/README.md`「与 Constitution 冲突 → 先改 Constitution(走 ADR + 版本 bump),
      再写 spec」+ constitution「例外仅限……且必须在 ADR 中显式记录原因」。
 2. **再**落实现 issue(模板 3),body 的 `## ADR / Constitution` 段指向第 1 步的产物。
-3. 若架构变更牵出多层实现工作 → 可退回功能路径,用 speckit plan/tasks 把实现拆成按 layer 的 sub-issue。
+3. 若架构变更有多个交付目标 → 复用功能路径，按目标仓合同和依赖安排 sub-issue，不按 layer 数切分。
 
 ---
 
