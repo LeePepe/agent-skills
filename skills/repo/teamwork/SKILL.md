@@ -31,7 +31,7 @@ Activation safety:
 - Do not activate for casual chat, greetings, or unrelated prompts.
 - Without an explicit trigger, normal Claude execution may run directly — no `team-lead`/subagents.
 
-**Default on activation: immediately spawn `team-lead`.** Using `Write`, `Edit`, or any file-mutating
+**After the required read-only preflight: immediately spawn `team-lead`.** Using `Write`, `Edit`, or any file-mutating
 tool in this skill entry is a hard pipeline violation.
 
 ## Pipeline
@@ -54,7 +54,7 @@ team-lead  (triage: feature | bugfix | bugfix-docs; docs_needed?)
   │     ├── a11y-reviewer
   │     └── perf-reviewer
   ├── user-perspective    → mandatory real UX testing gate (Playwright / XCUITest)
-  └── git-monitor         → commit / PR / CI monitoring (only after user-perspective passes)
+  └── git-monitor         → commit / PR output → PRM handoff (only after user-perspective passes)
 ```
 
 Bugfix fast path: a plain `bugfix` skips the spec phase and spec gate, going straight to
@@ -69,6 +69,10 @@ triage → [spec → spec-gate]? → breakdown → plan-gate → execute → ver
 ```
 
 The `[spec → spec-gate]?` phase runs for features and bugfix-docs; a plain bugfix fast-paths past it.
+
+Here `ship` ends this implementation with a successfully created/updated PR and its required local evidence,
+not merge or release. PRM alone follows non-Draft CI/review/approval and delivery; Draft stays with its original
+author/approval path. Preserve all existing pipeline gates and the target repo's remote completion rules.
 
 Gate policy (mandatory for each task type — no "simple task" or "CLI unavailable" exemption):
 - **Spec gate** (features / bugfix-docs): passes only when `plan-reviewer` (spec-review) AND `pm` (spec-gate) both pass. The merged goal-list confirmation lives here. Bugfix fast-path skips this as a recorded exemption.
@@ -121,13 +125,47 @@ pipeline stage into the skill entry or into `team-lead` — every stage is alway
 
 ### 3. Delegate to `team-lead`
 
+Resolve the required workflow contract from this loaded skill bundle before delegation. Set
+`TEAMWORK_SKILL_DIR` to the directory containing the loaded `SKILL.md`, using the runtime's actual
+source location (it may be a symlink), not the consumer repo or `.claude/agents` directory.
+Resolve the **actual selected team-lead file** from the runtime's role discovery and existing override priority;
+bind it as `TEAM_LEAD_ROLE_FILE`. If that selection cannot be established, stop before delegation rather than
+assuming the bundled role will run. Bind paths as data, not evaluated shell text. This read-only preflight
+checks its mandatory handoff interface and prints the authoritative contract pointer:
+
+```bash
+: "${TEAMWORK_SKILL_DIR:?loaded teamwork skill directory is required}"
+: "${TEAM_LEAD_ROLE_FILE:?actual selected team-lead file is required}"
+TEAMWORK_SOURCE=$(cd "$TEAMWORK_SKILL_DIR" && pwd -P)
+WORKFLOW_DIR=$(cd "$TEAMWORK_SOURCE/../../workflow" && pwd -P) || exit 1
+WORKFLOW_CONTRACT_PATH="$WORKFLOW_DIR/README.md"
+[ -f "$WORKFLOW_CONTRACT_PATH" ] && [ -r "$WORKFLOW_CONTRACT_PATH" ] || {
+  echo "required workflow contract is unavailable in the loaded bundle" >&2
+  exit 1
+}
+python3 "$TEAMWORK_SOURCE/scripts/check_contract_handoff.py" team-lead "$TEAM_LEAD_ROLE_FILE" || exit 1
+printf '%s\n' "$WORKFLOW_CONTRACT_PATH"
+```
+
+Pass that path as `workflow_contract_path` to team-lead and preserve it through the git-monitor handoff.
+Also pass `teamwork_source_dir` as the resolved physical `TEAMWORK_SOURCE`, so the copied team-lead uses
+the same read-only compatibility check immediately before invoking its selected git-monitor.
+Overrides keep priority and ownership: compatible local changes outside the mandatory interface remain;
+an incompatible or unverified selected role stops with a setup blocker. Never overwrite it or silently choose
+another role. Read the selected role for conflicting instructions as well: the interface check does not certify
+arbitrary customization or prove model behavior. Recheck selection on resume/before invocation if it changed.
+Missing bundle/contract is a setup blocker; do not copy policy, substitute a moving remote version or
+silently omit the required read. The runtime pointer belongs to the invocation, not a committed machine path.
+
 **HARD STOP — mandatory Agent delegation:**
-- Spawn `team-lead` immediately via `Agent`. Do not implement, plan, or edit anything here.
+- After preflight and selected-role compatibility succeed, spawn `team-lead` via `Agent`. Do not implement, plan, or edit anything here.
 - If `Agent` delegation fails, report the failure and stop — never fall back to local implementation.
 
 ```text
 Agent: team-lead
 Prompt: <user's description>
+        workflow_contract_path: <resolved WORKFLOW_CONTRACT_PATH from preflight>
+        teamwork_source_dir: <resolved TEAMWORK_SOURCE from preflight>
         Routing preferences: <from .claude/team.md, or "use defaults">
         CLI availability: copilot=<true|false> codex=<true|false>
 ```
@@ -198,3 +236,7 @@ Install into a repo (or `~/.claude/agents/`) when needed:
 ```bash
 cp agents/*.md ~/.claude/agents/
 ```
+
+Copying role files does not copy their workflow contract. Even with preinstalled roles, use the step 3
+bundle resolution and pass its pointer through the invocation; a direct role caller must provide the same
+required input. Do not resolve bundle-relative paths from the copied role's destination.

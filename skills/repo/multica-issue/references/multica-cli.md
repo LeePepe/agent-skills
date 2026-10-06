@@ -235,8 +235,10 @@ multica --workspace-id "$WS" issue comment add "$NEW_KEY" --content-stdin < body
 回告时分别写接收结论、实际 run 结果与交付证据。匹配的 `completed`/`failed`/`cancelled` 都是已接收，
 失败/取消不是未派发或交付成功；由原执行方跟进，不以未接收为由重派。run completed 本身也不是交付验收。
 
-**后续 pipeline**(见 `AGENTS.md` §FS/TL workflow):Dev Team squad 内 Team Lead 派 → Fullstack
-Engineer 实现 + 开 PR → AI Reviewer 审 → PRM 接管 CI/review/审批与合并。
+**后续 pipeline**按目标仓合同及 [workflow 实现职责](../../../workflow/README.md#实现职责与当次输出)：
+Planner 复用／补齐 → AI Reviewer 只读方案关 → TL 派 FS → FS 实现、必要验证及完整自检 →
+AI Reviewer 准确 SHA 的 pre-push spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → PRM 接管非 Draft 生命周期。
+Reviewer 不运行／裁定测试、build、lint、CI，不跟踪 PR；缺口回原 FS，发送不等于已接受或已交付。
 这个 skill **只负责起草 + dispatch**，不把 issue done 当作发布/实际消费已完成。
 
 ---

@@ -39,13 +39,9 @@ For each case ask:
 
 An action is eligible only when the current project authority assigns it to the supervisor/control plane or explicitly permits equivalent lifecycle recovery.
 
-Eligible examples:
+Route eligible continuations to the existing owner: TL/FS for team stages, the original main conversation for subagents, and PRM for non-Draft delivery. A terminal/expired run alone does not prove interruption or authorize another run. Reconcile receipt, wait conditions and ownership before any authorized handoff.
 
-- re-activate the currently responsible role after a terminal/expired run;
-- de-duplicate overlapping runs after proving actor, subject, and artifact identity;
-- promote the next documented stage after every dependency is terminal and evidenced;
-- close an issue after its required PR is merged and every project-specific closure condition is satisfied;
-- restore a required Draft/ready state when the workflow explicitly makes that mechanical state enforceable by the control plane.
+The Dev Team Flow Supervisor only wakes the original actor when the current team workflow can proceed but is interrupted; it ends after verified receipt or an honest unresolved result. Normal CI/review/approval wait and human pause are not interruption. It neither discovers/manages PRs nor reassigns, repairs, replans, closes or merges. This conversation-level helper does not gain those powers by sharing its name. Draft Ready and cancellation remain separate original-author/explicit authority paths.
 
 After acting, read back issue status, assignment, live runs, PR state, and SHA as applicable. A command returning success is not verification.
 

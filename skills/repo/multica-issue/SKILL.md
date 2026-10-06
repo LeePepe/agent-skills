@@ -28,7 +28,8 @@ grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** t
 
 先读 [聊天准入与执行版本](../../workflow/README.md#聊天准入与执行版本)。明确、范围清楚的修复指令无需重复确认；
 设计修改/workflow refine 则先有 Owner 与 CLI 定稿并获准执行的基本方案。复用已有 owner，不因调用本 skill 自动重派。
-仅反馈、诊断、下一版草稿或明确暂存时，不进入实现 dispatch。该准入也不豁免团队内部 Planner/spec/plan 审查。
+仅反馈、诊断、未批准的新需求草稿或明确暂存时，不进入实现 dispatch。维护提出的普通需求也须经过同一准入，
+不能因来源是维护就启动开发。该准入不豁免团队内部 Planner/spec/plan 审查。
 
 ```bash
 command -v multica >/dev/null || { echo "multica CLI 未安装 → 先 multica setup"; exit 1; }
@@ -90,6 +91,8 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
    - 有 → 写进 issue 的「Repro / 失败信号」段。
    - 没有、且暂时构造不出 → **把「先构造一个可复现信号」本身写成 issue 的第一条 Acceptance**,
      不要凭空描述「感觉不对」。给 dev team 一个能收敛的起点。
+   - 查证后仍无法复现／补齐必要事实，且无安全有效下一步 → 按 [问题历史](references/problem-history.md#investigation-without-a-safe-next-step)
+     保留原修复未完成，交 Owner 判断；不是反复创建“先复现”任务或等待新证据后自动恢复。
 2. **检索问题历史**:按 `problem-history.md` 生成稳定 `problem_fingerprint`,搜索 active + closed issue。
    确认 `duplicate_of`、`ineffective_fix_for`、`regression_of` 或 `related_to`,并记录 affected
    version/build 与证据来源。标题相似只用于发现候选,不直接建立关系。
@@ -196,11 +199,14 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
      `completed` 也只说明 run 已结束，交付仍按任务验收、PR、发布/消费等适用证据判断。
    - 零 run、只有不匹配的历史 run、关联不足、超时或查询失败 → 保留任务、固定版本和所选执行方，报告接收未知；
      先核对接收记录与唯一写者，只有确认未接收后才按已验证的恢复路径补派。`rerun` 不作为零历史 run 的兜底；
-     未知状态不触发重建 issue、重复写者或改派。持续不可用报告阻塞，运行恢复另按 W6 处理。
+     未知状态不触发重建 issue、重复写者或改派。持续不可用报告阻塞，运行恢复另按现有恢复入口处理。
 
 - **回显**:每条新建 issue 打印 `identifier`(MY-XXXX)+ URL + 接收结论及依据 + 实际 run 状态；交付证据不足则明确待验收。
   提醒用户后续 pipeline 是
-  TL → Planner → FS(开 PR)→ AI Reviewer，PRM 接管 PR 生命周期；角色实际部署另行核验。
+  Planner → AI Reviewer 只读方案关 → TL 按依赖派 FS → FS 实现、必要验证及完整自检 →
+  AI Reviewer 对准确 SHA 作 pre-push spec/architecture 只读审查 → 原 FS 推送／创建更新 PR。
+  Reviewer 不运行／裁定测试或盯 PR；成功 PR 输出交 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
+  任一步失败如实保留，角色实际部署另行核验。
 
 ---
 
