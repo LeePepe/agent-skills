@@ -21,6 +21,8 @@ jobs:
         run: python3 scripts/gen_registry.py --check
       - name: Test runtime-recovery host-bootstrap
         run: python3 -m unittest discover -s skills/workflow/runtime-recovery/scripts -p 'test_*.py' -v
+      - name: Test teamwork contract handoff
+        run: python3 -m unittest discover -s skills/repo/teamwork/scripts -p 'test_*.py' -v
 
   aggregate:
     name: ci-aggregate
