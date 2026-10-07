@@ -1,9 +1,9 @@
 ---
 name: runtime-recovery
-description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Multica daemon、self-hosted GitHub runner 不可用或执行者中断时，定位故障层、暂停依赖动作、自动拉起 daemon/runner、恢复后触发 Supervisor 巡检并由原 owner 接回。用于“Multica 连不上 / daemon 挂了 / runner offline / PR 卡在 codex-review pending / agent 中断后接续”。
+description: 运行恢复辅助——控制面、daemon、runner 不可用或执行者中断时，定位故障层并按已有授权恢复，由原责任方接回。用于 Multica 连不上、runner offline、review pending 或任务中断；不接管 PR 交付，不授权主机配置或凭据变更。
 ---
 
-# W6 运行恢复
+# 运行恢复
 
 故障只阻塞依赖它的动作：本地开发、离线测试、文档可以继续。**不要在故障期间重复重试写操作。**
 
@@ -27,7 +27,8 @@ description: W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Mu
 - daemon 与 self-hosted runner 各由一个 LaunchAgent 托管：`KeepAlive`（崩溃/登录后自动拉起）。
 - runner 需重新注册或 repo 缺少 runner 时，按 [repo-kit 的 self-hosted runner 配方](../../repo/repo-kit/SKILL.md) 操作。
 - 健康检查（同一 LaunchAgent 的定时任务，或 `StartInterval`）：睡眠唤醒、网络切换后，daemon 或 runner 连续失败则重启该进程。
-- 恢复后触发一次 Pipeline Supervisor sweep，让被中断的 issue 继续。
+- 恢复后按下方“接回”核对原任务；已部署的 Dev Team Flow Supervisor 只经既有 Autopilot 入口唤醒真正中断的原责任 agent。
+  先核实该入口、部署与合法触发权限，不把 source 说明当现网能力，不触发 repo-wide PR sweep。
 - NAS 侧 runtime 不在自动恢复范围内（Owner 暂缓）。
 
 托管时的坑（首次托管前逐条核对）：
@@ -50,8 +51,13 @@ launchd 每次启动 runner 都读取默认 `~/.config/raven-actions/host.json`�
 
 ## 4. 接回
 
-恢复后由原 owner 重新读取权威状态（PR head SHA、issue 状态、worktree），确认只有一个写者后继续。主 agent 只观察与报告，不手工替代 Supervisor/PRM。
+恢复后由原 owner 重新读取权威状态（PR head SHA、issue 状态、worktree），确认唯一写者与既有继续条件。
+按 [workflow 责任边界](../README.md#dev-team-flow-supervisor)：Dev Team Flow Supervisor 只唤醒已具备下一步却中断的原责任方，
+不代执行、改派、修复或合并；正常等待／人工暂停不触发唤醒，接收未知先对账，实际接收后才报已唤醒。
+subagent 仍由原主会话协调；非 Draft PR 交付仍归 PRM。已交 Owner 判断的查证结论不因环境恢复或新证据自动解锁。
 
 ## 演练（验收）
 
-一次 kill daemon、一次睡眠唤醒、一次 runner 停止：分别记录自动拉起时间、被中断任务是否由 Supervisor 接续。
+仅在准确隔离演练授权具备后执行一次 kill daemon、一次睡眠唤醒、一次 runner 停止：分别记录恢复时间、
+原责任方的实际接收和后续任务证据；同时验证正常等待／人工暂停不会误唤醒，PRM／subagent 主会话未被接管。
+主机恢复、唤醒接受、实现／PR 交付分别验收，不以发消息或 source 测试通过替代真实接续。

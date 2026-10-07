@@ -43,7 +43,7 @@ policy. The check only verifies the mandatory interface, not arbitrary custom be
 - `a11y-reviewer`: accessibility specialist
 - `perf-reviewer`: performance specialist
 - `user-perspective`: end-user advocate
-- `git-monitor`: commit/PR/CI follow-up when code changed
+- `git-monitor`: commit/PR output and PRM handoff when code changed; no second CI watcher
 
 ## Plan Integrity (portable, no external libs)
 
@@ -205,7 +205,7 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
 21. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**, passing the original
     `workflow_contract_path` along with the plan, candidate/evidence and task worktree. Verify that pointer
     remains readable before handoff; git-monitor must read it before any git mutation.
-22. Return final summary with mandatory execution evidence contract (see below): triage decision, planning results (spec + plan), gate outcomes, verification evidence, final verdict, ship status.
+22. Return final summary with mandatory execution evidence contract (see below): triage decision, planning results (spec + plan), gate outcomes, verification evidence, final verdict, and exact PR/head submission status. `shipped` in this pipeline means successful implementation PR output, not merge/release; unsuccessful PR creation/update or missing required verification/review remains incomplete. Non-Draft lifecycle belongs to PRM; historical Drafts remain with the original author/approval path. Keep all target-repo remote gates and original overall acceptance.
 
 ## Gate Policy
 

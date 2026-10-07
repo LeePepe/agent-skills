@@ -54,7 +54,7 @@ team-lead  (triage: feature | bugfix | bugfix-docs; docs_needed?)
   │     ├── a11y-reviewer
   │     └── perf-reviewer
   ├── user-perspective    → mandatory real UX testing gate (Playwright / XCUITest)
-  └── git-monitor         → commit / PR / CI monitoring (only after user-perspective passes)
+  └── git-monitor         → commit / PR output → PRM handoff (only after user-perspective passes)
 ```
 
 Bugfix fast path: a plain `bugfix` skips the spec phase and spec gate, going straight to
@@ -69,6 +69,10 @@ triage → [spec → spec-gate]? → breakdown → plan-gate → execute → ver
 ```
 
 The `[spec → spec-gate]?` phase runs for features and bugfix-docs; a plain bugfix fast-paths past it.
+
+Here `ship` ends this implementation with a successfully created/updated PR and its required local evidence,
+not merge or release. PRM alone follows non-Draft CI/review/approval and delivery; Draft stays with its original
+author/approval path. Preserve all existing pipeline gates and the target repo's remote completion rules.
 
 Gate policy (mandatory for each task type — no "simple task" or "CLI unavailable" exemption):
 - **Spec gate** (features / bugfix-docs): passes only when `plan-reviewer` (spec-review) AND `pm` (spec-gate) both pass. The merged goal-list confirmation lives here. Bugfix fast-path skips this as a recorded exemption.

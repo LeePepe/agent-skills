@@ -41,6 +41,23 @@ Store the current index in metadata:
 
 Also write the relationship and evidence into the issue body so humans and agents can read it without metadata tooling.
 
+## Continuation and accepted scope
+
+Before routing follow-up work, apply the [workflow intake and repair boundaries](../../../workflow/README.md).
+New goals or material changes return to the same requirements intake; current defects and necessary in-scope tests remain with the original task.
+
+## Investigation without a safe next step
+
+If investigation cannot reproduce the report or fill necessary facts and no safe useful next step remains,
+record the evidence, completed checks, unknowns, conditions needed to continue, and recommendation for the Owner.
+The original repair remains incomplete: unreproduced is neither disproved nor fixed. Preserve its task, owner,
+accepted version and accumulated attempts rather than opening another reproduction task or an Outcome Check.
+
+Once awaiting this Owner decision, later evidence or restored conditions do not authorize automatic continuation.
+The Owner chooses how to proceed; then resume through the original responsibility and normal permissions/review.
+Only affected work and dependencies wait; independent authorized work may continue. Reuse an older decision only
+when its scope, assumptions and effective version match; preserve prior conclusions and the reason for supersession.
+
 ## Delivery exposure
 
 When known, index the first release containing a fix:

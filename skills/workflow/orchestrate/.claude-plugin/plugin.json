@@ -1,5 +1,5 @@
 {
   "name": "orchestrate",
-  "description": "跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按计划依赖交给 Dev Team 或 subagent，跟踪并按交付证据验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 的升级或派活并跟踪交付；是 W0 整体交付循环的子流程。",
+  "description": "跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。",
   "category": "workflow"
 }
