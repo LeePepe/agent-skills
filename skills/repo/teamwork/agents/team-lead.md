@@ -247,25 +247,27 @@ Copying below changes the role's location, not its authority: carry `workflow_co
 entry in the spawn input even if the destination role already exists. The loader does not copy the contract.
 
 ```bash
+: "${TEAMWORK_SOURCE_DIR:?loaded teamwork source directory is required}"
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
 TARGET="${REPO_ROOT:-$HOME}/.claude/agents"
 mkdir -p "$TARGET"
 for role in <stage_roles>; do
   if [ ! -f "$TARGET/$role.md" ]; then
     FOUND=false
-    for src in "$REPO_ROOT/.claude/skills/teamwork/agents/$role.md" "$HOME/.claude/skills/teamwork/agents/$role.md"; do
+    for src in "$REPO_ROOT/.claude/skills/teamwork/agents/$role.md" "$HOME/.claude/skills/teamwork/agents/$role.md" "$TEAMWORK_SOURCE_DIR/agents/$role.md"; do
       if [ -f "$src" ]; then cp "$src" "$TARGET/$role.md"; FOUND=true; break; fi
     done
     [ "$FOUND" = true ] || { echo "missing role: $role" >&2; exit 1; }
   fi
   if [ "$role" = git-monitor ]; then
-    : "${TEAMWORK_SOURCE_DIR:?loaded teamwork source directory is required}"
     python3 "$TEAMWORK_SOURCE_DIR/scripts/check_contract_handoff.py" git-monitor "$TARGET/$role.md" || exit 1
   fi
 done
 ```
 
-This loader preserves an existing override; successful copying is not proof of handoff compatibility.
+This loader preserves an existing override, then searches repo-local skills, home skills, and the supplied
+loaded bundle in that order. A plugin bundle needs no repo/home skill symlink. Successful copying is not
+proof of handoff compatibility.
 Before spawning, apply the required-contract check above to the **runtime-selected** git-monitor file as
 well. If discovery selects something other than this destination, check that actual file without changing
 priority. Unknown selection or incompatible content stops; do not run the bundled role as a workaround.

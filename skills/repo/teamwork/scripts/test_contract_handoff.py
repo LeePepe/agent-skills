@@ -180,6 +180,36 @@ class ContractHandoffTests(unittest.TestCase):
         self.assertEqual(content, self.canonical.read_text())
         self.assertTrue(target.samefile(self.canonical))
 
+    def test_plugin_bundle_loads_roles_without_repo_or_home_skill_links(self):
+        self.installed_skill.unlink()
+        self.installed_skill = self.source  # Runtime-loaded plugin outside either discovery root.
+        self.assertFalse((self.consumer / ".claude/skills/teamwork").exists())
+        self.assertFalse((self.home / ".claude/skills/teamwork").exists())
+        loader = bash_block((self.source / "agents/team-lead.md").read_text(), "## Progressive Loading")
+        result = self.run_shell(loader.replace("<stage_roles>", "planner-lead git-monitor"),
+                                check=False, bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in ("planner-lead", "git-monitor"):
+            installed = self.consumer / f".claude/agents/{name}.md"
+            self.assertEqual(installed.read_bytes(), (self.source / f"agents/{name}.md").read_bytes())
+        content, target = self.contract_read(self.consumer / ".claude/agents/git-monitor.md")
+        self.assertEqual(content, self.canonical.read_text())
+        self.assertTrue(target.samefile(self.canonical))
+
+    def test_loader_preserves_repo_and_home_source_priority_over_bundle(self):
+        self.installed_skill.unlink()
+        repo_role = self.installed_skill / "agents/git-monitor.md"
+        home_role = self.home / ".claude/skills/teamwork/agents/git-monitor.md"
+        for role, note in ((repo_role, "Repo customization."), (home_role, "Home customization.")):
+            role.parent.mkdir(parents=True)
+            role.write_text((self.source / "agents/git-monitor.md").read_text() + f"\n{note}\n")
+        for expected in (repo_role, home_role):
+            with self.subTest(expected=expected):
+                installed = self.copy_role()
+                self.assertEqual(installed.read_bytes(), expected.read_bytes())
+                installed.unlink()
+                expected.unlink()
+
     def test_missing_bundle_contract_stops_resolution(self):
         self.canonical.unlink()
         resolver = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
