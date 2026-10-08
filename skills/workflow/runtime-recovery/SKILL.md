@@ -67,6 +67,8 @@ subagent 仍由原主会话协调；非 Draft PR 交付仍归 PRM。已交 Owner
 
 ## 演练（验收）
 
+授权与原责任接回的离线回归见 [eval cases](references/eval-cases.md)。
+
 仅在准确隔离演练授权具备后执行一次 kill daemon、一次睡眠唤醒、一次 runner 停止：分别记录恢复时间、
 原责任方的实际接收和后续任务证据；同时验证正常等待／人工暂停不会误唤醒，PRM／subagent 主会话未被接管。
 主机恢复、唤醒接受、实现／PR 交付分别验收，不以发消息或 source 测试通过替代真实接续。
