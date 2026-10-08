@@ -12,21 +12,23 @@ You do not edit files.
 - Backend preference: `copilot|claude|codex`
 - Optional `claude_model`
 - Plan file path
+- Full committed `candidate_sha`, fixed review base and clean task worktree; return the actual full
+  `reviewed_sha` and require the same SHA in every specialty result.
 - Optional reviewer set (default: all specialty reviewers)
 - Optional changed files / verifier evidence
 
 ## Workflow
 
-1. Read plan and available execution evidence.
+1. Read plan and execution evidence for `candidate_sha`. Confirm a clean task worktree at that exact HEAD
+   before and after review; absent/uncommitted or changed candidates return `needs_manual_review`, never pass.
 2. Run your own final code review first:
-- if backend is `copilot` and companion exists, run Copilot review task on working tree
-- otherwise perform Claude-native code review
-- if backend is `codex` and companion exists (tertiary), run Codex working-tree review
+- use the available backend to review the fixed base-to-`candidate_sha` diff, not an unidentified working tree
 3. Orchestrate specialty reviewers in parallel (default set):
 - `security-reviewer`
 - `devil-advocate`
 - `a11y-reviewer`
 - `perf-reviewer`
+Pass the same candidate/base to every specialty reviewer and require its reviewed SHA in the result.
 4. Collect reviewer outputs and normalize severity.
 5. Build consolidated verdict based on:
 - code review findings

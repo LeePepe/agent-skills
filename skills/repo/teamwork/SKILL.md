@@ -45,8 +45,8 @@ team-lead  (triage: feature | bugfix | bugfix-docs; docs_needed?)
   ├── planner-lead (mode:breakdown) → executable plan derived from the approved spec
   │     └── linter                → layered dependency lint contract (inter- + intra-layer)
   │   ▶ PLAN GATE: plan-reviewer(review) + pm(plan-gate)
-  ├── fullstack-engineer  → executes tasks in isolated worktrees
-  ├── verifier            → command-level verification evidence (lint mandatory)
+  ├── fullstack-engineer  → executes and commits tasks in isolated worktrees
+  ├── verifier            → verifies outputs and the integrated candidate SHA (lint mandatory)
   ├── pm (delivery-gate)  → delivery supervision over verifier evidence
   ├── final-reviewer      → code review + specialty review coalition
   │     ├── security-reviewer
@@ -54,7 +54,7 @@ team-lead  (triage: feature | bugfix | bugfix-docs; docs_needed?)
   │     ├── a11y-reviewer
   │     └── perf-reviewer
   ├── user-perspective    → mandatory real UX testing gate (Playwright / XCUITest)
-  └── git-monitor         → commit / PR output → PRM handoff (only after user-perspective passes)
+  └── git-monitor         → push reviewed commit unchanged / PR output → PRM handoff
 ```
 
 Bugfix fast path: a plain `bugfix` skips the spec phase and spec gate, going straight to
@@ -64,7 +64,7 @@ A `bugfix-docs` (defect caused by inaccurate docs) runs the spec phase to unify 
 ## Stage Model
 
 ```text
-triage → [spec → spec-gate]? → breakdown → plan-gate → execute → verify
+triage → [spec → spec-gate]? → breakdown → plan-gate → execute/commit → verify → integrate/commit → verify(candidate)
        → pm-delivery → final-review → user-perspective → ship
 ```
 
@@ -73,6 +73,8 @@ The `[spec → spec-gate]?` phase runs for features and bugfix-docs; a plain bug
 Here `ship` ends this implementation with a successfully created/updated PR and its required local evidence,
 not merge or release. PRM alone follows non-Draft CI/review/approval and delivery; Draft stays with its original
 author/approval path. Preserve all existing pipeline gates and the target repo's remote completion rules.
+Commit and verify the integrated `candidate_sha` before review; git-monitor pushes it unchanged.
+Any candidate change requires renewed verification/review.
 
 Gate policy (mandatory for each task type — no "simple task" or "CLI unavailable" exemption):
 - **Spec gate** (features / bugfix-docs): passes only when `plan-reviewer` (spec-review) AND `pm` (spec-gate) both pass. The merged goal-list confirmation lives here. Bugfix fast-path skips this as a recorded exemption.

@@ -1,6 +1,6 @@
 ---
 name: git-monitor
-description: Post-review git submission helper. Commits only assigned files, creates or updates the task PR, and returns exact-head evidence for PRM handoff; does not own remote CI monitoring or repairs.
+description: Post-review publication helper. Pushes the reviewed commit unchanged and returns task PR/head evidence for PRM handoff; no remote CI watching or repairs.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -26,9 +26,12 @@ cat "$WORKFLOW_CONTRACT_PATH"
 Apply its delivery boundary; missing/unreadable input stops submission. Return the exact missing handoff
 to the caller, without copying the policy, substituting a remote version or skipping this read.
 
+Require the executor's committed `candidate_sha` and passing evidence for that full SHA. Never stage, commit,
+amend, rebase or merge here. Run the identity preflight before push; mismatches return to the executor/gates.
+
 ## Input
 
-- Plan path, exact reviewed/tested candidate and evidence.
+- Plan path, full `candidate_sha`, `reviewed_sha`, `tested_sha` and passing gate evidence for that commit.
 - `workflow_contract_path` from the caller's loaded skill bundle, including direct/preinstalled-role use.
 - Explicit modified-file list, dedicated task worktree/branch and declared PR base.
 - Original implementation owner and existing PR identity when any.
@@ -38,14 +41,14 @@ to the caller, without copying the policy, substituting a remote version or skip
 1. Read project commit/PR conventions and applicable fixed repository contracts. Verify the task root,
    branch, remote and configured agent identity. Preserve unrelated files; missing or changed review/test
    evidence is a real gap, not permission to stage a different candidate.
-2. Stage only the assigned files, inspect the staged diff, and commit by the repo's normal convention
-   (default Conventional Commits). Preserve hooks and required verification; bind the resulting SHA to
-   actual review/test evidence as the repo requires before push.
-3. Push only this task branch normally. Reuse the existing PR, or create the required PR using the
+2. Require passing local gates, including user-perspective, for `candidate_sha`; run the preflight in the
+   task worktree immediately before push. Even an identical tree at a different SHA requires new evidence.
+3. Push `candidate_sha` explicitly to the declared task branch (an ordinary non-force refspec, not a moving
+   HEAD). Preserve normal hooks and verification. Reuse the existing PR, or create the required PR using the
    repository template and declared base. Include intent, actual validation/review evidence, exact head,
    source/original owner and remaining limitations. Do not infer permission to Ready a historical Draft.
-4. Read back PR URL, head/base and Draft/state. A sent request, commit or push is not proof the PR exists
-   or was updated. If the result is unknown, reconcile before retrying; retain the original task/writer.
+4. Read back PR URL, head/base and Draft/state; require `pr_head_sha == candidate_sha` before success.
+   Changed head/tree requires renewed gates. Sending or pushing is not proof the PR was updated. If the result is unknown, reconcile before retrying; retain the original task/writer.
 5. Return the accurate implementation output to the existing coordinator. Non-Draft delivery belongs
    to PRM, whether directly handed off or discovered. Draft follows its original author/approval path.
    Do not keep watching CI, dispatch repairs, merge, or claim PRM receipt without actual evidence.
@@ -54,6 +57,29 @@ Successful submission ends this helper's work, not required remote CI/review or 
 Known failed/missing necessary validation or unsuccessful PR creation/update cannot be reported as completed implementation.
 Preserve plan, state and worktree evidence; cleanup belongs to the original coordinator after proving
 commits are saved and no active process or required local artifacts depend on the tree. This helper does not delete them.
+
+## Candidate identity preflight
+
+Bind actual gate-record SHAs; verify passing verdicts separately. Run before and after push.
+
+```bash
+set -eu
+: "${CANDIDATE_SHA:?committed candidate_sha is required}"
+: "${REVIEWED_SHA:?reviewed_sha is required}"
+: "${TESTED_SHA:?tested_sha is required}"
+CURRENT_SHA=$(git rev-parse --verify HEAD)
+if [ "$CURRENT_SHA" != "$CANDIDATE_SHA" ] ||
+   [ "$REVIEWED_SHA" != "$CANDIDATE_SHA" ] || [ "$TESTED_SHA" != "$CANDIDATE_SHA" ]; then
+  echo "candidate differs from reviewed/tested commit; return to the original executor and gates" >&2
+  exit 1
+fi
+CANDIDATE_STATUS=$(GIT_OPTIONAL_LOCKS=0 git status --porcelain --untracked-files=normal --ignore-submodules=none)
+[ -z "$CANDIDATE_STATUS" ] || {
+  echo "candidate worktree/index is not clean; preserve it and return to the original executor" >&2
+  exit 1
+}
+printf '%s\n' "$CURRENT_SHA"
+```
 
 ## Output Contract
 
@@ -68,4 +94,4 @@ commits are saved and no active process or required local artifacts depend on th
 - No feature/source edits, force-push, history rewrite, bypass, credentials or settings changes.
 - Use configured agent identity; failure is not permission to fall back to Owner credentials.
 - If `gh` or the normal publication path is unavailable, report the precise failed step and retained work.
-- No changes to commit is a valid no-op, not proof a required PR has already been delivered.
+- An existing unchanged commit is publishable only with its own passing evidence; no new commit is needed.

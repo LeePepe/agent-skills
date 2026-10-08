@@ -64,6 +64,9 @@ CODEX_BIN=$(which codex 2>/dev/null)
    - Run verification commands when specified
    - Confirm files compile/lint if applicable
 
+   - Stage only assigned files, inspect and commit with normal repository hooks before handoff; return the
+     full `candidate_sha`. Repairs require a new commit and renewed gates. Push waits for downstream gates.
+
 5. Report:
    - Backend used (`copilot|claude-native|codex`)
    - `worktree_path`: absolute path to the worktree

@@ -46,6 +46,8 @@ printf '%s\n' "$WORKFLOW_CONTRACT_PATH"
 
 仅检查成功且无指令冲突时调用，将输出的原合同绝对路径作为 `workflow_contract_path`，连同准确候选、
 验证／审查证据、任务 worktree 和明确文件清单交给 git-monitor；它须在任何 Git 写入前读取该合同。
+先由原执行者 commit 并完成该 SHA 的验证／审查，再传入 `candidate_sha`、`tested_sha`、`reviewed_sha`；
+helper 只原样 push 三者一致的 commit，变化回原执行者重验／重审。
 不能从复制后的 `.claude/agents` 位置重算合同。选择未知、缺少 bundle／合同／检查器、接口不兼容或指令冲突时
 停止该交接并报告具体 setup 缺口；保留 override 优先级与内容，不覆盖、不静默改选 bundled role。
 检查器只验证必需接口，不证明任意 override 或模型行为正确；角色选择变化后须重新核对。
