@@ -237,7 +237,7 @@ multica --workspace-id "$WS" issue comment add "$NEW_KEY" --content-stdin < body
 
 **后续 pipeline**按目标仓合同及 [workflow 实现职责](../../../workflow/README.md#实现职责与当次输出)：
 Planner 复用／补齐 → AI Reviewer 只读方案关 → TL 派 FS → FS 实现、必要验证及完整自检 →
-AI Reviewer 准确 SHA 的 pre-push spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → PRM 接管非 Draft 生命周期。
+AI Reviewer 准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → PRM 接管非 Draft 生命周期。
 Reviewer 不运行／裁定测试、build、lint、CI，不跟踪 PR；缺口回原 FS，发送不等于已接受或已交付。
 这个 skill **只负责起草 + dispatch**，不把 issue done 当作发布/实际消费已完成。
 

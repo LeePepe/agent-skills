@@ -204,7 +204,7 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
 - **回显**:每条新建 issue 打印 `identifier`(MY-XXXX)+ URL + 接收结论及依据 + 实际 run 状态；交付证据不足则明确待验收。
   提醒用户后续 pipeline 是
   Planner → AI Reviewer 只读方案关 → TL 按依赖派 FS → FS 实现、必要验证及完整自检 →
-  AI Reviewer 对准确 SHA 作 pre-push spec/architecture 只读审查 → 原 FS 推送／创建更新 PR。
+  AI Reviewer 对准确 SHA 作 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR。
   Reviewer 不运行／裁定测试或盯 PR；成功 PR 输出交 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
   任一步失败如实保留，角色实际部署另行核验。
 

@@ -54,10 +54,10 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 - **Dev Team**：Planner 复用、校验、补齐既有 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
   TL 按已审任务及依赖派 FS。独立且路径不冲突的 FS 可并行，同一路径保持唯一写者。
-- **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push spec/architecture 审查；
+- **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 审查；
   通过由原 FS 推送／创建更新 PR，发现当前缺口仍回原 FS，不默认换作者。
-- **Dev Team AI Reviewer**：只承担上述两道只读 spec/plan、准确 SHA spec/architecture 审查；
-  不执行或裁定 build/test/lint/hooks/CI，不盯 PR，也不替代 FS 深入代码／style 自检。
+- **Dev Team AI Reviewer**：承担只读 spec/plan，以及发布前准确 SHA 的独立代码／style 与 spec/architecture 审查；
+  不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整自检保留，不能替代独立审查。
 - **subagent**：原执行者负责开发、验证、修复；既有主会话管理依赖与结果，适用审查按仓合同安排。
   团队 Reviewer 的职责边界不构成其他执行者的通用免审。
 - **当次实现输出**：本次必要实现、验证与审查满足，且所需 PR 成功创建／更新后回报 PR URL、准确 head、

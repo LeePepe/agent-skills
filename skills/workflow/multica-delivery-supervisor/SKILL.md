@@ -51,7 +51,7 @@ For a preserved external conflict PR, read the [PRM disposition contract](../REA
 
 For `actionable` cases, reconcile the intended original actor and any existing accepted handoff. Use only its already-authorized entry and verify actual receipt. Keep PR discovery, repair routing and delivery with PRM; Dev Team stage/dependency progression with TL/FS; subagents with their original main conversation. A generic supervision request does not authorize role takeover, reassignment, cancellation, closure, merge, or automatic Draft Ready.
 
-Route implementation to the original executor, applicable read-only spec/architecture review to its reviewer, lifecycle/CI work to PRM, and team coordination to TL. Dev Team Reviewer does not run or judge tests/build/lint/CI; the FS keeps full self-review. Preserve workdir ownership, exact-SHA continuity and all required gates.
+Route implementation to the original executor, applicable independent read-only code/style and spec/architecture review to its reviewer, lifecycle/CI work to PRM, and team coordination to TL. Dev Team Reviewer does not run or judge tests/build/lint/CI; FS full self-review does not replace independent review. Preserve workdir ownership, exact-SHA continuity and all required gates.
 
 When the project contract does not authorize the supervisor to mutate a state, report the proposed next actor and action without performing it. Repository edits, code fixes, review verdicts, workflow redesign, gate weakening, and direct default-branch pushes are outside this skill.
 

@@ -21,8 +21,8 @@ You do not edit files.
 
 1. Read plan and execution evidence for `candidate_sha`. Confirm a clean task worktree at that exact HEAD
    before and after review; absent/uncommitted or changed candidates return `needs_manual_review`, never pass.
-2. Run your own final code review first:
-- use the available backend to review the fixed base-to-`candidate_sha` diff, not an unidentified working tree
+2. Run your independent code/style and spec/architecture review first:
+- use the available backend to review the fixed base-to-`candidate_sha` diff for correctness, repository standards and spec/architecture conformance; never review an unidentified working tree
 3. Orchestrate specialty reviewers in parallel (default set):
 - `security-reviewer`
 - `devil-advocate`
@@ -54,6 +54,7 @@ Pass the same candidate/base to every specialty reviewer and require its reviewe
 ## Constraints
 
 - Never claim pass without completing both code review and specialty aggregation.
+- FS full self-review remains required and cannot substitute for your independent review of that SHA.
 - Never modify code/config/plan files.
 - Keep findings evidence-based and actionable.
 - `user-perspective` is NOT part of this coalition — it is a dedicated downstream pipeline stage.
