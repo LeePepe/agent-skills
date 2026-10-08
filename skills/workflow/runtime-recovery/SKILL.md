@@ -6,6 +6,7 @@ description: 运行恢复辅助——控制面、daemon、runner 不可用或执
 # 运行恢复
 
 故障只阻塞依赖它的动作：本地开发、离线测试、文档可以继续。**不要在故障期间重复重试写操作。**
+默认仅做下述只读诊断，回报证据与建议动作；调用本 skill 或发现故障本身不授予主机写入、服务控制或凭据操作权限。
 
 ## 1. 判断故障层（只读、有界）
 
@@ -24,6 +25,13 @@ description: 运行恢复辅助——控制面、daemon、runner 不可用或执
 
 ## 2. 自动恢复（MacBook）
 
+**执行前核对单独授权。** 以下创建／修改／装卸 LaunchAgent、安装启动包装脚本、修改 runner 主机配置或环境变量名单、
+启动／停止／重启服务，以及注册／重新注册 self-hosted runner 的动作，须有 Owner 批准或仍适用的已有准确授权，
+明确覆盖目标主机、服务／repo 和具体操作；涉及注册凭据或密钥的读取、使用、写入须另在授权范围内。
+复用已有准确授权，不重复索批；仅有故障报告、工具可用或文件可写不能代替授权。授权缺失、范围变化或无法核实时，
+保留只读诊断结果和可审阅方案，向 Owner 报告缺口，在获准前不执行对应动作。已合法部署的自动恢复机制按原授权运行，
+不因本 skill 而获得新的配置／凭据权限。
+
 - daemon 与 self-hosted runner 各由一个 LaunchAgent 托管：`KeepAlive`（崩溃/登录后自动拉起）。
 - runner 需重新注册或 repo 缺少 runner 时，按 [repo-kit 的 self-hosted runner 配方](../../repo/repo-kit/SKILL.md) 操作。
 - 健康检查（同一 LaunchAgent 的定时任务，或 `StartInterval`）：睡眠唤醒、网络切换后，daemon 或 runner 连续失败则重启该进程。
@@ -39,6 +47,7 @@ description: 运行恢复辅助——控制面、daemon、runner 不可用或执
 - 替换 runner/daemon 的 plist 前先备份原件；其他安装器若按 SHA 校验 plist，替换后它的回滚会拒绝执行，需要先从备份恢复。
 
 自托管 runner 调用本地模型 provider 时，可参考 [scripts/host-bootstrap.py](scripts/host-bootstrap.py) 的 launchd 包装器：默认 dry-run，写入需 plan-id 批准，并生成 rollback manifest。
+`install --apply`、`secret-write` 和 rollback 同样须满足上述单独授权；plan-id 只绑定准确方案，生成或填入它不构成 Owner 授权。
 非密钥 `host.json` 提供 `owner/default_runners/legacy_labels/known_prior_launcher_sha256/daily_config/python` 等主机配置；每个新 runner 使用独立的 `review_home`。
 launchd 每次启动 runner 都读取默认 `~/.config/raven-actions/host.json`（不带 `--config` / `--owner`）；该文件缺失或无效时，所有 runner 都无法启动。
 安装完成后再编辑默认主机配置，也可能使后续 runner 启动失败；安装时校验通过不保证之后每次启动仍可用。
