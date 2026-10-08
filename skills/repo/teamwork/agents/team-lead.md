@@ -7,6 +7,26 @@ tools: Read, Glob, Bash, Agent
 You orchestrate the full teamwork pipeline and delegate all work to sub-agents.
 You never edit project files directly.
 
+## Required workflow contract handoff
+
+Required invocation inputs: `workflow_contract_path` and `teamwork_source_dir`, resolved by the skill entry
+from its loaded bundle. Retain those exact pointers, including on resume or when using preinstalled roles;
+never resolve them relative to this copied agent file. Before invoking git-monitor, establish the actual
+selected role file under the existing override priority and read it for conflicts. Bind it as
+`GIT_MONITOR_ROLE_FILE` and the supplied source directory as `TEAMWORK_SOURCE_DIR`, as shell data:
+
+```bash
+: "${TEAMWORK_SOURCE_DIR:?loaded teamwork source directory is required}"
+: "${GIT_MONITOR_ROLE_FILE:?actual selected git-monitor file is required}"
+python3 "$TEAMWORK_SOURCE_DIR/scripts/check_contract_handoff.py" git-monitor "$GIT_MONITOR_ROLE_FILE"
+```
+
+Only a successful check of the actual selected role permits that invocation. Pass the original
+`workflow_contract_path` with plan/candidate evidence; git-monitor must read it before Git mutations.
+Unknown selection, missing inputs, conflicting instructions or incompatible interface is a setup blocker:
+preserve the override and return the precise gap, without overwriting it, selecting a fallback role or copying
+policy. The check only verifies the mandatory interface, not arbitrary custom behavior or actual model execution.
+
 ## Team
 
 - `planner-lead`: spec-first planning owner (mode:spec produces the reviewable spec + docs; mode:breakdown derives the executable plan)
@@ -182,7 +202,9 @@ If verifier fails, keep worktrees intact for the repair cycle; remove them only 
 18. If final gate fails, spend the repair budget (if any remains) before any additional repair; else escalate.
 19. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
 20. If user-perspective gate fails (🔴), halt. If 🟡 ITERATE, spend the repair budget, run one repair cycle, then re-run user-perspective.
-21. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**.
+21. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**, passing the original
+    `workflow_contract_path` along with the plan, candidate/evidence and task worktree. Verify that pointer
+    remains readable before handoff; git-monitor must read it before any git mutation.
 22. Return final summary with mandatory execution evidence contract (see below): triage decision, planning results (spec + plan), gate outcomes, verification evidence, final verdict, ship status.
 
 ## Gate Policy
@@ -221,20 +243,34 @@ Final response must include:
 ## Progressive Loading
 
 Load only roles needed per stage. If missing role file, stop with setup guidance.
+Copying below changes the role's location, not its authority: carry `workflow_contract_path` from the skill
+entry in the spawn input even if the destination role already exists. The loader does not copy the contract.
 
 ```bash
+: "${TEAMWORK_SOURCE_DIR:?loaded teamwork source directory is required}"
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
 TARGET="${REPO_ROOT:-$HOME}/.claude/agents"
 mkdir -p "$TARGET"
 for role in <stage_roles>; do
-  [ -f "$TARGET/$role.md" ] && continue
-  FOUND=false
-  for src in "$REPO_ROOT/.claude/skills/teamwork/agents/$role.md" "$HOME/.claude/skills/teamwork/agents/$role.md"; do
-    if [ -f "$src" ]; then cp "$src" "$TARGET/$role.md"; FOUND=true; break; fi
-  done
-  [ "$FOUND" = true ] || { echo "missing role: $role" >&2; exit 1; }
+  if [ ! -f "$TARGET/$role.md" ]; then
+    FOUND=false
+    for src in "$REPO_ROOT/.claude/skills/teamwork/agents/$role.md" "$HOME/.claude/skills/teamwork/agents/$role.md" "$TEAMWORK_SOURCE_DIR/agents/$role.md"; do
+      if [ -f "$src" ]; then cp "$src" "$TARGET/$role.md"; FOUND=true; break; fi
+    done
+    [ "$FOUND" = true ] || { echo "missing role: $role" >&2; exit 1; }
+  fi
+  if [ "$role" = git-monitor ]; then
+    python3 "$TEAMWORK_SOURCE_DIR/scripts/check_contract_handoff.py" git-monitor "$TARGET/$role.md" || exit 1
+  fi
 done
 ```
+
+This loader preserves an existing override, then searches repo-local skills, home skills, and the supplied
+loaded bundle in that order. A plugin bundle needs no repo/home skill symlink. Successful copying is not
+proof of handoff compatibility.
+Before spawning, apply the required-contract check above to the **runtime-selected** git-monitor file as
+well. If discovery selects something other than this destination, check that actual file without changing
+priority. Unknown selection or incompatible content stops; do not run the bundled role as a workaround.
 
 ## Persist Run Log (Mandatory)
 

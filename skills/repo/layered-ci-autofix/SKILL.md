@@ -63,11 +63,34 @@ gh pr status 2>/dev/null | head -20                       # 当前分支有无�
 
 commit/PR 的**机制**(commit 规范、PR 模板、base 分支探测)交给 `git-monitor` 式的做法——
 读项目约定(`CLAUDE.md` / `.claude/team.md` 的 commit/PR 格式),默认 Conventional Commits。
-**本 skill 只负责闭环,不重新发明 commit 规范。** 可直接派 `git-monitor` agent 做这步:
+**本 skill 只负责闭环,不重新发明 commit 规范。**
 
+### 可选 git-monitor 交接
+
+仅在本次提交确需该 helper 时执行，不启动 teamwork 全流程。将运行时实际加载的本 skill 目录绑定为
+`CI_AUTOFIX_SKILL_DIR`（可为软链），按运行时既有发现／override 优先级查明**实际选中的 git-monitor 文件**，
+绑定为 `GIT_MONITOR_ROLE_FILE`；路径作为数据传入，不作为 shell 文本求值。
+调用前及恢复后读取该角色全文检查冲突，并运行同一 bundle 的只读兼容检查：
+
+```bash
+: "${CI_AUTOFIX_SKILL_DIR:?loaded layered-ci-autofix skill directory is required}"
+: "${GIT_MONITOR_ROLE_FILE:?actual selected git-monitor file is required}"
+CI_AUTOFIX_SOURCE=$(cd "$CI_AUTOFIX_SKILL_DIR" && pwd -P) || exit 1
+WORKFLOW_DIR=$(cd "$CI_AUTOFIX_SOURCE/../../workflow" && pwd -P) || exit 1
+WORKFLOW_CONTRACT_PATH="$WORKFLOW_DIR/README.md"
+[ -f "$WORKFLOW_CONTRACT_PATH" ] && [ -r "$WORKFLOW_CONTRACT_PATH" ] || {
+  echo "required workflow contract is unavailable in the loaded bundle" >&2
+  exit 1
+}
+python3 "$CI_AUTOFIX_SOURCE/../teamwork/scripts/check_contract_handoff.py" git-monitor "$GIT_MONITOR_ROLE_FILE" || exit 1
+printf '%s\n' "$WORKFLOW_CONTRACT_PATH"
 ```
-Agent(subagent_type: "git-monitor")  # 若环境有该 agent:staging+commit+push+gh pr create,返回 pr_url/ci_failures
-```
+
+仅检查成功且无指令冲突时调用，将输出的原合同绝对路径作为 `workflow_contract_path`，连同准确候选、
+验证／审查证据、任务 worktree 和明确文件清单交给 git-monitor；它须在任何 Git 写入前读取该合同。
+不能从复制后的 `.claude/agents` 位置重算合同。选择未知、缺少 bundle／合同／检查器、接口不兼容或指令冲突时
+停止该交接并报告具体 setup 缺口；保留 override 优先级与内容，不覆盖、不静默改选 bundled role。
+检查器只验证必需接口，不证明任意 override 或模型行为正确；角色选择变化后须重新核对。
 
 无该 agent 时的最小内联(仍遵守项目约定):
 ```bash
