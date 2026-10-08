@@ -45,6 +45,7 @@ Classify each case as:
 - `complete`: the completion contract is satisfied.
 
 Evidence absence stays unknown. Never infer completion from a green check, merged PR, terminal run, or silent issue alone.
+For a preserved external conflict PR, read the [PRM disposition contract](../README.md#普通外部-pr-的冲突保留终态) before treating its open state as a stall or an Owner decision. Verify the existing disposition and any later author update; this helper does not perform PRM's comment/label actions.
 
 ## Act within the workflow
 

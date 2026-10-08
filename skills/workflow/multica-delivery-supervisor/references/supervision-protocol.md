@@ -16,6 +16,8 @@ Use the repository host and Multica project mappings to join issues to PRs. Sear
 
 ## Reconciliation order
 
+First check whether an open external PR has the verified [PRM conflict disposition](../../README.md#普通外部-pr-的冲突保留终态) for its current contents/head. An unchanged author-facing comment plus `冲突保留` disposition is terminal for that handling cycle, not a stall or Owner wait. An author update requires normal PRM reprocessing; the old label alone cannot suppress it. Unknown or incomplete evidence requires read-only reconciliation, not a completion claim or duplicate action.
+
 Process in this order unless the project contract says otherwise:
 
 1. required-gate or delivery-integrity risk;
@@ -80,12 +82,14 @@ Persist enough handoff state in the session report to resume: authoritative scop
 A project supervision scope is complete only when:
 
 - every included delivery leaf is terminal and consistent with its parent;
-- no included delivery PR remains open, Draft, or awaiting merge;
-- reviewed, tested, and merged identities satisfy the project's gates;
+- no included delivery PR remains open, Draft, or awaiting merge, except an ordinary external PR with a verified, still-current conflict disposition under the contract above;
+- reviewed, tested, and merged identities of merged deliveries satisfy the project's gates;
 - merged PRs have corresponding lifecycle closure;
 - required release/build steps are complete, or explicitly represented as a bounded post-release outcome check;
 - every effectiveness verdict is confirmed or honestly recorded as pending/unknown with its next observation event;
 - no P0/P1 audit finding is silently omitted;
 - every remaining Owner decision is delivered with a stable decision ID.
+
+A conflict disposition completes only that PR's handling cycle. Report it separately from merged deliveries; it does not satisfy an unmet parent/implementation goal, release requirement or product acceptance. Neither the conversation helper nor Flow Supervisor comments, labels, merges or closes the PR on PRM's behalf, or creates an Owner notification for this ordinary external conflict.
 
 Stopping a watch at the user's request reports incomplete items; it does not relabel them complete.

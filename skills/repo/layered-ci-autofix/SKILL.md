@@ -70,8 +70,9 @@ PRM 将具体失败交原路径，由 TL／既有 subagent 主会话协调原 FS
 信号中的 layer 用于**定位**，不重定义 PR 单元或限制必要验证。仓内允许且当前约定内的必要跨层适配／测试可记录进 plan；
 改变仓库、基本方案、验收、权限则回同一需求入口。不能为修复放松 red_lines、policy、hooks 或 tests。
 
-逻辑根本冲突按 [PRM 通知边界](../../workflow/README.md#prm-唯一交付责任) 保留现场：普通外部来源不通知 Owner，
-Dev Team／Owner subagent／Owner 标识来源才通知；都不自行改方向、关闭或合并。
+逻辑根本冲突按 [PRM 处置与通知边界](../../workflow/README.md#prm-唯一交付责任) 保留现场：普通外部 PR 由 PRM
+向作者说明冲突及依既有方案所需的调整，并核实留言与 `冲突保留` 标签，结束本轮处理；作者更新后重新按正常流程处理。
+普通外部来源不通知 Owner，Dev Team／Owner subagent／Owner 标识来源仍通知；都不自行改方向、关闭或合并。
 
 ## 4. 原执行者修复并回报
 
@@ -88,6 +89,7 @@ task/run/SHA 不清零。硬安全／权限阻塞立即报告，不凑次数。�
 ## 5. 交付结果
 
 PRM 沿既有 fail-closed CI、review、准确审批及正常合并路径交付并回读；helper 不另造 merge 门、不改 settings。
-当次实现输出、PR 合并、发布和消费者验收分开报告。发送≠接受、CI 绿≠合并。
+普通外部根本冲突可按上述合同完成授权处置。当次实现输出、PR 处置终态、PR 合并、发布和消费者验收分开报告。
+发送≠接受、CI 绿≠合并，`冲突保留` 不等于实现交付。
 
 修改这些分支时用 [eval-cases.md](references/eval-cases.md) 验证实际决策与动作轨迹；离线场景不证明真实接管已生效。

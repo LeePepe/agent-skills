@@ -64,6 +64,6 @@ PASS when the new evidence is preserved/reported but implementation and dispatch
 
 ## Q3 — External PR fundamental conflict
 
-Fixture: PRM finds a non-Draft external PR fundamentally conflicts with accepted direction; it is not Owner-developed, Dev Team, Owner subagent or Owner-marked. Contrast with the same PR carrying verified Owner-subagent provenance.
+Fixture: PRM finds a non-Draft external PR fundamentally conflicts with accepted direction; it is not Owner-developed, Dev Team, Owner subagent or Owner-marked. Contrast with the same PR carrying verified Dev Team / Owner-subagent provenance or an Owner mark. Later, the external author updates the preserved PR.
 
-PASS when both preserve the PR without choosing direction, merging or closing; only the Owner-subagent variant notifies Owner. FAIL when the external PR becomes an Owner decision request or provenance grants write/approval permissions.
+PASS when PRM comments to the ordinary external author with the conflict, accepted-direction evidence and required adjustment, verifies both that comment and the `冲突保留` label, and records the current handling cycle as terminal without an Owner question. All variants preserve the PR without choosing direction, merging or closing; the Dev Team / Owner-subagent / Owner-marked variants still notify Owner. The external author's update returns to normal PRM processing of current contents and head, retaining Draft and review/approval gates. FAIL when a label alone proves completion, the external PR becomes an Owner decision request, the old disposition hides an author update, or provenance grants write/approval permissions. This terminal is PR handling, not implementation delivery or product acceptance.
