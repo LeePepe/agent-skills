@@ -16,6 +16,7 @@
 |---|---|
 | [`multica-delivery-supervisor`](./skills/workflow/multica-delivery-supervisor/) | Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority. |
 | [`orchestrate`](./skills/workflow/orchestrate/) | 跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。 |
+| [`periodic-maintenance`](./skills/workflow/periodic-maintenance/) | 06 周期维护的未启用源码入口：按有效决定核对公开仓当前文档与相关实现，准备有证据的普通 backlog 或待澄清草稿。用于维护规则审查和离线演练；真实运行仍受启用 HOLD 约束。 |
 | [`runtime-recovery`](./skills/workflow/runtime-recovery/) | 运行恢复辅助——控制面、daemon、runner 不可用或执行者中断时，定位故障层并按已有授权恢复，由原责任方接回。用于 Multica 连不上、runner offline、review pending 或任务中断；不接管 PR 交付，不授权主机配置或凭据变更。 |
 | [`shared-release`](./skills/workflow/shared-release/) | W5 共享库发布与消费者升级——shared-* 仓合并后打不可变版本，随版本发布 ai/ 合同，在外部消费者验证，再为每个消费 repo 开独立 pin 升级 PR。用于“发布 shared-ci/telemetry/design-system/tokens/VoxKit 新版本 / 让产品升级到新版共享库 / 回滚共享库版本”。 |
 
