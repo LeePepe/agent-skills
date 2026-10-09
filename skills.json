@@ -15,7 +15,7 @@
       "name": "orchestrate",
       "category": "workflow",
       "path": "skills/workflow/orchestrate",
-      "description": "跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按计划依赖交给 Dev Team 或 subagent，跟踪并按交付证据验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 的升级或派活并跟踪交付；是 W0 整体交付循环的子流程。",
+      "description": "跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。",
       "user_invocable": false,
       "has_references": false,
       "has_eval": false
@@ -24,10 +24,10 @@
       "name": "runtime-recovery",
       "category": "workflow",
       "path": "skills/workflow/runtime-recovery",
-      "description": "W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Multica daemon、self-hosted GitHub runner 不可用或执行者中断时，定位故障层、暂停依赖动作、自动拉起 daemon/runner、恢复后触发 Supervisor 巡检并由原 owner 接回。用于“Multica 连不上 / daemon 挂了 / runner offline / PR 卡在 codex-review pending / agent 中断后接续”。",
+      "description": "运行恢复辅助——控制面、daemon、runner 不可用或执行者中断时，定位故障层并按已有授权恢复，由原责任方接回。用于 Multica 连不上、runner offline、review pending 或任务中断；不接管 PR 交付，不授权主机配置或凭据变更。",
       "user_invocable": false,
-      "has_references": false,
-      "has_eval": false
+      "has_references": true,
+      "has_eval": true
     },
     {
       "name": "shared-release",
@@ -78,7 +78,7 @@
       "name": "layered-ci-autofix",
       "category": "repo",
       "path": "skills/repo/layered-ci-autofix",
-      "description": "运行时(run-time)闭环:把改动 commit/push、开 PR、监督 PR 的 required CI、失败时读结构化失败信号 {layer, path, kind, detail, red_lines} 做**按 layer 收窄的自动修复**,修完再 push、重新等 CI,直到绿灯或触发升级。它是 repo-kit(setup-time 脚手架)的**运行时消费者**——消费后者铺好的 CI 信号与每层 red_lines/test;门用 auto-review-merge,不自己重造。当用户想\"项目改完自动 commit、监督 PR CI、CI 挂了自动修、跑通再合\"时使用。用于:一次任务收尾的 push→监督→修复闭环。不用于:装脚手架(那是 repo-kit)、纯搭 CI 门(那是 auto-review-merge)。",
+      "description": "PRM 的 CI 诊断与原路径修复辅助。用于读取准确 PR head 的失败信号、定位仓库约束并交回原执行者，或执行已交回的具体修复；不启动第二条 PR watcher，不接管 Draft，不安装 CI 或自行合并。",
       "user_invocable": false,
       "has_references": true,
       "has_eval": true
@@ -105,7 +105,7 @@
       "name": "owner-decision-loop",
       "category": "repo",
       "path": "skills/repo/owner-decision-loop",
-      "description": "Resolve delivery decisions and unresolved repair escalations with the owner. Use when repository authority leaves a product, scope, architecture, policy, terminology, or evidence conflict, or Team Lead diagnosis cannot resolve a repeated repair failure. Routine implementation choices remain with the delegated role.",
+      "description": "Resolve owner choices or unresolved repair investigations when existing repository authority cannot decide. Use for product, scope, architecture, policy or evidence conflicts, or failed diagnosis by Team Lead or the original subagent coordinator. Routine implementation remains with its owner.",
       "user_invocable": false,
       "has_references": true,
       "has_eval": true

@@ -1,11 +1,11 @@
 ---
 name: owner-decision-loop
-description: Resolve delivery decisions and unresolved repair escalations with the owner. Use when repository authority leaves a product, scope, architecture, policy, terminology, or evidence conflict, or Team Lead diagnosis cannot resolve a repeated repair failure. Routine implementation choices remain with the delegated role.
+description: Resolve owner choices or unresolved repair investigations when existing repository authority cannot decide. Use for product, scope, architecture, policy or evidence conflicts, or failed diagnosis by Team Lead or the original subagent coordinator. Routine implementation remains with its owner.
 ---
 
 # Owner Decision Loop
 
-Turn one unresolved delivery conflict into an explicit owner choice, or report a repair blocker that Team Lead cannot resolve. Route decisions to the role that owns the content.
+Turn one unresolved conflict or repair investigation into an explicit owner choice. Route decisions to the role that owns the content; keep Team Lead for Dev Team and the existing main conversation for subagents, without adding a supervisor.
 
 Read the [workflow contract](../../workflow/README.md) for fixed execution versions and the two-round repair escalation trigger. An escalation does not authorize a new version, replacement executor, or weaker acceptance.
 
@@ -21,9 +21,11 @@ Build a decision packet from the triggering issue, exact artifacts or SHA, confl
 
 Reuse an existing decision only when its scope, assumptions, and effective revision still match and no higher-precedence source supersedes it. Cite the source and route the work without asking again. A governing constraint may eliminate options without selecting the remaining product outcome; open a narrower owner decision when more than one compliant outcome remains.
 
-Return routine implementation choices inside accepted scope to the original Fullstack Engineer. Return planning synthesis already determined by repository authority to Planner Lead. Ask the owner when a real choice remains, or escalate when TL diagnosis/coordination still cannot resolve the repair blocker—even when the technical cause is unknown.
+Return routine implementation choices to the original FS/subagent. Return planning synthesis to the existing planning owner. Ask the owner when a real choice remains, or diagnosis by TL/the original main conversation cannot resolve the repair blocker—even when its cause is unknown.
 
-For repeated repairs, attach each attempted fix, verification and review result to the same finding. TL diagnoses why progress stopped; distinguish established causes from hypotheses and unknowns. Preserve evidence, keep the affected work blocked, and continue independent work rather than retrying indefinitely or deferring the current defect as a next-version improvement.
+For repeated repairs, attach each fix, verification and review result to the same root problem across task/run/SHA changes. After two rounds without progress, TL/the existing main conversation diagnoses; the original implementer retains repairs. Hard safety/permission blockers are reported immediately. Preserve evidence and independent authorized work rather than retrying indefinitely or deferring the current defect as a new requirement.
+
+For an unreproduced or fact-incomplete report with no safe useful next step, deliver the investigation evidence and unknowns to the Owner. The original repair remains incomplete. Once in this wait, new evidence or restored conditions cannot restart execution: wait for the Owner to choose continuation through the original task and responsibility. Do not record “not reproduced” as “no defect” or “fixed”.
 
 ## 2. Ask a decision-sized question
 
@@ -63,7 +65,7 @@ After the owner answers, publish an interim issue decision record containing:
 - superseded decision, if any;
 - roles responsible for persistence and execution.
 
-TL owns the interim record and routing, not the canonical content edit. Place durable truth through the role that owns its canonical artifact:
+TL (Dev Team) or the existing main conversation (subagent path) owns interim routing, not a replacement implementation lane. Place durable truth through the existing owner of its canonical artifact:
 
 - global invariant or governance → constitution;
 - canonical terminology → `CONTEXT.md`;
@@ -75,16 +77,16 @@ TL owns the interim record and routing, not the canonical content edit. Place du
 
 Use references instead of copying one decision into several sources.
 
-Distinguish agreement with a design idea from approval to execute a whole version. Changes to an in-flight design go into the next-version draft; record explicit whole-version execution approval before handing that version to implementers. In-scope implementation/test supplementation and current-version defect repair remain in the current plan. A genuine blocker stays visible until resolved; a discussion record alone is not implementation authority.
+Distinguish agreement with an idea from approval to execute a whole version. New goals/material changes return to the same requirements intake, keeping the current execution version fixed. Record explicit execution approval before handing the new version to implementers. In-scope implementation/test supplementation and current defects remain in the current plan. A discussion record alone is not implementation authority.
 
 ## 4. Route and learn
 
-- Send planning, domain, ADR, constitution, and tech-context persistence to Planner Lead with the exact owner decision.
-- Send implementation-local execution to Fullstack Engineer only after the governing planning artifact or issue decision is explicit.
+- Send canonical planning changes to the existing planning owner with the exact decision; subagents need no extra Dev Team task graph.
+- Send implementation-local execution to the original FS/subagent only after the governing planning artifact or issue decision is explicit.
 - Re-enter the normal independent review gate after content or code changes.
-- Keep issue lifecycle and cross-role scheduling with Team Lead.
+- Keep team dependency scheduling with TL, subagent scheduling with the original main conversation, and non-Draft PR lifecycle with PRM. Fundamental external-PR conflicts follow the [source-specific disposition and notification boundary](../../workflow/README.md#prm-唯一交付责任): PRM verifies the author-facing comment and `冲突保留` label as the ordinary external PR's handling terminal, with normal reprocessing after author updates. Dev Team / Owner subagent / Owner-marked notification rules remain unchanged; ordinary external conflicts do not become Owner questions.
 
-Future runs may decide automatically from the recorded source when the scope and assumptions match. Any mismatch, contradiction, or superseding evidence opens a new owner decision instead of stretching the old one.
+Future runs may reuse a recorded decision when scope, assumptions and effective version match. Reuse never supplies a missing answer to an active Owner wait. A mismatch or superseding evidence reopens only the affected decision, preserving the prior record and unaffected conclusions.
 
 Use [eval-cases.md](references/eval-cases.md) when changing this skill or checking whether a runtime preserves the automatic-decision, owner-question, and role-boundary branches.
 

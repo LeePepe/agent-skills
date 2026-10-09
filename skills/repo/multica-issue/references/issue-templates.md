@@ -14,6 +14,8 @@
 
 实现类 body 同时引用固定的方案版本、Owner 对本版执行的确认、唯一执行方和所用 guide/shared 版本。
 涉及多个层时分别列出适用约束，不据层数机械拆 issue；已有 plan/tasks 直接引用并补齐缺项。
+这些表达也可用于普通需求草稿；维护发现或待澄清结论没有实施意图时保持未派发，不能因套用模板自动 assign／转 todo。
+原修复查证无安全下一步时沿 [问题历史](problem-history.md#investigation-without-a-safe-next-step) 等 Owner 决定，不另造 task 类型。
 
 > **路径规则的放松**:AGENT-BRIEF 原则是「不写文件路径,会过时」。VitalStride 现有 issue(如 MY-1070)
 > 会带一段 `## 现状基线(basis: main)` 列具体文件/行号 —— 这是**刻意**的,给 dev team 一个精确起点。

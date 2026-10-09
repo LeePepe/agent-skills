@@ -5,7 +5,7 @@ description: Supervise named Multica projects and delivery PRs, or resume tasks 
 
 # Multica Delivery Supervisor
 
-Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level control-plane role usable by Codex or Hermes: observe, reconcile, dispatch the authoritative next actor, and report decisions. It does not implement product code, replace Dev Team roles, or expand the native Pipeline Supervisor's duties.
+Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level helper usable by Codex or Hermes, not the deployed Dev Team Flow Supervisor. Read the [workflow responsibility boundary](../README.md): PRM owns non-Draft PR delivery; Flow Supervisor only wakes the interrupted original Dev Team actor through the existing Multica Autopilot path. This skill adds no background wake capability and does not replace the original subagent coordinator.
 
 ## Invocation
 
@@ -29,7 +29,7 @@ For every scope:
 4. Apply this authority order: platform safety and data constraints → Owner decisions → repository constitution/ADRs/root instructions → reviewed spec/plan/tasks/layer context → team and role instructions → task handoff.
 5. Record conflicts and route them to the highest authority able to decide. A lower instruction never silently overrides a higher one.
 
-The observed Dev Team contract is authoritative for actors, handoffs, workdirs, review gates, merge ownership, release checks, and issue closure. The supervisor may activate those actors; it does not absorb their responsibilities.
+Use the actually applicable repository/role contracts for actors and gates, reconciling any conflicting old role text with explicit Owner decisions before action. Observe and route to existing owners; discovery is not authority to absorb their responsibilities or activate a second writer.
 
 ## Reconcile
 
@@ -45,12 +45,13 @@ Classify each case as:
 - `complete`: the completion contract is satisfied.
 
 Evidence absence stays unknown. Never infer completion from a green check, merged PR, terminal run, or silent issue alone.
+For a preserved external conflict PR, read the [PRM disposition contract](../README.md#普通外部-pr-的冲突保留终态) before treating its open state as a stall or an Owner decision. Verify the existing disposition and any later author update; this helper does not perform PRM's comment/label actions.
 
 ## Act within the workflow
 
-For `actionable` cases, perform only the normal control-plane action assigned to the supervisor or explicitly permitted by the current project workflow: activate or re-activate the responsible role, cancel a proven duplicate run when authorized, advance a documented stage, or close lifecycle state when delivery evidence is complete. Verify the resulting state after every mutation.
+For `actionable` cases, reconcile the intended original actor and any existing accepted handoff. Use only its already-authorized entry and verify actual receipt. Keep PR discovery, repair routing and delivery with PRM; Dev Team stage/dependency progression with TL/FS; subagents with their original main conversation. A generic supervision request does not authorize role takeover, reassignment, cancellation, closure, merge, or automatic Draft Ready.
 
-Route implementation to the project's executor, gate decisions to its reviewer, lifecycle/CI work to the named shipping role, and project-level recovery to its Team Lead. Preserve task workdir ownership and exact-SHA continuity. Required checks and reviews remain hard gates.
+Route implementation to the original executor, applicable independent read-only code/style and spec/architecture review to its reviewer, lifecycle/CI work to PRM, and team coordination to TL. Dev Team Reviewer does not run or judge tests/build/lint/CI; FS full self-review does not replace independent review. Preserve workdir ownership, exact-SHA continuity and all required gates.
 
 When the project contract does not authorize the supervisor to mutate a state, report the proposed next actor and action without performing it. Repository edits, code fixes, review verdicts, workflow redesign, gate weakening, and direct default-branch pushes are outside this skill.
 

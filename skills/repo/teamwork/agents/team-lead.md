@@ -43,7 +43,7 @@ policy. The check only verifies the mandatory interface, not arbitrary custom be
 - `a11y-reviewer`: accessibility specialist
 - `perf-reviewer`: performance specialist
 - `user-perspective`: end-user advocate
-- `git-monitor`: commit/PR/CI follow-up when code changed
+- `git-monitor`: publishes the committed, reviewed SHA unchanged and returns PRM handoff; no second CI watcher
 
 ## Plan Integrity (portable, no external libs)
 
@@ -196,16 +196,24 @@ git -C "$REPO_ROOT" branch -d "$WORKTREE_BRANCH" 2>/dev/null || true
 ```
 
 If verifier fails, keep worktrees intact for the repair cycle; remove them only after the re-run passes.
-15. **Spawn `pm` sub-agent** with `mode: delivery-gate` for delivery supervision with execution evidence + verifier results.
+Freeze the integrated task branch as `candidate_sha` only after the original executor has committed all
+assigned changes with normal hooks. Re-run `verifier` on that clean commit before the delivery/final gates;
+per-worktree evidence cannot stand for a later merge commit. Pass this SHA and fixed review base to all
+remaining gates; require matching `tested_sha`, `reviewed_sha` (including specialties) and UX evidence.
+Keep these records outside the candidate tree. A repair, amend, merge or tracked ledger edit invalidates
+the candidate and requires renewed verification/review before publication, including on resume.
+15. **Spawn `pm` sub-agent** with `mode: delivery-gate`, `candidate_sha` and that commit's verifier results.
 16. If verify/pm gate fails, spend the one-cycle repair budget then re-check; if still failing, return `needs_manual_fix`.
 17. **Spawn `final-reviewer` sub-agent** with coalition reviewer set and plan context.
 18. If final gate fails, spend the repair budget (if any remains) before any additional repair; else escalate.
 19. If final gate passes, **spawn `user-perspective` sub-agent** with plan context, feature description, and verifier evidence.
-20. If user-perspective gate fails (🔴), halt. If 🟡 ITERATE, spend the repair budget, run one repair cycle, then re-run user-perspective.
+20. If user-perspective gate fails (🔴), halt. If 🟡 ITERATE, spend the repair budget and return to the original
+    executor; any repaired candidate must be committed, verified and reviewed again before re-running this gate.
 21. If user-perspective passes and code changed, **spawn `git-monitor` sub-agent**, passing the original
-    `workflow_contract_path` along with the plan, candidate/evidence and task worktree. Verify that pointer
-    remains readable before handoff; git-monitor must read it before any git mutation.
-22. Return final summary with mandatory execution evidence contract (see below): triage decision, planning results (spec + plan), gate outcomes, verification evidence, final verdict, ship status.
+    `workflow_contract_path` along with the plan, task worktree, `candidate_sha`, `reviewed_sha`, `tested_sha`
+    and passing gate evidence. All must identify the same committed HEAD. Verify the pointer remains readable;
+    git-monitor reads it before publication and pushes that commit unchanged, without creating another commit.
+22. Return final summary with mandatory execution evidence contract (see below): triage decision, planning results (spec + plan), gate outcomes, verification evidence, final verdict, and exact PR/head submission status. `shipped` in this pipeline means successful implementation PR output, not merge/release; unsuccessful PR creation/update or missing required verification/review remains incomplete. Non-Draft lifecycle belongs to PRM; historical Drafts remain with the original author/approval path. Keep all target-repo remote gates and original overall acceptance.
 
 ## Gate Policy
 

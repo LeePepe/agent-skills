@@ -70,7 +70,29 @@
     },
     {
       "id": "takeover_not_handoff_timer",
-      "evidence": ["PR49/a1 requires an ordinary P1 delivery handoff; last activity was 5 minutes ago and no actor is active.", "Separate S8 needs a replacement implementer; original F1 is silent for 24 minutes.", "S9 needs repair takeover after 40 minutes of silence, but a related Action is currently running."]
+      "evidence": ["PR49/a1 requires an ordinary P1 delivery handoff; last activity was 5 minutes ago and no actor is active.", "Separate S8 has original F1 silent for 40 minutes; someone proposes a replacement implementer, but no handoff of ownership exists.", "S9 has 40 minutes of silence, but a related Action is currently running."]
+    },
+    {
+      "id": "owner_wait_new_evidence",
+      "evidence": ["S8 investigation found no reproducible signal and no safe next step; it remains incomplete awaiting Owner's choice of how to continue.", "A new approved log now supplies the missing fact; the Owner has not replied.", "PR49/a1 independently remains eligible for its P1 delivery handoff."]
+    },
+    {
+      "id": "flow_supervisor_not_pr_owner",
+      "evidence": ["The deployed Dev Team Flow Supervisor has an authorized existing Autopilot trigger to wake the original actor of an interrupted current team workflow.", "S8's original F1 has a verified accepted plan, satisfied dependencies, no live run and no wait/pause; the authorized F1 wake entry is available.", "PR49/a1 is waiting for an Owner approval and P1 already owns delivery.", "S10 is handled by a live Owner subagent with its original main conversation.", "S11 is explicitly human-paused."],
+      "mutation_results": ["F1's entry confirms accepted wake for S8; no implementation result has yet appeared."]
+    },
+    {
+      "id": "external_conflict_terminal",
+      "evidence": ["PR49/a1 is open and non-Draft, from an external author with no Owner development, Dev Team / Owner-subagent provenance or Owner mark; its review failed during NET-7.", "P1 subsequently verified a fundamental conflict with the accepted offline-only design, commented explaining the conflict and the author adjustment required by that design, and applied the label 冲突保留. Live readback confirms both the comment and label; the existing handoff records PR49/a1 and those evidence IDs.", "No author update has occurred since that disposition. A periodic observer sees an open PR and no running actor.", "Linked product goal V49 still requires its independently specified implementation and acceptance evidence; the preserved PR has not delivered them."]
+    },
+    {
+      "id": "external_conflict_author_update",
+      "evidence": ["PR49/a1 previously received P1's verified conflict explanation and 冲突保留 label for violating the accepted offline-only design.", "After that disposition, the external author pushed a2 and updated the PR description to remove the conflicting cloud-sync proposal. The PR remains non-Draft, ordinary external, and still carries the old label.", "Current a2 review check C91 failed on R1/codex-review/raven/E1 during NET-7; one cumulative same-error rerun remains and no equivalent check or actor is active.", "No judgment of a2 correctness or exact-head approval exists yet; P1's authorized entry is available."],
+      "mutation_results": ["P1 accepts PR49/a2 with the current evidence and starts C92. No result is available yet."]
+    },
+    {
+      "id": "external_conflict_unknown_disposition",
+      "evidence": ["PR49/a1 is ordinary external, open and non-Draft; P1 has confirmed a fundamental conflict with the accepted design.", "P1's explanatory comment to the author is confirmed, but the request to apply 冲突保留 timed out. Its result is unknown and current label readback is unavailable.", "The external author has not updated the PR; another recovery invocation proposes repeating the comment and label request because the provider is now healthy."]
     },
     {
       "id": "receipt_write_failure",

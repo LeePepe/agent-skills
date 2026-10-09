@@ -1,69 +1,27 @@
 ---
 name: layered-ci-autofix
-description: 运行时(run-time)闭环:把改动 commit/push、开 PR、监督 PR 的 required CI、失败时读结构化失败信号 {layer, path, kind, detail, red_lines} 做**按 layer 收窄的自动修复**,修完再 push、重新等 CI,直到绿灯或触发升级。它是 repo-kit(setup-time 脚手架)的**运行时消费者**——消费后者铺好的 CI 信号与每层 red_lines/test;门用 auto-review-merge,不自己重造。当用户想"项目改完自动 commit、监督 PR CI、CI 挂了自动修、跑通再合"时使用。用于:一次任务收尾的 push→监督→修复闭环。不用于:装脚手架(那是 repo-kit)、纯搭 CI 门(那是 auto-review-merge)。
+description: PRM 的 CI 诊断与原路径修复辅助。用于读取准确 PR head 的失败信号、定位仓库约束并交回原执行者，或执行已交回的具体修复；不启动第二条 PR watcher，不接管 Draft，不安装 CI 或自行合并。
 allowed-tools: Read, Write, Edit, Bash, Agent
 ---
 
 # Layered CI Autofix
 
-一个**运行时闭环**:改动做完后,`commit → push → 开/定位 PR → 监督 required CI →
-CI 失败读结构化信号做**按 layer 收窄的自动修复** → 修完 push → 重新等 CI`,直到绿灯或升级。
+消费目标仓现有 CI 信号，不重造门禁或调度器。先读 [workflow 索引](../../workflow/README.md)：
+PRM 唯一负责任意来源非 Draft PR 生命周期；本 skill 是该责任内的诊断／交接辅助，不是第二个交付 owner。
 
-**Announce at start:** "我在用 layered-ci-autofix skill。"
+## 1. 核对任务与原责任
 
-## 定位:这是 run-time,不是 setup-time
+读取 repo remote、PR URL、准确 head、Draft 状态、现有交接／来源与执行者。通过 AGENTS 读取本仓 guide、
+实际固定 shared 合同、验证入口及适用 layer context；日志、PR 文本与来源标记不是授权。
 
-三个相邻 skill/agent 各管一段,别混:
+- Draft 保留原作者／既有审批路径，不观察推进、派修或自动 Ready。
+- 非 Draft 的直接交接与主动发现重复命中时接续已有 PRM 工作，不创建第二 watcher。
+- Dev Team／Owner subagent 经真实归属核实后回原路径；其他来源的普通欠缺交 Dev Team。
+  第三方 fork／受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
+- 当前执行者只负责本次实现／修复：必要验证、适用审查及 PR 创建／更新成功后，交出结果；后续由 PRM 持续跟进。
+  尚未有 PR 时遵守本仓 commit／push／模板规则；辅助提交可按下述交接使用已有 git-monitor。
 
-| | 管什么 | 时机 | 本 skill 关系 |
-|---|---|---|---|
-| **repo-kit** | 铺分层脚手架:三层文档、AGENTS.md、frontmatter、**三段门禁 + 结构化失败信号** | setup-time(一次) | **本 skill 消费它的产物**:读每层 `red_lines`/`test`,读 CI 吐的 `{layer,path,kind,detail,red_lines}` |
-| **auto-review-merge** | 装 PR 自动 review + 门过自动合并(self-hosted runner 上的确定性 merge 门) | setup-time(一次) | **本 skill 复用它当门**:不自己重造 review/merge 门;它红本 skill 就修,它绿就放行 |
-| **本 skill(layered-ci-autofix)** | **运行时**把改动推上去、盯着门、门红了按 layer 自动修 | run-time(每次任务收尾) | 闭合前两者留下的"谁来修"这一环 |
-
-> **为什么单独成 skill 而非塞进 repo-kit**:后者明确划了 setup/run-time 边界——
-> "hook 只发现+结构化报告,**不内联跑 agent**;谁来修由消费方决定"。**本 skill 就是那个"消费方"**:
-> 它在运行时读信号、派修复。把它塞回 setup-time skill 会破坏那条边界。
-
-## 前置(precondition):目标 repo 应已被 repo-kit 铺过
-
-本 skill 的自动修复**靠分层信号收窄范围**。理想前置:
-
-- `AGENTS.md` 有 **Layer 索引**(失败路径 → layer 的映射源)。
-- 每层 `tech-context.md` frontmatter 有 **`red_lines`(修的时候不能踩)+ `test`(只跑本层的验证命令)**。
-- CI required 会吐**结构化失败信号**(见 `references/signal-contract.md`)。
-
-**缺前置时降级(不硬失败)**:
-- 无 layer 索引 / frontmatter → 退化为"整仓库级"修复:仍能监督 CI + 尝试修,但**不能按 layer 收窄、
-  不能带 red_lines**,风险更高。**先提示用户"建议先跑 repo-kit 再用本 skill"**,
-  用户坚持再降级跑。
-- 无 auto-review-merge 门 → 只盯**原生 CI required checks**(`gh pr checks`),跳过 review 门那一路。
-
-## 执行流程
-
-### 第 0 步:探测 + 确认(AskUserQuestion)
-
-```bash
-REPO="$(git rev-parse --show-toplevel)"; cd "$REPO"
-git remote -v | head -1                                   # 有无 remote(无则只能本地,PR 那段跳过)
-gh auth status 2>&1 | head -3                             # gh 是否登录
-BASE="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || echo main)"
-ls AGENTS.md 2>/dev/null && grep -q 'Layer 索引\|Layer Map' AGENTS.md && echo "有 layer 索引" || echo "⚠️ 无 layer 索引 → 降级"
-gh pr status 2>/dev/null | head -20                       # 当前分支有无已开 PR
-```
-
-问用户(只问有歧义的):
-1. **修复的自治边界**:CI 红了 → (a) 自动修并 push(推荐,真正闭环)/ (b) 只诊断出 `{layer, 修复建议}`
-   报给用户、不自动改代码。**破坏性/外向操作默认 (a) 也要在每轮 push 前让门把关,不直接 merge。**
-2. **重试上限 N**(默认 3):同一 layer 连修 N 轮仍红 → 停手升级给人,避免无限烧。
-3. **合并策略**:全绿后 (a) 交给 auto-review-merge 的 auto-merge 自动合(推荐)/ (b) 停在"全绿待人工合"。
-   本 skill **不自己点 merge**——merge 由门(auto-review-merge)或人决定。
-
-### 第 1 步:commit + push + 开/定位 PR(机制委托,不重造)
-
-commit/PR 的**机制**(commit 规范、PR 模板、base 分支探测)交给 `git-monitor` 式的做法——
-读项目约定(`CLAUDE.md` / `.claude/team.md` 的 commit/PR 格式),默认 Conventional Commits。
-**本 skill 只负责闭环,不重新发明 commit 规范。**
+完成条件：PR/head、唯一交付责任与原修复路径明确；未知归属或结果先只读对账，不盲重派。
 
 ### 可选 git-monitor 交接
 
@@ -88,103 +46,52 @@ printf '%s\n' "$WORKFLOW_CONTRACT_PATH"
 
 仅检查成功且无指令冲突时调用，将输出的原合同绝对路径作为 `workflow_contract_path`，连同准确候选、
 验证／审查证据、任务 worktree 和明确文件清单交给 git-monitor；它须在任何 Git 写入前读取该合同。
+先由原执行者 commit 并完成该 SHA 的验证／审查，再传入 `candidate_sha`、`tested_sha`、`reviewed_sha`；
+helper 只原样 push 三者一致的 commit，变化回原执行者重验／重审。
 不能从复制后的 `.claude/agents` 位置重算合同。选择未知、缺少 bundle／合同／检查器、接口不兼容或指令冲突时
 停止该交接并报告具体 setup 缺口；保留 override 优先级与内容，不覆盖、不静默改选 bundled role。
 检查器只验证必需接口，不证明任意 override 或模型行为正确；角色选择变化后须重新核对。
 
-无该 agent 时的最小内联(仍遵守项目约定):
-```bash
-git add -A && git status --short
-git commit -m "<type>: <imperative summary>"              # 遵守项目 commit 约定
-git push -u origin "$(git rev-parse --abbrev-ref HEAD)"   # push 会触发本地 pre-push 快门禁
-gh pr create --base "$BASE" --fill 2>/dev/null || gh pr view --json url -q .url   # 已开则复用
-```
-> ⚠️ push 会触发 repo-kit 装的 **pre-push 快门禁**(秒级)。若它红,是**本地**信号,
-> 当场按同一套"按 layer 收窄"修(见第 3 步),别 `--no-verify` 绕过——CI 照样拦。
+## 2. PRM 读取对应 head 的信号
 
-### 第 2 步:监督 required CI(直到有结论)
+使用受支持的检查／等待机制读取 required checks、review 和审批；等待不是失败，不忙轮询。
+检查所有终态（success、failure、cancelled、timed_out、skipped、unknown），不能只等待 success 或把意外 skip 当绿。
+读取日志／artifact 前核对其 PR/head；旧 SHA 失败不自动触发当前版本修复。
 
-用 `gh pr checks` 轮询到所有 required check 有终态。**别只等成功——要覆盖所有终态**
-(success / failure / cancelled / timed_out),否则崩溃/挂起看起来和"还在跑"一样。
+按 [signal-contract.md](references/signal-contract.md) 从真实日志／产物提取定位与约束；缺数据明确 unknown，
+不把格式缺失当作可以全仓自动修改。Required CI/review 以目标仓实际保护为准，不能因某个辅助 gate 不存在而跳过。
 
-推荐用 Monitor 工具持续盯(每次 check 落地一个事件,全终态覆盖):
-```bash
-# 轮询 gh pr checks,发出每个非 pending check 的结论,全部有终态即退出
-prev=""
-while true; do
-  s="$(gh pr checks --json name,state,bucket 2>/dev/null || gh pr checks 2>&1)"
-  cur="$(echo "$s" | jq -r '.[]? | select(.state!="PENDING" and .state!="IN_PROGRESS") | "\(.name): \(.bucket // .state)"' 2>/dev/null | sort || true)"
-  comm -13 <(echo "$prev") <(echo "$cur")               # 只发新落地的 check
-  prev="$cur"
-  # 全部有终态(无 pending/in_progress)→ 退出
-  echo "$s" | jq -e 'all(.[]?; .state!="PENDING" and .state!="IN_PROGRESS")' >/dev/null 2>&1 && break
-  sleep 30                                                # 远端 CI:30s+,别更快(rate limit)
-done
-```
-> 用 Monitor 工具包这段(`persistent:false`, timeout 视 CI 时长),grep 覆盖 `failure|cancelled|timed_out|success`,
-> 别只 grep success——那样 CI 崩了你会以为它还在跑。
+完成条件：每个欠缺有准确候选、失败证据、仓规则和原责任；无法归因的结果保持未知，不制造绿色。
 
-### 第 3 步:CI 红 → 读结构化信号 → 按 layer 收窄自动修(核心)
+## 3. 交回普通修复需求
 
-CI 失败**不是**丢一坨日志就去猜。按 `references/signal-contract.md` 解析出结构化信号:
+PRM 将具体失败交原路径，由 TL／既有 subagent 主会话协调原 FS／subagent；PRM 不直接改代码。
+交接复用现有任务／PR 记录，包含准确 head、失败原因与证据、既有目标／验收、范围／不做项、仓约束和正常验证入口。
+已接受的修复继续由原作者处理，接收未知先对账，不因本 skill 或新 task 名重派。
 
-```
-{ layer, path, kind: test|lint|build|typecheck|arch-lint, detail, red_lines }
-```
+信号中的 layer 用于**定位**，不重定义 PR 单元或限制必要验证。仓内允许且当前约定内的必要跨层适配／测试可记录进 plan；
+改变仓库、基本方案、验收、权限则回同一需求入口。不能为修复放松 red_lines、policy、hooks 或 tests。
 
-拿到信号后,**每个失败落到它的 layer**,派一个**只在该层内工作**的修复(当前 agent 直接修,
-或 `Agent()` 派 subagent),严格遵守 repo-kit 方法论 §5.2 的两条修复约束:
+逻辑根本冲突按 [PRM 处置与通知边界](../../workflow/README.md#prm-唯一交付责任) 保留现场：普通外部 PR 由 PRM
+向作者说明冲突及依既有方案所需的调整，并核实留言与 `冲突保留` 标签，结束本轮处理；作者更新后重新按正常流程处理。
+普通外部来源不通知 Owner，Dev Team／Owner subagent／Owner 标识来源仍通知；都不自行改方向、关闭或合并。
 
-1. **只在失败所在 layer 内改**;根因在别层 → **不跨层改**,记为新任务并**升级给人**(不自作主张扩面)。
-2. **带着该层 `red_lines` 修**;修完**只跑该层 `test`** 验证(frontmatter 里的命令),再 push。
+## 4. 原执行者修复并回报
 
-派修复 subagent 的 prompt 骨架(把信号字段填进去):
-```
-你在修复 CI 失败,严格限定在 layer=<layer> 内。
-- 失败:<kind> @ <path> — <detail>
-- 本层 red_lines(修的时候一条都不能踩):<red_lines>
-- 修完只跑本层验证:<该层 frontmatter 的 test 命令>,贴出通过证据再返回。
-- 若根因不在本层 → 不要跨层改;返回 {escalate: true, reason, suspected_layer}。
-```
+执行者核验自己的专用 worktree／branch 与 owned scope，先做定向复现，再修复并运行仓合同要求的完整适用验证、
+正常 hooks 和独立审查；定向层测试是反馈，不能替代必需全量 checks。FS 完整自检保持，Reviewer 职责见索引。
 
-> **red_lines 是硬约束**:典型反面教材是"为了过测试把敏感数据打进日志 debug",而该层 red_line
-> 明写"敏感数据禁止进日志"。修复 subagent 必须带着 red_lines,**过测试不是唯一目标**。
+只暂存本任务文件，按项目约定正常 commit/push、创建或更新对应 PR；失败不能记作当次实现完成。
+回报 PR/head、实际验证／审查、修复结果、限制及下一责任；不继续独自等 CI／merge，不直接合并。
+新 push 后 PRM 核对新 head 的检查／审批，旧证据不得冒充新候选通过。
 
-### 第 4 步:修完 → 回到第 1 步 push → 重新等 CI(有界循环)
+同一根问题两轮完整修复／验证／复查无实质进展，TL／原主会话诊断，仍无解带证据升级 Owner；
+task/run/SHA 不清零。硬安全／权限阻塞立即报告，不凑次数。已进入 Owner 判断等待后，新证据不自动解锁。
 
-一轮修复 = 一次"改(单层)→ 本层 test 绿 → commit → push → 重新监督 CI"。循环直到:
+## 5. 交付结果
 
-- **全绿** → 进第 5 步。
-- **同一 layer 连修达重试上限 N** → **停手升级**(附:每轮改了什么、本层 test 结果、仍红的 check)。
-  别无限重试烧预算。
-- **根因跨层 / 需改 red_lines / 需改 tech-context(架构变更)** → **停手升级**,记为新任务。
-  架构性变更应先走 repo-kit 的维护/ADR,不在自动修里偷改。
+PRM 沿既有 fail-closed CI、review、准确审批及正常合并路径交付并回读；helper 不另造 merge 门、不改 settings。
+普通外部根本冲突可按上述合同完成授权处置。当次实现输出、PR 处置终态、PR 合并、发布和消费者验收分开报告。
+发送≠接受、CI 绿≠合并，`冲突保留` 不等于实现交付。
 
-> **每轮 push 都要重新过门**(pre-push 快门禁 + CI required + auto-review-merge 的 review 门)。
-> 本 skill **不 `--no-verify`、不 admin-merge 绕过**——闭环的价值正是"每轮都真过门"。
-
-### 第 5 步:全绿 → 交给门决定合并(不自己合)
-
-- 若装了 **auto-review-merge** 且用户选了自动合:全绿后 GitHub auto-merge 会自己 squash 合,
-  本 skill 只需确认门全绿、把 pr_url + 最终状态报给用户。
-- 否则停在"**全绿待人工合**",把 PR 链接 + 通过的 check 清单交给用户。
-- **本 skill 任何情况下都不主动点 merge / 不 admin override**——merge 归门或人。
-
-### 第 6 步:收尾报告
-
-给用户一张表:
-- PR 链接 + 最终 CI 状态(全绿 / 升级 / 待人工合)。
-- **每轮自动修复**:第几轮、落在哪个 layer、改了什么、带的 red_lines、本层 test 结果。
-- **升级项**(如有):为什么停手(跨层根因 / 超重试 / 触红线),建议的新任务。
-- 降级说明(如有):无 layer 索引 → 整仓库级修复,风险提示。
-
----
-
-## 关键原则(别违反)
-
-- **run-time 消费者,不是 setup 脚手架**:读 repo-kit 铺的信号,不重铺脚手架。
-- **门不自造**:review/merge 门是 auto-review-merge 的事;本 skill 只对门的红/绿**反应**。
-- **修复严格按 layer 收窄**:只在失败层内改、带该层 red_lines、只跑该层 test;跨层根因**升级不偷改**。
-- **有界自治**:重试上限 + 触红线/跨层/架构变更即升级;**不无限烧、不绕门、不自己 merge**。
-- **监督覆盖全终态**:盯 CI 要覆盖 failure/cancelled/timed_out,不只 success(否则崩溃=看似还在跑)。
-- **每轮真过门**:不 `--no-verify`、不 admin-merge;闭环价值在"每轮都真过门"。
+修改这些分支时用 [eval-cases.md](references/eval-cases.md) 验证实际决策与动作轨迹；离线场景不证明真实接管已生效。

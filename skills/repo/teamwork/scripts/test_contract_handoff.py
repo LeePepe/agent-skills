@@ -21,6 +21,67 @@ def bash_block(document, section):
 
 
 class ContractHandoffTests(unittest.TestCase):
+    def test_publication_requires_the_clean_reviewed_commit(self):
+        repo = self.root / "candidate"
+        repo.mkdir()
+
+        def git(*args, input=None):
+            return subprocess.check_output(["git", *args], cwd=repo, env=self.env,
+                                           input=input, text=True).strip()
+
+        # Synthetic objects only: no add/commit/push or publication to a remote.
+        git("init", "-q")
+        git("fast-import", "--quiet", input="""commit refs/heads/task
+committer Fixture <fixture@example.invalid> 1 +0000
+data 4
+one
+M 100644 inline file.txt
+data 4
+one
+
+commit refs/heads/replacement
+committer Fixture <fixture@example.invalid> 2 +0000
+data 4
+two
+from refs/heads/task
+
+done
+""")
+        git("symbolic-ref", "HEAD", "refs/heads/task")
+        git("read-tree", "--reset", "-u", "HEAD")
+        sha = git("rev-parse", "HEAD")
+        replacement = git("rev-parse", "replacement")
+        self.assertEqual(git("rev-parse", "HEAD^{tree}"), git("rev-parse", "replacement^{tree}"))
+        script = bash_block((TEAMWORK / "agents/git-monitor.md").read_text(),
+                            "## Candidate identity preflight")
+        bindings = dict(CANDIDATE_SHA=sha, REVIEWED_SHA=sha, TESTED_SHA=sha)
+
+        def check(expected, overrides=None):
+            before = (git("rev-parse", "HEAD"), git("status", "--porcelain"))
+            result = subprocess.run(["/bin/bash", "-c", script], cwd=repo, capture_output=True,
+                                    text=True, env={**self.env, **bindings, **(overrides or {})})
+            self.assertEqual(result.returncode == 0, expected, result.stderr)
+            self.assertEqual((git("rev-parse", "HEAD"), git("status", "--porcelain")), before)
+            self.assertEqual(result.stdout.strip(), sha if expected else "")
+
+        check(True)
+        for field in bindings:
+            for value in ("", sha[:8], replacement):
+                with self.subTest(field=field, value=value):
+                    check(False, {field: value})
+        (repo / "file.txt").write_text("unreviewed\n")
+        check(False)
+        git("read-tree", "--reset", "-u", "HEAD")
+        git("update-index", "--force-remove", "file.txt")
+        (repo / "file.txt").unlink()
+        check(False)
+        git("read-tree", "--reset", "-u", "HEAD")
+        (repo / "new.txt").touch()
+        check(False)
+        (repo / "new.txt").unlink()
+        git("update-ref", "refs/heads/task", replacement)
+        check(False)  # Same tree, different commit: old evidence cannot authorize it.
+
     def test_legacy_fixtures_are_the_actual_preserved_git_blobs(self):
         expected = {
             "team_lead": "e0224985aebb2b7fa06463ad9603ec5359196f82",

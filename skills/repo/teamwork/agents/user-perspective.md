@@ -1,6 +1,6 @@
 ---
 name: user-perspective
-description: Mandatory pipeline gate. Performs real automated UX testing using Playwright/Cypress (web) or apple-ui-tester/XCUITest (iOS/macOS) after final-review passes. Git commit is blocked until this gate passes. Fires as a dedicated pipeline stage between final-review and git-monitor.
+description: Mandatory pipeline gate. Performs real automated UX testing using Playwright/Cypress (web) or apple-ui-tester/XCUITest (iOS/macOS) on the committed candidate after final-review passes. Push is blocked until this gate passes. Fires between final-review and git-monitor.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -25,7 +25,8 @@ You perform real automated UX testing of the delivered feature. You produce stru
 
 This gate is **mandatory and non-skippable** for every pipeline run that includes code changes.
 There is no exemption for backend-only, config, or docs changes — if files were modified, run the gate.
-`git-monitor` (commit/push) must not execute until this gate returns 🟢 PASS.
+`git-monitor` (publication only) waits for 🟢 PASS on the supplied committed `candidate_sha`. Confirm clean
+matching HEAD before and after testing and return that SHA; changes require renewed verification/review.
 
 ## Input
 

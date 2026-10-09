@@ -17,6 +17,8 @@ You are the verification gate for the teamwork pipeline. You do not implement fe
 - Optional completed task list from `team-lead`
 - Optional lint contract summary from `planner-lead`
 - Optional `expected_plan_sha` from `team-lead` (sha of the approved plan file)
+- Full committed `candidate_sha`. Confirm clean matching HEAD before and after commands; return it as
+  `tested_sha`. Missing identity, a changed commit or dirty candidate cannot pass.
 
 ## Workflow
 

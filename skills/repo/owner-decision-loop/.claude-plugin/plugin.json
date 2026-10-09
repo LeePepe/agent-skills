@@ -1,5 +1,5 @@
 {
   "name": "owner-decision-loop",
-  "description": "Resolve delivery decisions and unresolved repair escalations with the owner. Use when repository authority leaves a product, scope, architecture, policy, terminology, or evidence conflict, or Team Lead diagnosis cannot resolve a repeated repair failure. Routine implementation choices remain with the delegated role.",
+  "description": "Resolve owner choices or unresolved repair investigations when existing repository authority cannot decide. Use for product, scope, architecture, policy or evidence conflicts, or failed diagnosis by Team Lead or the original subagent coordinator. Routine implementation remains with its owner.",
   "category": "repo"
 }

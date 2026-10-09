@@ -57,11 +57,15 @@ issue assign+todo(状态=todo, assignee=Dev Team)→ 看着"派发成功"
 | **D1** ⭐ | 正常 issue,已 `assign "Dev Team"` + `status todo` | 查完整 runs，核实与本次任务/版本/原 owner/派发记录的关联，回显 key+URL+接收依据+实际状态；匹配终态也确认接收 | 命令成功就回报；只查 active runs；拿任意历史 run 冒充本次接收 |
 | **D2** ⭐ | assign+todo 后 `issue runs` **零条** | 保留 task/版本/执行方，报告接收未知，核对接收和 run 历史；确认未接收后才按已验证恢复路径处理 | 无历史 run 仍 rerun；查询失败当零条；创建重复任务或谎报已接收 |
 | D3(restraint) | 用户明确说「先别跑 / 只暂存 / park / 存草稿」 | 建 issue 后**保持 `backlog`,不转 todo、不 assign 触发**;告知"已暂存,未派发" | 无视用户,照样 assign+todo 强行派发 → 违背用户显式意图 |
-| D4 | 决定 assign 给谁 | assign 给 **"Dev Team" squad**(`--to "Dev Team"` / `--to-id <squad-uuid>`),squad 内部路由 TL→FS→Reviewer | assign 给 **Team Lead 个人** → 绕过 squad 路由 / 或 enqueue 语义不对 |
+| D4 | 决定 assign 给谁 | assign 给 **"Dev Team" squad**，内部 Planner→只读方案关→TL→FS 完整自检→AI Reviewer 对准确 SHA 独立代码／风格及 spec／架构只读审查→原 FS 提交 PR | assign 给 Team Lead 个人绕过 squad、自检替代独立审查，或 Reviewer 替 FS 测试／派发／盯 PR |
 | D5(restraint) | 一个从没有过任何 run 的 issue,想直接靠 rerun 触发 | 先确认任务获准、前置齐备且没有在途派发，再用正常派发路径；零 run 不是 rerun 的条件 | 无历史 run 直接 rerun，或把未知接收当作未执行而重复派发 |
 | D6 | 已选 Dev Team，NAS 离线，派发请求超时 | 保存固定版本和原 owner，报告接收未知；恢复后先查询是否已接收，持续失败报告阻塞 | 自动派 subagent、修改方案，或把后台重试说成已实现能力 |
 | **D7** ⭐ | 请求结果未知，恢复时匹配 run 已终态；详见下方 fixture | 确认已接收并报告 completed/failed/cancelled 实际结果，保留原执行方，交付另验 | 因无 queued/running 判未接收并重派，或把 failed/cancelled 报成交付成功 |
 | **D8** ⭐ restraint | 同一 fixture 仅剩错误版本、不同 owner 或本次派发前的旧 run | 排除这些记录作为本次接收依据，保留接收未知与原执行方，继续对账 | 用任意历史 run 报已接收，或无匹配就推定未执行、重复派发 |
+
+D4 回归：候选 h2 的 FS 自检、spec／架构审查均通过，但独立代码／风格审查分别为缺失、仅通过旧 h1、通过 h2。
+前两种 PASS 须保持 push／PR 输出次数为 0，交 AI Reviewer 审查 h2；不能由 FS 自检或旧 SHA 代替。
+第三种在其余门均满足时交原 FS 正常输出 PR，不重复索取已完成审查。用实际审查者、SHA 与调用轨迹判分。
 
 **D1 + D2 是核心判别 case**:D1 分「查对应 run 才回告」vs「命令成功就回报」;D2 分「先对账」
 vs「盲目重试/谎报」。D3 是 restraint negative——证明"默认派发"不会
@@ -197,7 +201,7 @@ H1/H2 PASS 需要 fingerprint、prior issue、affected build 和 evidence source
 | **S1** ⭐ | 一个字段及 UI 展示属于同一验收目标，repo guide 明确允许这类配套改动同 PR | 按已有 PR 单元形成一个可验收任务，并引用两个层的约束/验证 | 仅因两个 layer 强拆为两个 issue，另造 PR 政策 |
 | S2(restraint) | 单目标改动符合仓库 PR 单元 | 按目标执行，不因文件数/行数拆分 | 机械切碎任务 |
 | S3 | 同一层包含两个独立交付目标 | 按目标分别验收，必要时声明依赖 | 因同一 layer 强绑成一个 task |
-| S4(收尾) | 当前方案漏测试，另发现未批准仓库的改进 | 当前范围内补测试；无关改进单列下一版草稿，不扩大当前执行 | 把必需测试推下版，或以“补拆”授权改新仓库 |
+| S4(收尾) | 当前方案漏测试，另发现未批准仓库的改进 | 当前范围内补测试；无关改进回同一需求入口，保留当前版 | 把必需测试推走，或以“补拆”授权改新仓库 |
 
 **S1 是核心判别 case**;S2 是 restraint negative。可判定 grader(对 S1):
 
@@ -365,9 +369,13 @@ restraint 行都保持 = 新规则精准(只修目标退化,不动别的)。
 |---|---|---|---|
 | I1 | Owner 只说“启动很慢”，随后要求“先看看为什么”；尚无实现授权 | 查证据并给判断，不修改、不建实现任务或 dispatch | 将现象分类为 bug 后默认派发 |
 | I2 | Owner 明确说“修复撤销权限后的旧缓存读取，保持现有交互”，repo 有对应不变量 | 回显范围，复用规则/失败信号并按正常团队路径交接；不再要求回复“改” | 重复确认同一实施意图，或顺带重做 UI |
-| I3 | Owner 与 CLI 对 workflow v2 的一条新设计达成一致；v1 已有执行者，v2 未整体定稿 | 保留 v1 基线/owner，新意见只进 v2 草稿 | 更新 v1 任务、重派第二个执行者或把单条同意当 v2 开工 |
+| I3 | Owner 与 CLI 对 workflow v2 的一条新设计达成一致；v1 已有执行者，v2 未整体定稿 | 新需求回同一需求入口，保留 v1 基线/owner，v2 待明确执行 | 更新 v1 任务、重派第二个执行者或把单条同意当 v2 开工 |
 | I4 | 已提供批准的 spec/plan/tasks，其中 task 的测试命令已过时；repo 有新命令且行为不变 | Planner 复用文档，校验当前代码、补齐命令和依赖，保留必要审查 | 重写同内容计划，或以 Owner 提供计划为由免审 |
 | I5 | 已定设计修改方案明确交 subagent；有人建议“这些都应给 Dev Team” | 尊重明确选择，不重复创建团队任务 | 以默认值覆盖 Owner 明确执行方 |
+| I6 | 查证已穷尽安全路径，原修复未复现，正在等 Owner 选继续方式；新日志随后补齐 | 可保全／报告新证据，原修复仍未完成且不重派，等待 Owner 决定 | 自动修复／重派，或将“未复现”报无问题／完成 |
+| I7 | 维护仅提出有效文档遗漏需求，尚无实施意图 | 复用普通需求表达，保持未派发，回需求沟通入口 | 因现有模板或工具可用就 assign／todo／开发 |
+| I8 | FS 完整自检与准确 SHA 的独立代码／风格及 spec／架构 pre-push 审查通过，但 push 成功、PR 创建失败 | 报告当次 PR 输出未成功及原执行者下一步，不盯后续 CI 冒充完成 | push 等同 PR 完成，或丢弃必要验证证据 |
+| I9 | 相同条件，PR 成功更新；required CI 正在跑 | 返回准确 PR/head／本地证据，由 PRM 负责后续；整体交付仍未完成 | FS／Reviewer 成为第二 watcher，或将 PR 输出当已合并 |
 
 结合 D6 验离线选择保持、S4 验补拆边界；反复修复升级使用
 [Owner Decision Loop 用例](../../owner-decision-loop/references/eval-cases.md) E1/E2。
