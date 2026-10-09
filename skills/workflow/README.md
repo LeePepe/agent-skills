@@ -11,7 +11,7 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
-| 06 周期维护（启用 HOLD） | 方案及启用获准后，只检查计划范围内公开仓的当前文档和相关代码 | 只提出普通需求／待澄清结论，不修复、清理、派开发或追修；当前尚无维护运行 skill |
+| 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
 
 需求→实现→非 Draft PR 交付→适用发布；遥测／维护发现回到同一个需求入口，不要求每次任务走遍六个节点。
 拆分属于 01，repo-local 开发与两种执行路径属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
@@ -121,7 +121,9 @@ task/run/SHA 变化不清零，单纯等待不计一轮；明确安全／权限�
   高级／定期分析为后续 TODO，数据访问、隐私与生产权限保持。
 - **06**：按有效需求／设计、相关提交时间与具体 diff 判断文档过期、实现遗漏或废弃代码清理需求；
   时间先后不自动裁决，草案／HOLD 不自动变任务，证据不足只提待澄清。历史归档仅作依据。
-  承载 repo／运行者、触发、普通需求出口、最小检查／保护／验证仍待方案确认，启用 HOLD 不解除。
+  最小源码方案已确认：agent-skills 承载，未来 Actions 每周一次及手动触发，由原仓既有 Codex runner 独立只读检查，
+  只输出对应 Multica project 的未指派 backlog。首版仅规则、离线适配器、隔离测试与模板；真实采集／语义运行／出口尚未接线，
+  runner 新用途、真实 Multica、凭据／settings、调度与准确 head 审查须分别满足，启用 HOLD 不解除。
   提出需求不等于派发开发或修复完成，反复未修复的展示留 AIDash 后续。
 
 ## 合并规则（按目标仓实际保护）
