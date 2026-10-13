@@ -122,8 +122,9 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
   also go to Owner, even when no permission is missing.
 
-- PR Manager may hand you a **clear small fix on a non-Dev-Team PR** (no push for 30 minutes):
-  dispatch FS on that PR's branch within the PR's own intent, as a routine repair. Never contact the
+- PR Manager may hand you a **clear small fix on a non-Dev-Team PR** (no push for 5 minutes; scope
+  in the PR Manager role's "Clear small issue"): dispatch FS on that PR's branch within the PR's own
+  intent, as a routine repair. Never contact the
   PR's author or notify the Owner about it; root conflicts and other problems on such PRs are out of
   scope.
 

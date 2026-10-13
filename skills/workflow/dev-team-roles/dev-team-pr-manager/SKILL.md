@@ -54,16 +54,31 @@ assigned to the Dev Team squad, then set to `todo`. It carries the six index fie
   fully: CI, review, approvals, repair routing back to its original path (Team Lead coordinates, the
   original FS fixes) until merge. A root conflict on a Dev Team PR is preserved and goes to Team Lead
   for Owner notification.
-- **Any other source** (CLI subagent, Owner, external) — do **not** contact the author and do **not**
-  notify the Owner; CLI sessions are not reachable and may not be the Owner's. Act only when the PR
-  has a **clear, small, fixable problem** (formatting, lint, an obvious small error, a drifted test
-  string) **and** no new push for **30 minutes**: hand it to Team Lead for a Dev Team fix on the same
-  branch. If the branch is a third-party fork you cannot push to, leave one PR comment with the
-  suggested change instead. Root conflicts and any other problem on these PRs are out of scope:
-  record them in your receipt and stop.
+- **Any other source** (CLI subagent, Owner, external) — follow it to a lawful merge like any other
+  PR: CI, review, required approvals, then merge per the merge rules below. What differs is a
+  problem: you do not take over fixing it. Do **not** contact the author and do **not** notify the
+  Owner; CLI sessions are not reachable and may not be the Owner's. The only repair you start is for
+  a **clear small issue** (below) with no new push for **5 minutes**: hand it to Team Lead for a Dev
+  Team fix on the same branch. If the branch is a third-party fork you cannot push to, leave one PR
+  comment with the suggested change instead. Any other problem is out of scope: record it in your
+  receipt, stop, and look again when the author pushes.
 - Unknown/third-party authors, body claims or a rerun click are never trust for merging: merge only
   per the merge rules below, and ask Team Lead for a PR-specific Owner decision when authority is
   unclear.
+
+### Clear small issue (Owner 2026-10-13)
+
+All four must hold:
+
+- **Clear cause**: a failing check or review finding names the exact location and reason.
+- **One fix**: no design or product choice is needed.
+- **Small**: only files already in the PR change; no new dependency.
+- **Nothing protected**: no `CODEOWNERS` path, `.github/**`, check or review rules, `AGENTS.md`; no
+  removed or weakened test.
+
+Typical: formatting and lint; a spelling or text drift; a hard-coded test expectation that disagrees
+with an approved change; a plain base lag that updates cleanly. Not small: logic or behaviour errors,
+test design changes, root conflicts, permission or environment problems, and anything uncertain.
 
 ## Adopt (tracking is not shipping)
 
@@ -141,8 +156,11 @@ not a merge gate once the ruleset is in place.
   counts block retry (not tracking). Exhausted or known-unfixable → TL with unmet requirements,
   attempts/results, known causes, unknowns and recommendation. TL diagnoses why repair failed and
   escalates unresolved technical problems to Owner too; never lower acceptance to ship.
-- Merge conflicts on FS-implemented or adopted agent/Owner PRs are routine repairs → Team Lead for
-  FS dispatch on the same PR branch, without Owner escalation; return with fresh pre-push `PASS`.
+- A git merge conflict or base lag is not a root conflict (a root conflict contradicts a confirmed
+  design or Owner decision). On a Dev Team PR it is a routine repair → Team Lead for FS dispatch on
+  the same PR branch, without Owner escalation; return with fresh pre-push `PASS`. On any other
+  source it is repaired only when it is a clear small issue (a plain base lag that updates cleanly);
+  otherwise record it and stop.
 - Permission/infra failures, ambiguous ownership, contradictory evidence, policy
   questions → `[@Team Lead](mention://agent/<Team Lead agent ID>)` (non-read-only
   entry only).
