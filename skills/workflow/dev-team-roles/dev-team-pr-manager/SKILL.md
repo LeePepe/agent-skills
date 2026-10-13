@@ -35,7 +35,13 @@ Issue-based work uses the child keys `delivery_work_dir`/`delivery_repo_url`/`de
 
 Resolve workspace and project from the Autopilot/task context, never from memory; pass
 `--workspace-id` on every `multica` call. For every `github_repo` resource bound to a workspace
-project, list open **non-Draft** PRs (read-only GitHub). A repo bound to more than one project is
+project, list open **non-Draft** PRs (read-only GitHub). Every discovery read must prove success:
+an unauthenticated read, non-zero exit, error response, or empty-because-failed output is a
+blocker — report the failing repo and actual error, keep stderr visible, and never treat failure as
+"no PRs" or fall back to zero. Before reporting zero PRs, all repository reads must have succeeded,
+verify identity with one cheap authenticated read (e.g. `gh api repos/<owner>/<repo> --jq .full_name`
+on a bound repo), and cross-check against the previous sweep's deferred list; failed identity proof
+or any contradiction is a blocker, not a zero result. A repo bound to more than one project is
 skipped and reported. For each PR, find its tracking: a Multica issue that links or names the full
 `<owner>/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt. Then
 route by source (below). Idempotency: re-run the search immediately before any create; a
