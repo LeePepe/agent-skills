@@ -88,7 +88,7 @@ Supervisor监督现有Multica issue / Dev Team交接连续性：交接证据是�
 - 同一问题最多2轮自动修复，同错最多2次rerun；平台尝试计入预算，换agent/run/SHA不清零。明确不可修立即升级；职责不等于当前调用者有invoke权限，不能换入口试探绕过真实拒绝。
 - 需求限定修改范围，实际diff决定适用gate。不为过关顺带改架构、workflow或共享instructions；第四项文档调整有单独授权，不构成通用扩权。
 - 保留独立审查、服务端required CI；Kimi不阻塞合并，但实际结果与失败尝试留存。Draft只跑基础CI，不做AI review、不自动Ready。
-- 已确认个人仓库使用Owner的GitHub账号；已有profile时隔离子进程的GH_TOKEN/GITHUB_TOKEN覆盖，再核验身份、目标及权限，不因变量存在或来源未知反复问Owner。不启VPN；未来凭据变更/服务操作交Owner，除非另有明确授权；9/21精确host bootstrap与三runner重载的一次性授权已执行完毕。[15]
+- 写入身份（2026-10-12 起取代旧做法）：agent 对仓库的写入一律使用运行环境提供的 agent GitHub App 身份，不使用 Owner 的个人账号；写入前核验身份、目标及权限，不因变量存在或来源未知反复问Owner。不启VPN；未来凭据变更/服务操作交Owner，除非另有明确授权；9/21精确host bootstrap与三runner重载的一次性授权已执行完毕。[15]
 - 原生PR事件接续实施、NAS与新schedule继续暂停，不把它们作为其他改善前置；三个App的TestFlight仅经明确授权手动触发。合并不是发布，本次未发布。
 - 不读取音频、参考文本、转写或凭据正文。Docker/Loki/Azure日志存储及已解决的TestFlight客户端显示问题不纳入本批。
 
