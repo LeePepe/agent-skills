@@ -59,42 +59,28 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 - **Dev Team**：Planner 复用、校验、补齐既有 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
   TL 按已审任务及依赖派 FS。独立且路径不冲突的 FS 可并行，同一路径保持唯一写者。
-- **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 审查；
+- **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
   通过由原 FS 推送／创建更新 PR，发现当前缺口仍回原 FS，不默认换作者。
-- **Dev Team AI Reviewer**：承担只读 spec/plan，以及发布前准确 SHA 的独立代码／style 与 spec/architecture 审查；
-  不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整自检保留，不能替代独立审查。
+- **Dev Team AI Reviewer**：承担只读 spec/plan（spec gate），以及发布前准确 SHA 的独立 spec 与 architecture 审查；
+  不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整 code-review 自检保留，不能替代独立审查。
 - **subagent**：原执行者负责开发、验证、修复；既有主会话管理依赖与结果，适用审查按仓合同安排。
   团队 Reviewer 的职责边界不构成其他执行者的通用免审。
 - **当次实现输出**：本次必要实现、验证与审查满足，且所需 PR 成功创建／更新后回报 PR URL、准确 head、
-  对应证据、剩余限制与下一责任。不持续盯后续 CI／merge，也不隐去已知失败或缺失验证。
+  对应证据、剩余限制与下一责任。执行者可选择留下等待 required checks 并自行修复失败，也可直接交接离场；PR Manager 均为兜底。不隐去已知失败或缺失验证。
   push／PR 失败不是本次实现成功；此交接不是 PR 最终交付或仓合同的远端 done，required gates 全部保留。
 
 ## PRM 唯一交付责任
 
 PRM 对负责 repo 内任意来源的**非 Draft PR**负责发现、去重接管、持续跟进 CI／review／审批、具体修复回派及正常交付。
-直接交接是快捷入口，不是接管前提。Draft 保留原作者和既有审批路径，不由 PRM 处理、派修或自动 Ready。
+直接交接是快捷入口，不是接管前提。Dev Team 绝不开 Draft PR（需要等待 Owner 时使用 `owner-review` 标签，绝不用 Draft）；
+其他来源的 Draft 保留原作者和既有审批路径，不由 PRM 处理、派修或自动 Ready。
 PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查或额外审批层。
 
-- Dev Team／Owner subagent 来源经真实归属核对后沿原路径回派普通具体需求；TL／既有主会话协调，原执行者修复。
-  其他来源的普通欠缺交 Dev Team；来源标记只路由，不授予第三方 fork 写入或其他权限。
-- 逻辑根本冲突均保留现场，不自行改方向、合并或关闭。普通外部 PR 按下述“冲突保留”终态处置；
-  Dev Team／Owner subagent／带 Owner 标识的 PR 仍通知 Owner。这不取消准确代码审批或安全／权限边界。
+- **Dev Team PR**：PRM 全程负责直至合并，包括 CI、review、审批，以及沿原路径回派具体修复（TL 协调，原 FS 修复）；发生根本冲突时保留现场并交 TL 通知 Owner。回派时不重复启动活跃写者。
+- **其他来源 PR**（CLI subagent、Owner、外部等）：PRM 跟进至合法合并，但不接管普通修复；不联系作者，也不通知 Owner。仅在无新 push 满 **5 分钟** 且属于明确小问题（clear small issue）时，交 Dev Team 在同分支修复；具体范围、不做项及第三方 fork 例外见 [`dev-team-pr-manager`](dev-team-roles/dev-team-pr-manager/SKILL.md)，不在此重复规定。其他问题记录于回执后等待作者推送。
+- **根本冲突**：非 Dev Team PR 的根本冲突就地记录并保留，不联系作者、不通知 Owner、不打标签或执行特殊处置流；git merge conflict / base lag 与根本冲突区分处理，按角色规定推进。
 - 正常等 CI／review／审批不是故障；回派接收未知先对账，不重复启动写者。新 head 使用新证据，已有准确批准不重索。
   合并须真实回读；CI 绿、已派修或 run completed 不等于合并。
-
-### 普通外部 PR 的冲突保留终态
-
-对与已确认方案根本冲突、非 Owner 开发、非 Dev Team／Owner subagent 且无 Owner 标识的非 Draft 外部 PR，
-PRM 在 PR 上给外部作者留言，说明具体冲突点、既有方案依据与需要作者调整的方向，并打上 **`冲突保留`** 标签。
-调整方向以已确认方案为界，不替 Owner 选择新方向；不通知 Owner，也不记为等待其决定。
-
-回读确认留言和标签均已生效后，将 PR/head、留言及处置依据记入现有交接，作为**本轮 PR 处理的明确终态**。
-PR 保持开放、不合并、不关闭；此终态不表示实现交付、CI／review 通过或产品目标验收完成。
-留言或标签结果未知时先只读对账；未成功则记录具体阻塞，不能仅凭标签或发送动作宣称完成。
-
-作者尚未更新时，接续／恢复读取并复用已核实的处置，不重复留言、派修或因 PR 仍开放而通知 Owner。
-外部作者更新 PR 后，PRM 核对最新内容、head、Draft 状态与来源，重新按正常流程处理；旧标签或旧处置不能屏蔽更新。
-若仍根本冲突，按最新内容重新作上述处置；若已消除冲突，沿正常 CI／review／审批与修复路径推进。
 
 ### Dev Team Flow Supervisor
 
