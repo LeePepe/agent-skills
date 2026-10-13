@@ -48,7 +48,7 @@ cancelled/won't-do tracking hit is final and terminal: never create a duplicate 
 cancelled delivery.
 - **Untracked PR**: route by source (below). Idempotency: re-run the search immediately before any
   create. At most **3** new tracking issues per sweep; list the rest for the next sweep.
-- **Already tracked PR**: revisit it when no other live PR Manager or Flow Supervisor run owns that
+- **Already tracked PR**: revisit it when no other live PR Manager or Fullstack Engineer run owns that
   PR flow and checks or reviews changed since the last receipt (cheap bounded read; the current
   sweep does not self-disqualify). An eligible revisit resumes the existing flow: all required
   gates pass → ship per merge rules; infrastructure failure → rerun within existing rerun budget
