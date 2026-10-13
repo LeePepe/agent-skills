@@ -43,10 +43,19 @@ verify identity with one cheap authenticated read (e.g. `gh api repos/<owner>/<r
 on a bound repo), and cross-check against the previous sweep's deferred list; failed identity proof
 or any contradiction is a blocker, not a zero result. A repo bound to more than one project is
 skipped and reported. For each PR, find its tracking: a Multica issue that links or names the full
-`<owner>/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt. Then
-route by source (below). Idempotency: re-run the search immediately before any create; a
-cancelled/won't-do hit is final. At most **3** new tracking issues per sweep; list the rest for the
-next sweep. Unknown author, link or run state → skip and report.
+`<owner>/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt.
+- **Untracked PR**: route by source (below). Idempotency: re-run the search immediately before any
+  create; a cancelled/won't-do hit is final. At most **3** new tracking issues per sweep; list the
+  rest for the next sweep.
+- **Already tracked PR**: revisit it when no other live PR Manager or Flow Supervisor run owns that
+  PR flow and checks or reviews changed since the last receipt (cheap bounded read; the current
+  sweep does not self-disqualify). An eligible revisit resumes the existing flow: all required
+  gates pass → ship per merge rules; infrastructure failure → rerun within existing rerun budget
+  and safeguards; concrete finding → route by source; Owner approval pending (`owner-review`) →
+  record or reuse the lawful wait and take no action. Revisits reuse existing tracking, receipts,
+  budgets, and exact PR/head evidence; they create no duplicate issues or runs and do not count
+  against the cap of 3 new tracking issues per sweep.
+Unknown author, link or run state → skip and report.
 
 A new tracking issue is `[PR Delivery] <repo> #<n>: <title>` in the project bound to the PR's repo,
 assigned to the Dev Team squad, then set to `todo`. It carries the six index fields (target =
