@@ -18,7 +18,7 @@
 | 2：FS模型 | 共享FS角色设为`gemini-3.7-flash`，`custom_args=["--context","long_context"]`；不硬写窗口上限，不改provider/runtime/daemon或其他角色模型。 | 9/18会话目录声明总窗口1M/输入936K，配置独立回读。[2] 无新业务进程argv验收，不声称旧在途任务已切换；Owner仅同意本轮先视第2项完成，未证明收尾问题已解决；结束hook未安装。 |
 | 3：PRM入口 | 三项目保留提前Adopt、取消FS/TL来源及内部PASS作为接管前提；B段消费required `codex-review-target`与optional `kimi-review`，不再向Dev Team内部Reviewer补派PR后审查。 | 9/18纠正部署与独立回读、静态/保护测试。[3] Claude/legacy Codex暂停未恢复；缺乏自动唤醒接线不能由入口合同代替。 |
 | 3补充：发布许可 | 内部Reviewer输出绑定候选的`publication_status=approved|blocked`及`allowed_operations`；正常新候选获准后FS才能commit/push/PR。TL与PRM承认合法待审、获批待发布状态。 | 9/19六字段部署回读、49项静态检查与21个原生Git隔离用例。[4] 不是已安装的Git/runtime硬阻断，也不等于真实Dev Team业务闭环已通过。 |
-| 4：Actions误判 | AIDash/VoxPocket把Codex主prompt抽为Markdown并用单次非执行性渲染；AIDash安全段独立Markdown、原Swift证据helper保留。VitalStride沿用原模板/renderer，纠正未来规范与当前审查操纵的判据。没有AGENTS白名单；实质泄密/提权/绕门禁仍阻塞。 | 15次无工具隔离模型评测；AIDash[#208](`<owner>/AIDash#208`)、VoxPocket[#47](`<owner>/VoxPocket#47`)、VitalStride[#436](`<owner>/VitalStride#436`)均经实际Actions审查、required CI正常合并，merge tree匹配批准候选。[5] 新的可信base会读新规则；未重放历史身份PR。 |
+| 4：Actions误判 | AIDash/VoxPocket把Codex主prompt抽为Markdown并用单次非执行性渲染；AIDash安全段独立Markdown、原Swift证据helper保留。VitalStride沿用原模板/renderer，纠正未来规范与当前审查操纵的判据。没有AGENTS白名单；实质泄密/提权/绕门禁仍阻塞。 | 15次无工具隔离模型评测；AIDash#208（<owner>/AIDash#208）、VoxPocket#47（<owner>/VoxPocket#47）、VitalStride#436（<owner>/VitalStride#436）均经实际Actions审查、required CI正常合并，merge tree匹配批准候选。[5] 新的可信base会读新规则；未重放历史身份PR。 |
 | 4附带授权：文档结构 | VoxPocket AGENTS由159→130行，完整身份段逐字移到`docs/agents/github-identity.md`，根文件保留所有Git/gh操作前的必读指针；140行门槛未改。 | 单独Owner授权、原块字节一致、原docs-map/freshness通过并随#47合并。[5] 不是删除身份要求、放宽门禁或修复共享local-review。 |
 | 5：Supervisor交接接续 | 仅修改现有Supervisor.instructions中三项目分支，按下节收窄为交接连续性监督；其他项目原规则保留。 | 9/19 12:54Z委派单字段更新，1次写入/1次确认；12:55Z Root独立回读一致，其他角色/模型/权限/Autopilot/schedule配置不变。85项结构、35项部署保护检查；17个隔离模型案例精确9/17，其余8项独立语义复核允许，原始结果保留。[7] 未启动业务验收，不声称热加载、runtime硬门或Owner介入已减少。 |
 
@@ -26,13 +26,13 @@
 
 Owner授权单独修复后，仅修改AppUI的Controller和对应测试：默认生产事件仍走.shared，测试注入独立TelemetryService，actor记录器按目标事件实际收到结束等待，保留超时诊断与取消；新增延迟投递和另一控制器同名事件不能补足本夹具缺失事件的回归。没有扩大到TelemetryKit API、CI门禁或共享instructions。[9]
 
-真实Controller/TelemetryKit的受控延迟复现中，旧100ms断言失败而同一事件随后收到；本地隔离5例、原生iOS定向11例及完整App测试1296项均通过，保留CI原有隔离项；退回固定sleep或共享fixture的两个负向变异均失败。独立内容复核无阻断。Owner后续明确授权交付，提交`14b2649`经[PR437](`<owner>/VitalStride#437`)的9项required checks、Codex required与Kimi advisory实际PASS，03:19:36Z原生自动合并`db930310bec7897cfe4375f5780c5d472a6caa2f`；merge tree与批准候选完全一致。CI第1次运行通过，无追加修复/手动rerun。仅证明本次直接执行修复的PR交付，不证明PRM自动接管、Dev Team真实业务闭环或Owner介入指标改善；未发布。完整结果、advisory、范围外runtime警告与环境限制以[9]为准。
+真实Controller/TelemetryKit的受控延迟复现中，旧100ms断言失败而同一事件随后收到；本地隔离5例、原生iOS定向11例及完整App测试1296项均通过，保留CI原有隔离项；退回固定sleep或共享fixture的两个负向变异均失败。独立内容复核无阻断。Owner后续明确授权交付，提交`14b2649`经PR437（<owner>/VitalStride#437）的9项required checks、Codex required与Kimi advisory实际PASS，03:19:36Z原生自动合并`db930310bec7897cfe4375f5780c5d472a6caa2f`；merge tree与批准候选完全一致。CI第1次运行通过，无追加修复/手动rerun。仅证明本次直接执行修复的PR交付，不证明PRM自动接管、Dev Team真实业务闭环或Owner介入指标改善；未发布。完整结果、advisory、范围外runtime警告与环境限制以[9]为准。
 
 9/21历史观察：telemetry-event-sync工作区此前已不存在/未注册，当时本地分支及github跟踪ref均指向`14b264962c60242a18249d25a2c1597951255946`，不归因于后续清理。Owner随后明确“删除即可”，委派于2026-09-21T02:34:43Z按该精确OID删除本地/GitHub `fix/telemetry-call-site-sync`及本地github跟踪ref。Root独立确认远端matching-refs为空、本地仅移除这两个ref且无新增、bundle verify通过。PR437修复仍在main，原commit对象及已验证的增量`telemetry-branch-backup.bundle`保留，可按清理回执与恢复说明（本地审计记录，未公开：`workflow-audit-output/20260920/item6-telemetry-sync/telemetry-branch-cleanup.md`）恢复；未删除或重建原工作区。
 
 ## 补充决定：废弃VoxPocket旧local reviewer（9/20环境阻断；9/21 PR51正常合入，限定范围安装清理已验收）
 
-Owner确认旧`local-review-skill`应废弃，不继续修补假PASS；后续明确“架构检查先不改，只清退local review的AI reviewer”。委派候选删除旧AI配置、meta-agent定义/注册、merge AI hook/wrapper和当前安装说明；pre-commit/pre-push直接接回既有确定性门禁，保留内部AI Reviewer及Actions审查。固定提交`60b10f7cfb2b25b65b22c6313e44c600f91e2b90`经Root独立17/17复验及原生pre-push，已由执行agent推送并于08:29:51Z创建[PR51](`<owner>/VoxPocket#51`)。原工作流08:30:00Z启用squash auto-merge。**9/20当时已push/建PR、未合并；主checkout及共享安装未切换。**
+Owner确认旧`local-review-skill`应废弃，不继续修补假PASS；后续明确“架构检查先不改，只清退local review的AI reviewer”。委派候选删除旧AI配置、meta-agent定义/注册、merge AI hook/wrapper和当前安装说明；pre-commit/pre-push直接接回既有确定性门禁，保留内部AI Reviewer及Actions审查。固定提交`60b10f7cfb2b25b65b22c6313e44c600f91e2b90`经Root独立17/17复验及原生pre-push，已由执行agent推送并于08:29:51Z创建PR51（<owner>/VoxPocket#51）。原工作流08:30:00Z启用squash auto-merge。**9/20当时已push/建PR、未合并；主checkout及共享安装未切换。**
 
 9/20旧head的7项确定性required CI全部通过；Kimi advisory PASS，但其diff截断、覆盖不完整，不能替代required审查。Codex required run `35499714106` attempt 1在内容审查前失败：`Runner is missing Raven environment variable OPENAI_API_KEY; no direct fallback`。Root独立回读日志、bot comment和runner元数据，目标为`macmini-local`（ID21）。这是runner环境缺口，不是清退代码finding；未修改候选、未rerun、未合并。当时需Owner使现有Raven凭据进入runner服务环境并操作必要重启；此历史边界已由9/21“你来运行”的一次性精确授权及完成记录接续，见下节。保留累计预算与失败记录，不重复询问已确定的清退目标。[13][15]
 
@@ -42,7 +42,7 @@ Owner确认旧`local-review-skill`应废弃，不继续修补假PASS；后续明
 
 Owner明确要求修改AIDash/VoxPocket/VitalStride接入、同步layered-agent-context并监督PR到merge；架构checker、角色/模型参数、required/advisory、NAS/schedule/发布暂停边界不改。执行agent分别实现，Root独立复核。[14]
 
-- **skill已交付**：[Skills PR2](`<owner>/Skills#2`) 于14:06:02Z正常合并`3765dd0`，批准tree与merge tree完全一致，PR及合并后CI通过。新增provider服务环境/凭据分层/可信base bootstrap及证据验收约定；当前canonical文件已增量同步，保留本地身份规则及未发布提交，不将原dirty main混推。
+- **skill已交付**：Skills PR2（<owner>/Skills#2） 于14:06:02Z正常合并`3765dd0`，批准tree与merge tree完全一致，PR及合并后CI通过。新增provider服务环境/凭据分层/可信base bootstrap及证据验收约定；当前canonical文件已增量同步，保留本地身份规则及未发布提交，不将原dirty main混推。
 - **真实PR交付**：三个批准head均已发布，required Codex均attempt1 PASS且有意消费OLD可信base。Root独立核验VoxPocket PR51的8项required全PASS、02:11:15Z合并`5d2ab2f`；AIDash PR209的3项required全PASS、02:13:38Z合并`30092ed`，两merge tree均等于批准候选。VitalStride PR438于02:26:17Z原生auto-squash合并`6ad3e994cf963b5777663c9a7a87d1fa25219fdb`、9项required全PASS、CI attempt1成功；文档worker API确认merge tree等于批准候选`845370e7ca4aa740bbbdac1b323c773b0569922c`，Root另已独立核验全部三个PR的merge tree、合并actor及required checks[18]。完整SHA/base/run/job/时间/tree以[17]为准，不借旧head检查放行。
 - **主机已安装并加载**：9/20工具经Root独立35例及只读dry-run批准、当时限Owner执行的记录保留[16]。9/21 Owner明确“你来运行”，一次性授权已审定的现有key接线和三个idle runner精确重载；执行完成，不再等待Owner向导。plan `d9314f1573a4758c2abcae8469c870c8f137fc578d66c6c93100bef1ea924e33`；manifest `<本机路径，未公开>`为installed。Root独立核验五个目标hash/mode、三plist全部非ProgramArguments属性及原review-source hash未变、loaded wrapper和service PID13034/13801/14371（VoxPocket/AIDash/VitalStride），GitHub均online/idle。专用review home与key仅供三个runner及其子job，非step级隔离；旧共享profile只读、不复制auth/cache。[14][15]
 - **加载恢复与权限**：VoxPocket立即bootstrap的error5源于旧服务异步teardown尚未完成；确认移除/idle后一次定向bootstrap重试成功，另两服务等待teardown后首次成功。这不是Actions rerun；无扩大服务范围或应用rollback。Root未读取凭据正文或dump进程环境。未来凭据轮换/服务操作仍归Owner，除非另有明确授权。[15]
@@ -58,7 +58,7 @@ Owner明确要求修改AIDash/VoxPocket/VitalStride接入、同步layered-agent-
 
 9/19 Owner放弃云端runner方案，要求本地审查使用当前Codex CLI相同的Raven路由。日常配置与审查配置是两个入口；审计不能因终端Codex已走Raven就推断Actions也已接入。VoxPocket旧脚本自7/20就明确绕过Raven，#49两次25分钟取消的日志确认实际provider为OpenAI；不是第4项prompt整改改变了provider。[8]
 
-候选仅为VoxPocket调用导入已有Raven连接参数，保留独立审查CODEX_HOME、安全隔离和原模型选择；不复制凭据、不改三项目共享profile，不顺带迁移AIDash/VitalStride或Dev Team。缺配置/环境明确失败，不回退直连。初始9项离线回归与一次实际CLI无工具Raven合成调用通过，提交`a9c3116`并创建[PR #50](`<owner>/VoxPocket#50`)。9/19旧base审查25分钟超时的失败仍保留，不把隔离测试当成线上成功。[8]
+候选仅为VoxPocket调用导入已有Raven连接参数，保留独立审查CODEX_HOME、安全隔离和原模型选择；不复制凭据、不改三项目共享profile，不顺带迁移AIDash/VitalStride或Dev Team。缺配置/环境明确失败，不回退直连。初始9项离线回归与一次实际CLI无工具Raven合成调用通过，提交`a9c3116`并创建PR #50（<owner>/VoxPocket#50）。9/19旧base审查25分钟超时的失败仍保留，不把隔离测试当成线上成功。[8]
 
 9/20 Owner报告启VPN并明确授权单次重试，旧入口约55秒完成实际审查，发现env_key可误选GH_TOKEN。第1轮范围内修复将凭据名限制为既有OPENAI_API_KEY/RAVEN_API_KEY，并在读取前拒绝其他名称；新增负例先红后绿，最终11项路由测试及6项prompt测试通过，两路独立复审通过，提交`b85f163`。新候选的8项required checks及Codex/Kimi实际审查通过，**00:50:47Z原生自动合并，merge `3edf8805e9ee8bde3e2e8c1e5d8fb01667a89ae0`，tree与批准候选一致。** 前次超时、真实changes与后续PASS分别保留；跨run/SHA预算不重置，Owner授权的额外一次复验单独记账。[8]
 
