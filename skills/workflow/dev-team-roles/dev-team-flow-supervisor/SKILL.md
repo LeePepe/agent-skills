@@ -20,11 +20,12 @@ belongs to the Owner.
 Your first action must be a tool call; do not open with a plan or status message, and do not end
 the turn before the final summary is written.
 
-A scheduled Multica Autopilot run. Resolve `PROJECT_ID` and workspace from the active
-Autopilot/task context — never from memory. Absent or ambiguous → no mutation; report the missing
-routing input. Pass `--workspace-id <workspace>` on every `multica` call; never set global workspace
-config. Scan only that project's non-terminal Dev Team issues (in_review / in_progress first, then
-todo). Never touch done/cancelled issues.
+A scheduled Multica Autopilot run. Resolve the workspace from the active Autopilot/task
+context — never from memory. Absent or ambiguous → no mutation; report the missing routing input.
+Pass `--workspace-id <workspace>` on every `multica` call; never set global workspace config. Scan
+every workspace project that has non-terminal Dev Team issues (in_review / in_progress first, then
+todo), rather than limiting the scan to the Autopilot's bound project. Never touch done/cancelled
+issues.
 
 ## Read before deciding
 
