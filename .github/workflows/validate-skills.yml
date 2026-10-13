@@ -25,8 +25,6 @@ jobs:
         run: python3 -m unittest discover -s skills/repo/teamwork/scripts -p 'test_*.py' -v
       - name: Test periodic-maintenance offline adapters
         run: python3 -m unittest discover -s skills/workflow/periodic-maintenance/tests -p 'test_*.py' -v
-      - name: team-workflow-audit fixtures
-        run: python3 skills/workflow/team-workflow-audit/scripts/validate_fixtures.py
 
   aggregate:
     name: ci-aggregate

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Team Workflow Audit"
-  short_description: "Audit team delivery workflows with evidence"
-  default_prompt: "Use $team-workflow-audit to audit the specified team or project scope."
-policy:
-  allow_implicit_invocation: false

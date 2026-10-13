@@ -1,5 +1,0 @@
-{
-  "name": "team-workflow-audit",
-  "description": "Audit an explicitly named team, repository, or project delivery workflow against evidence, current instructions, workflow fitness, and delivered outcomes. Use only when the user explicitly invokes $team-workflow-audit or directly asks to run this audit. Never remediate or mutate audited systems.",
-  "category": "workflow"
-}
