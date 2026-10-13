@@ -25,7 +25,7 @@ description: 04 自动化发布——合并至默认分支且前置检查通过�
 
 ## 版本决策规则（本地策略）
 
-以下版本决策规则为 Owner 批准的本地工作流策略（区别于上游 shared-ci 模板机制，shared-ci 本身不定义 PR label 与版本计算策略）：
+以下版本决策规则为本 Skill 记录的本地工作流策略（区别于上游 shared-ci 模板机制；shared-ci 本身不定义 PR label 与版本计算策略，也不等于已核实的 Owner 决策。具体启用方式仍须以仓库实际配置与已授权的 Owner/维护者决策为准）：
 
 - **默认 Bump**：默认 PR 合并触发 `patch` 版本升级。
 - **Minor Bump**：带有 `release:minor` 标签的 PR 合并触发 `minor` 版本升级。
