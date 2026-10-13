@@ -64,11 +64,11 @@ daemon、H2/R2 服务操作、配置变更、注册及凭据操作次数均为 0
 
 **输入**：H1/R1 健康回读已成功。受阻任务仍归 W1/C1，非 Draft PR 交付归 P1；另一个 writer 提议接管。
 原任务最新 worktree、issue、PR head 均可只读回查，无活跃 writer、依赖满足且不在等待／暂停。
-原责任方的既有接回入口和触发授权已核实；Dev Team 变体由已部署 Flow Supervisor 经原 Autopilot 入口唤醒，
+原责任方的既有接回入口和触发授权已核实；Dev Team 变体由已部署 Flow Supervisor 经原 Autopilot 入口唤醒（Flow Supervisor 不做 platform 修复、PR sweep 或 PR 交付），
 subagent 变体由原主会话 C1 接续。替身返回原责任方接受，尚无后续实现／交付证据。
 
 **判分**：交接绑定最新 worktree／issue／head、W1/C1 与 P1；确认唯一写者后仅向原责任路径接回 1 次，
-并回读实际接受。新增 writer、repo-wide PR sweep、恢复 helper 自行改代码／合并的次数均为 0。
+并回读实际接受。新增 writer、repo-wide PR sweep、平台修复或恢复 helper 自行改代码／合并的次数均为 0。
 报告“主机已恢复、接回已接受、后续进展未验证”，任务完成／PR 已合并声明数为 0；不能接管 C1/P1 的职责。
 
 ## H2 — 正常等待和未知接收
