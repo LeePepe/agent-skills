@@ -1,36 +1,45 @@
 ---
 name: shared-release
-description: W5 共享库发布与消费者升级——shared-* 仓合并后打不可变版本，随版本发布 ai/ 合同，在外部消费者验证，再为每个消费 repo 开独立 pin 升级 PR。用于“发布 shared-ci/telemetry/design-system/tokens/VoxKit 新版本 / 让产品升级到新版共享库 / 回滚共享库版本”。
+description: 04 自动化发布——合并至默认分支且前置检查通过后触发的自动化发布工作流，引用 shared-ci v0.5.0 发布模板与规范。用于指导 shared-* 库及各 repo 的自动化发布接线、版本决策与发布边界。
 ---
 
-# W5 共享库发布与消费者升级
+# 04 自动化发布
 
-适用 Shared 层 repo（shared-ci、shared-telemetry、shared-design-system、shared-design-tokens、VoxKit）。
-provider 改动与消费者改动是**不同 PR、不同 owner**；不在消费者里复制 provider 代码冒充接入。
+本 Skill 对应 Workflow 04（自动化发布），定义代码合入默认分支后的自动化发布边界、版本决策规则与权威模板引用。Workflow 04 仅负责发布本身，不拥有消费者升级 PR、consumer pin 迁移或跨仓回滚编排。
 
-## 1. 发布前（provider PR 内）
+## 权威引用与上游规范
 
-- 公开 API / schema / 配置变化同步到该库 `ai/`：`USAGE`、`INTEGRATION`、`COMPATIBILITY`、`MIGRATION`、`registry.json`。
-- breaking change 写入 `MIGRATION.md`：from→to、步骤、验收、回滚、不可逆限制。
-- docs gate：`ai/` 内链接可解析；标记为可编译的示例在 CI 中真实编译。
+发布机制遵循 `shared-ci` 权威规范（tag `v0.5.0`，固定 commit SHA `a2629ef749597881da3c0d6b082933a78fde1e64`）。发布流程引用以下上游文档与模板，不在本 Skill 中内联复制具体发布步骤：
 
-## 2. 发布
+- **自动化发布规范**：`docs/automated-release.md`
+- **SDK 发布模板**：`templates/release-sdk.yml`
+- **TestFlight 发布模板**：`templates/release-testflight.yml`
 
-1. provider PR 按 W4 合并。
-2. 打版本：SPM/npm/Python 用 semver tag；shared-ci 以 **完整 40 位 commit SHA** 作为消费引用（tag 仅作人读别名）。
-3. 外部消费者验证：在临时目录用**发布产物**（tag/包，不是工作树路径）接入并 build/test：
-   - SPM：临时 package 依赖 `.package(url:, exact:)`，`swift build`（Apple UI 库在声明平台上 build）。
-   - npm：`npm pack` → 临时项目安装 → 类型检查。
-   - Python：构建 wheel → 临时 venv 安装 → 能定位随包 `ai/` 资源。
-   - shared-ci：一个真实 caller repo 用新 SHA 跑通汇总 gate，并有一个负例被拦。
-4. 在 provider repo 的 release notes 记录版本、SHA、验证结果链接。
+上游模板为构建源码与脚手架，在各仓库完成适配前默认保持 fail-closed（不具备开箱即用的默认发布能力）。各目标仓库须自行安装并完善仓库自有的发布适配器（adapter），配置构建命令、打包脚本、发布凭据与目标渠道。
 
-## 3. 消费者升级
+## 自动化触发边界
 
-- 每个消费 repo 一个 PR，只改：依赖 pin（manifest/lockfile/`uses:@SHA`）、`AGENTS.md` 依赖段的版本指针、必要的适配代码。
-- 按新版本的 `MIGRATION.md` 执行；消费者自己的 required CI 通过即完成。依赖 pin 升级属于**重要 PR**，需 Owner approve。
-- 消费者之间互不等待；某个消费者失败只阻塞它自己，provider 缺陷回到 provider 修，新版本再发。
+1. **触发前提**：发布工作流由指定前置工作流（如 CI / 构建工作流）在同仓库默认分支上成功完成（`workflow_run` 且 conclusion 为 `success`）后触发，且推送事件须源自合法的默认分支提交。
+2. **非直接合并触发**：未适配模板或未满足前置检查的 PR 合并不会直接触发有效发布。
+3. **失败与重试**：发布失败仅记录可采集的错误日志供排查，不引入自动静默重试、自动派修或自动回滚。
 
-## 4. 回滚
+## 版本决策规则（本地策略）
 
-消费者 revert pin PR 回到上一版本；provider 不删 tag、不改写历史。不可逆的数据/schema 变化必须事先写在 `MIGRATION.md`，并单独获 Owner 授权。
+以下版本决策规则为 Owner 批准的本地工作流策略（区别于上游 shared-ci 模板机制，shared-ci 本身不定义 PR label 与版本计算策略）：
+
+- **默认 Bump**：默认 PR 合并触发 `patch` 版本升级。
+- **Minor Bump**：带有 `release:minor` 标签的 PR 合并触发 `minor` 版本升级。
+- **Breaking Change**：带有 `breaking` 标签的 PR 合并不执行自动化发布，必须由 Owner 介入决策。
+- **单一版本线**：每个仓库维护唯一的版本线，不维护多分支并行发布版本。
+
+## 路径过滤与发布判定
+
+1. **仓库自有路径过滤**：是否触发发布由仓库自有的路径与内容过滤器判定。
+2. **基线至候选区间判定**：过滤逻辑须在脚本/步骤中累积计算自上次成功发布（last-successful-release）至当前候选提交（candidate）之间的完整 diff 范围，不能假定原生 `workflow_run` 支持 `paths` 或 `paths-ignore`。
+3. **无实质改动跳过**：若累积范围内未命中受影响路径，发布流程正常跳过并记录原因。
+
+## 边界与不做项
+
+- **消费者升级**：Workflow 04 不拥有、不创建各消费仓库的升级 PR，不负责 consumer pin 迁移；消费者升级与 pin 变更由各消费仓库独立在对应工作流中处理。
+- **内联发布命令**：不复制语言特定的构建/打包命令（如 `swift build`、`npm pack`、Python wheel 等），统一由仓库自有适配器及上游模板承载。
+- **回滚与历史改写**：发布后不删除 tag、不改写 Git 历史；回滚通过后续提交或新版本修复。

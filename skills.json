@@ -42,7 +42,7 @@
       "name": "shared-release",
       "category": "workflow",
       "path": "skills/workflow/shared-release",
-      "description": "W5 共享库发布与消费者升级——shared-* 仓合并后打不可变版本，随版本发布 ai/ 合同，在外部消费者验证，再为每个消费 repo 开独立 pin 升级 PR。用于“发布 shared-ci/telemetry/design-system/tokens/VoxKit 新版本 / 让产品升级到新版共享库 / 回滚共享库版本”。",
+      "description": "04 自动化发布——合并至默认分支且前置检查通过后触发的自动化发布工作流，引用 shared-ci v0.5.0 发布模板与规范。用于指导 shared-* 库及各 repo 的自动化发布接线、版本决策与发布边界。",
       "user_invocable": false,
       "has_references": false,
       "has_eval": false
