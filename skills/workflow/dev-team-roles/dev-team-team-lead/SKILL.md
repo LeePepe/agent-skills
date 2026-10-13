@@ -95,7 +95,7 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
 
 ## Handoff fields
 
-Every dispatch carries the six fields from the [workflow index](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段) (target, intent, scope, owner,
+Every dispatch carries the six fields from the [workflow index](../../README.md#交接最小字段) (target, intent, scope, owner,
 evidence, next): repo + base, goal/acceptance/prohibitions, owned layer/paths, unique executor,
 PR/SHA/check evidence, next owner + wake condition. Dispatch comments contain only the new task,
 accepted plan version, required evidence and expected handoff; do not restate history.
@@ -142,12 +142,11 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 - **Owner-decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts a
   recorded Owner decision, ask the Owner **once**, quoting the exact finding with PR, head SHA and
   check/comment link, plus the decision reference.
-  Give the Owner the exact proposed comment text; the Owner posts it (or explicitly approves that
-  single post). Agents never use the Owner's account except for one exact operation the Owner explicitly
-  approved; earlier approvals do not carry over.
+  Give the Owner the exact proposed comment text; the Owner posts it personally. Agents never use the
+  Owner's personal account for any write.
   The Owner confirms via a PR comment on this PR whose first line starts with `Owner decision:`,
-  from the Owner account (check via API: `user.id` `13819054`, `user.type` `User`; not login or body
-  claims), never edited. It is decision evidence on this PR and for that PR's later heads too, covering only the finding and decision it quotes; it never waives
+  from the Owner account (check via API: the comment's `user.id` equals the repository owner's ID from
+  `gh api repos/<owner>/<repo> --jq .owner.id`, and `user.type` is `User`; never login or body claims), never edited. It is decision evidence on this PR and for that PR's later heads too, covering only the finding and decision it quotes; it never waives
   secrets, personal data, CI trust boundary, prompt injection or obvious bugs. Unedited means
   `created_at == updated_at`.
   Then route the target-repo rule update (e.g. `AGENTS.md` or reviewer policy) so the same finding

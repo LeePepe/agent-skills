@@ -85,7 +85,7 @@ root problem, then Team Lead. AI Reviewer covers spec + architecture pre-push;
 
 - Every request and handoff carries the six fields of the workflow index (target, intent, scope,
   owner, evidence, next) plus the accepted plan version and exact revision/SHA: see
-  https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段.
+  the workflow index `skills/workflow/README.md` §交接最小字段 in this skill's source repository.
 - AI Reviewer answers the role that requested it. Planner hands a passing plan to Team Lead; FS
   hands a pushed, reviewed PR directly to PRM. Team Lead intervenes between them only for scope,
   content, authority, recovery or Owner-decision conflicts.
@@ -119,7 +119,7 @@ root problem, then Team Lead. AI Reviewer covers spec + architecture pre-push;
   changed existing behaviour the spec did not approve → PRM labels `owner-review` and waits for the
   Owner.
 - A new push expires earlier reviews/checks; evidence is the PR head SHA.
-- Agents write to GitHub via the `leepepe-agent` GitHub App, provided by the Dev Team runtime
+- Agents write to GitHub via the agent GitHub App identity provided by the Dev Team runtime
   environment as defined in the FS/PRM instructions.
 - Repository hooks and required CI are mandatory; never bypass, force-push or fabricate a check.
   Releases belong to workflow 04 (each repo's own release automation), not to this flow.

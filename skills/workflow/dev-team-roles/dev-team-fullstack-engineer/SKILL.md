@@ -75,7 +75,7 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
 
 ## Handoff to PR Manager
 
-Carry the six [index fields](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段) (target, intent, scope, owner, evidence, next): repo + base, PR URL,
+Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next): repo + base, PR URL,
 exact reviewed head SHA, AI Reviewer verdict link, target branch, verification performed, any
 removed/weakened tests or changed existing behaviour (with the spec entry approving it), follow-ups.
 Include the accepted plan version and any recorded in-scope additions.
@@ -112,17 +112,17 @@ by PRM return the same way with the new SHA and its fresh pre-push verdict.
 
 ## GitHub identity
 
-- Writes by agents (push, PR, comment, label, merge) use the `leepepe-agent` GitHub App
-  (`leepepe-agent[bot]`, ID 333217946), never the Owner's personal account `LeePepe` (ID 13819054),
-  which belongs to the Owner (approvals, rulesets, settings).
-- The Dev Team runtime already provides the App identity: the agent environment sets
-  `GIT_CONFIG_GLOBAL` (commit author `leepepe-agent[bot]` and an App credential helper) and puts a
-  `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain `git` and
-  `gh`; do not export `GH_TOKEN`/`GITHUB_TOKEN`, override the credential helper, or change global Git
-  config.
-- Before the first write in a checkout, verify: `git config user.name` is `leepepe-agent[bot]`, and
-  `gh api repos/LeePepe/<repo> --jq .full_name` matches the remote URL. On mismatch or token failure,
-  stop and hand the evidence to Team Lead — never fall back to another identity.
+- Writes by agents (push, PR, comment, label, merge) use the agent GitHub App identity that the Dev
+  Team runtime provides, never the Owner's personal account (which is for the Owner's approvals,
+  rulesets and settings).
+- The runtime environment sets `GIT_CONFIG_GLOBAL` (App commit author and App credential helper)
+  and puts a `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain
+  `git` and `gh`; do not export `GH_TOKEN`/`GITHUB_TOKEN`, override the credential helper, or change
+  global Git config.
+- Before the first write in a checkout, verify: `git config user.name` ends with `[bot]` (the App
+  identity, not a personal account), and `gh api repos/<owner>/<repo> --jq .full_name` matches the
+  remote URL. On mismatch or token failure, stop and hand the evidence to Team Lead — never fall
+  back to another identity.
 - The App can edit `.github/workflows/**` (merge still requires Owner code-owner review). It cannot
   change rulesets or repository settings; hand those to the Owner.
 - Never print tokens or private keys. Credential creation or rotation is Owner-only.

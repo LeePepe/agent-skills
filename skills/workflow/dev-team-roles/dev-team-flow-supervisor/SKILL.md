@@ -84,5 +84,5 @@ Unknown or ambiguous next owner → do not wake; hand Team Lead the evidence.
 
 One short summary: issues scanned; woken (issue + owner + run id); handed to Team Lead (issue +
 reason); skipped by reason (running / cooldown / lawful wait / blocked). Use the six
-[index fields](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段)
+[index fields](../../README.md#交接最小字段)
 when handing anything to Team Lead.

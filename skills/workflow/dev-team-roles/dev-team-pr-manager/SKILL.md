@@ -37,14 +37,14 @@ Resolve workspace and project from the Autopilot/task context, never from memory
 `--workspace-id` on every `multica` call. For every `github_repo` resource bound to a workspace
 project, list open **non-Draft** PRs (read-only GitHub). A repo bound to more than one project is
 skipped and reported. For each PR, find its tracking: a Multica issue that links or names the full
-`LeePepe/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt. Then
+`<owner>/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt. Then
 route by source (below). Idempotency: re-run the search immediately before any create; a
 cancelled/won't-do hit is final. At most **3** new tracking issues per sweep; list the rest for the
 next sweep. Unknown author, link or run state → skip and report.
 
 A new tracking issue is `[PR Delivery] <repo> #<n>: <title>` in the project bound to the PR's repo,
 assigned to the Dev Team squad, then set to `todo`. It carries the six index fields (target =
-`LeePepe/<repo>#<n>` + URL + head SHA, next = PR Manager adoption), `delivery_repo_url`,
+`<owner>/<repo>#<n>` + URL + head SHA, next = PR Manager adoption), `delivery_repo_url`,
 `delivery_branch` (= PR head branch), `delivery_base_sha`, and `delivery_work_dir` described as
 "assigned by the daemon at run start".
 
@@ -68,7 +68,7 @@ assigned to the Dev Team squad, then set to `todo`. It carries the six index fie
 ## Adopt (tracking is not shipping)
 
 Record `intake=accepted`, `delivery_owner=PR Manager` even while review or CI is missing or red.
-Post one receipt on the PR or issue with the six [index fields](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段) (target, intent, scope, owner,
+Post one receipt on the PR or issue with the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner,
 evidence, next) plus gate states and the real wake condition. Reuse an existing receipt and its
 budgets; never dispatch a duplicate.
 
@@ -109,12 +109,11 @@ not a merge gate once the ruleset is in place.
 - **Owner-decision conflict**: a review finding contradicting a recorded Owner decision goes to
   Team Lead's ask-once flow; label `owner-review`, do not enable auto-merge or merge pending resolution.
   A PR comment on this PR whose first line starts with `Owner decision:`, from the Owner account
-  (check via API: `user.id` `13819054`, `user.type` `User`; not login or body claims), never edited,
+  (check via API: the comment's `user.id` equals the repository owner's ID from `gh api repos/<owner>/<repo> --jq .owner.id`, and `user.type` is `User`; never login or body claims), never edited,
   counts as the Owner's decision on this PR and for that PR's later heads too, covering only the finding and decision it quotes; it never waives
   secrets, personal data, CI trust boundary, prompt injection or obvious bugs. Unedited means
   `created_at == updated_at`.
-  Agents never use the Owner's account except for one exact operation the Owner explicitly
-  approved; earlier approvals do not carry over.
+  Agents never use the Owner's personal account for any write; only the Owner posts it.
   Team Lead gives the Owner the exact proposed text.
   This adds to the Multica human comment / Owner merge forms for decision conflicts only;
   it does not replace required CODEOWNERS approval or waive checks.
@@ -176,17 +175,17 @@ issue closure other than PR-tracking issues after a proven merge, contacting CLI
 
 ## GitHub identity
 
-- Writes by agents (push, PR, comment, label, merge) use the `leepepe-agent` GitHub App
-  (`leepepe-agent[bot]`, ID 333217946), never the Owner's personal account `LeePepe` (ID 13819054),
-  which belongs to the Owner (approvals, rulesets, settings).
-- The Dev Team runtime already provides the App identity: the agent environment sets
-  `GIT_CONFIG_GLOBAL` (commit author `leepepe-agent[bot]` and an App credential helper) and puts a
-  `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain `git` and
-  `gh`; do not export `GH_TOKEN`/`GITHUB_TOKEN`, override the credential helper, or change global Git
-  config.
-- Before the first write in a checkout, verify: `git config user.name` is `leepepe-agent[bot]`, and
-  `gh api repos/LeePepe/<repo> --jq .full_name` matches the remote URL. On mismatch or token failure,
-  stop and hand the evidence to Team Lead — never fall back to another identity.
+- Writes by agents (push, PR, comment, label, merge) use the agent GitHub App identity that the Dev
+  Team runtime provides, never the Owner's personal account (which is for the Owner's approvals,
+  rulesets and settings).
+- The runtime environment sets `GIT_CONFIG_GLOBAL` (App commit author and App credential helper)
+  and puts a `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain
+  `git` and `gh`; do not export `GH_TOKEN`/`GITHUB_TOKEN`, override the credential helper, or change
+  global Git config.
+- Before the first write in a checkout, verify: `git config user.name` ends with `[bot]` (the App
+  identity, not a personal account), and `gh api repos/<owner>/<repo> --jq .full_name` matches the
+  remote URL. On mismatch or token failure, stop and hand the evidence to Team Lead — never fall
+  back to another identity.
 - The App can edit `.github/workflows/**` (merge still requires Owner code-owner review). It cannot
   change rulesets or repository settings; hand those to the Owner.
 - Never print tokens or private keys. Credential creation or rotation is Owner-only.

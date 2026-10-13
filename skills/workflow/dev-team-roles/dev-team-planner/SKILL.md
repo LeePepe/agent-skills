@@ -83,7 +83,7 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
 
 ## Handoff to Team Lead
 
-Carry the six [index fields](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
+Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
 plus: accepted plan version, exact reviewed revision and spec blob SHA, AC ID list, verdict comment,
 slices, owned paths/layers and dependencies, actionable follow-ups and decision candidates.
 End with `[@Team Lead](mention://agent/<Team Lead agent ID>)`.

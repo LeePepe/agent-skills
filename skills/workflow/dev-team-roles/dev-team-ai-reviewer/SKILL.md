@@ -85,7 +85,7 @@ technically unresolved problems still require escalation, not reduced acceptance
 
 ## Handoff (one final comment in the Multica thread)
 
-Carry the six [index fields](https://github.com/LeePepe/agent-skills/blob/main/skills/workflow/README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
+Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
 plus: requester, job (a/b), exact revision/SHA, layers resolved, coverage gaps, findings with
 citations, follow-ups, decision candidates, round number, verdict. End with the requester:
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
