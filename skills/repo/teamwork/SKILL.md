@@ -35,10 +35,10 @@ The CLI session replaces Multica issue comments, mentions, and wakeups with sync
 1. **Preflight**: Verify bundle source roles exist and subagent capability is active; otherwise fail closed.
 2. **Team Lead**: Spawn Team Lead first for request confirmation and triage; await orchestration handoff.
 3. **Planner**: Spawn Planner with task intent; await reviewable spec and plan.
-4. **Spec Gate**: Spawn AI Reviewer with spec/plan; await verdict. Review rounds, same-root accumulation, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
+4. **Spec Gate**: Spawn AI Reviewer with spec/plan; await verdict. Review rounds, same-root accumulation, targeted final review, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
 5. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan. Fullstack implements, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Retain writer identity if startup/receipt is unknown.
 6. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict (security/performance specialists are invoked by AI Reviewer on demand, never as fixed executing roles).
-7. **Publish & Handoff**: Resume/reinvoke the already-created original Fullstack Engineer by identity (never spawn a replacement writer) to push the reviewed SHA unchanged and open a non-Draft PR. Report PR link/head and hand off to external workflow 03 PR Manager (PRM is never spawned as a local subagent).
+7. **Publish & Handoff**: Resume/reinvoke the already-created original Fullstack Engineer by identity (never spawn a replacement writer) and await that same subagent through pushing the reviewed SHA unchanged, opening a non-Draft PR, reporting the PR link/head, and handing off to external workflow 03 PR Manager (PRM is never spawned as a local subagent).
 
 ## Backend & Rules
 
