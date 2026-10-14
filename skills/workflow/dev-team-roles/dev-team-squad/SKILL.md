@@ -118,16 +118,19 @@ pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
   checks ✓ → auto-merge; no Owner approval.
   `kimi-review` is advisory. A codex finding fails the check; the implementer fixes and a new SHA is
   re-reviewed.
-- **Important PR** needs Owner approval: CODEOWNERS paths (`.github/**`, policy/schema/gate,
-  AGENTS/constitution, dependency pin bumps, credentials/privacy/data migrations). Where the ruleset
-  does not enforce CODEOWNERS review, PRM labels `owner-review` and waits.
-- **Unapproved behaviour change**: AI Reviewer or codex flags a removed/weakened existing test or a
-  changed existing behaviour the spec did not approve → PRM labels `owner-review` and waits for the
-  Owner.
+- **Important PR** needs Owner approval: when any changed path matches the target repository's
+  effective, contract-derived `CODEOWNERS` active pattern set. Missing, unreadable, or contract-invalid
+  `CODEOWNERS` goes to Team Lead. Where the ruleset does not enforce CODEOWNERS review, PRM labels
+  `owner-review` and waits.
+- **Unapproved behaviour change**: in product repositories, AI Reviewer or codex findings flagging
+  changed behaviour or removed/weakened tests route back to the implementer or Team Lead for
+  correction (unresolved product decisions go to Team Lead's Owner-decision path). In shared
+  repositories, PRM labels `owner-review` and waits for the Owner.
 - A new push expires earlier reviews/checks; evidence is the PR head SHA.
 - Agents write to GitHub via the agent GitHub App identity provided by the Dev Team runtime
   environment as defined in the FS/PRM instructions.
-- Repository hooks and required CI are mandatory; never bypass, force-push or fabricate a check.
+- Repository hooks and required CI are mandatory; never use `gh pr merge --admin` or any other
+  branch-protection, review or required-check bypass, force-push or fabricate a check.
   Releases belong to workflow 04 (each repo's own release automation), not to this flow.
 
 ## Mentions

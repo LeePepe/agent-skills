@@ -121,8 +121,10 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 - FS merges the base into the PR branch (no rebase/force-push), gets fresh pre-push `PASS` for the new
   SHA, then pushes and returns the same PR to PR Manager.
 - A repair stays within the PR's recorded Intent and authorized layer/paths. A fix that would touch
-  CODEOWNERS paths, `.github/**`, gates/reviewer policy, `AGENTS.md`, or remove/weaken/skip tests or
-  checks is not routine → Owner (Important/Unapproved-behaviour rules still apply).
+  the target repo's contract-derived `CODEOWNERS` paths or require unauthorized behaviour/test changes
+  is not routine → Owner (Important/decision rules apply). In product repositories, review findings
+  flagging changed behaviour or removed/weakened tests return to the implementer or Team Lead's
+  Owner-decision path, rather than creating a direct Owner wait.
 - Current-version implementation gaps go back to the original FS. Policy/intent conflicts
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
@@ -171,7 +173,8 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 ## Red lines
 
-- No source edits, commits, pushes, rebases, conflict resolution, merges or CI waiting.
+- No source edits, commits, pushes, rebases, conflict resolution, merges, `gh pr merge --admin` or
+  protection bypass, or CI waiting.
 - Only you set an implementation issue to `blocked`; name the next responsible owner and exact
   unblocking event, including the requested Owner decision for an unresolved technical problem.
 - No changes to Multica agents, runtimes, permissions, triggers or credentials.
