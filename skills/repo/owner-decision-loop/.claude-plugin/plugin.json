@@ -1,5 +1,5 @@
 {
   "name": "owner-decision-loop",
-  "description": "Resolve delivery decisions through reusable owner calibration. Use when Team Lead cannot determine Planner or Fullstack content from repository authority because product intent, acceptance, scope, architecture, policy, terminology, or conflicting evidence requires the owner's choice; do not use for routine implementation decisions already delegated to a role.",
+  "description": "Resolve owner choices or unresolved repair investigations when existing repository authority cannot decide. Use for product, scope, architecture, policy or evidence conflicts, or failed diagnosis by Team Lead or the original subagent coordinator. Routine implementation remains with its owner.",
   "category": "repo"
 }

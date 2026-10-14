@@ -1,0 +1,51 @@
+name: review
+
+# Codex review for agent-skills PRs.
+# pull_request_target reads this file from main, so it takes effect after merge.
+# Codex review runs on this repo's self-hosted runner when SHARED_CI_REVIEW_RUNNER
+# is 'true'; otherwise it skips and the hosted completion gate fails closed.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  codex-review-target:
+    if: vars.SHARED_CI_REVIEW_RUNNER == 'true'
+    uses: LeePepe/shared-ci/.github/workflows/codex-review.yml@6e354f476bc53d68f0f09fc231d5cd938466af9c
+    with:
+      codex-bin: /opt/homebrew/bin/codex
+      rules-file: docs/review-rules.md
+      owner-user-id: "13819054"
+
+  codex-review-gate:
+    if: ${{ always() }}
+    needs: [codex-review-target]
+    runs-on: ubuntu-latest
+    permissions: {}
+    timeout-minutes: 2
+    steps:
+      - name: Require completed Codex review
+        shell: sh
+        env:
+          CODEX_RESULT: ${{ needs.codex-review-target.result }}
+        run: |
+          case "${CODEX_RESULT:-}" in
+            success)
+              echo "Codex review completed successfully."
+              ;;
+            *)
+              echo "::error::Codex review must complete with success; skipped, failed, cancelled or unavailable review cannot pass."
+              echo "Check SHARED_CI_REVIEW_RUNNER and trusted runner availability, inspect the Codex review job, then re-run review for this PR head."
+              echo "Owner approval does not substitute for completed Codex review."
+              exit 1
+              ;;
+          esac

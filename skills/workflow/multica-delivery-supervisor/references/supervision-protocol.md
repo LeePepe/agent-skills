@@ -8,24 +8,25 @@ Use authoritative live sources and stable identities. For each project, inventor
 - queued, dispatched, running, completed, failed, cancelled, or expired runs;
 - current assignee and the role that owns the next transition;
 - daemon workdir, repository remote, branch, candidate SHA, and dirty state when relevant;
-- open, draft, ready, closed, and recently merged PRs;
+- explicitly linked delivery PRs (unlinked non-Draft PR discovery and lifecycle belong exclusively to PR Manager; Drafts remain observational and preserved under original-author ownership);
 - PR head/base SHA, required check set, review verdicts, merge state, and merge SHA;
 - release/build and outcome-observation evidence required by the project.
 
-Use the repository host and Multica project mappings to join issues to PRs. Search issue keys in branch, title, body, comments, and metadata, then confirm by SHA and scope. Text similarity is discovery evidence only.
+Use the repository host and Multica project mappings to join issues to explicitly linked PRs using identifiers and evidence already supplied or linked in the issue/task context. This helper does not independently search for unlinked PRs or perform text-similarity matching across branches, titles, bodies, or comments; any missing linkage or unlinked non-Draft PR discovery belongs exclusively to PR Manager (Drafts remain with their original authors).
 
 ## Reconciliation order
+
+First check whether an open external PR has the verified [PRM conflict disposition](../../README.md#普通外部-pr-的冲突保留终态) for its current contents/head. An unchanged author-facing comment plus `冲突保留` disposition is terminal for that handling cycle, not a stall or Owner wait. An author update requires normal PRM reprocessing; the old label alone cannot suppress it. Unknown or incomplete evidence requires read-only reconciliation, not a completion claim or duplicate action.
 
 Process in this order unless the project contract says otherwise:
 
 1. required-gate or delivery-integrity risk;
 2. merged PR with nonterminal lifecycle state;
-3. review/ready PR with no owning actor;
-4. failed PR checks or blocking review;
-5. active issue with no live actor or bounded wait;
-6. duplicate or superseded runs;
-7. ready stage whose predecessor evidence is complete;
-8. post-release observation.
+3. linked non-Draft PR with unrouted handoff (hand off to PR Manager);
+4. active issue with no live actor or bounded wait;
+5. duplicate or superseded runs;
+6. ready stage whose predecessor evidence is complete;
+7. post-release observation.
 
 For each case ask:
 
@@ -39,13 +40,9 @@ For each case ask:
 
 An action is eligible only when the current project authority assigns it to the supervisor/control plane or explicitly permits equivalent lifecycle recovery.
 
-Eligible examples:
+Route eligible continuations to the existing owner: TL/FS for team stages, the original main conversation for subagents, and PRM for non-Draft delivery. A terminal/expired run alone does not prove interruption or authorize another run. Reconcile receipt, wait conditions and ownership before any authorized handoff.
 
-- re-activate the currently responsible role after a terminal/expired run;
-- de-duplicate overlapping runs after proving actor, subject, and artifact identity;
-- promote the next documented stage after every dependency is terminal and evidenced;
-- close an issue after its required PR is merged and every project-specific closure condition is satisfied;
-- restore a required Draft/ready state when the workflow explicitly makes that mechanical state enforceable by the control plane.
+The Dev Team Flow Supervisor only wakes the original actor when the current team workflow can proceed but is interrupted; it ends after verified receipt or an honest unresolved result. Normal CI/review/approval wait and human pause are not interruption. It neither discovers/manages PRs nor reassigns, repairs, replans, closes or merges, and never repairs daemon, runner, API, credential, or platform failures. This conversation-level helper does not gain those powers by sharing its name. Draft Ready, Draft handling and cancellation remain separate original-author/explicit authority paths.
 
 After acting, read back issue status, assignment, live runs, PR state, and SHA as applicable. A command returning success is not verification.
 
@@ -84,12 +81,14 @@ Persist enough handoff state in the session report to resume: authoritative scop
 A project supervision scope is complete only when:
 
 - every included delivery leaf is terminal and consistent with its parent;
-- no included delivery PR remains open, Draft, or awaiting merge;
-- reviewed, tested, and merged identities satisfy the project's gates;
+- no explicitly linked delivery PR remains open or awaiting merge, except an ordinary external PR with a verified, still-current conflict disposition under the contract above, or a preserved Draft under original-author ownership (unlinked non-Draft PR discovery and lifecycle belong exclusively to PR Manager; Drafts are preserved/skipped without requiring an automatic state transition);
+- reviewed, tested, and merged identities of merged deliveries satisfy the project's gates;
 - merged PRs have corresponding lifecycle closure;
 - required release/build steps are complete, or explicitly represented as a bounded post-release outcome check;
 - every effectiveness verdict is confirmed or honestly recorded as pending/unknown with its next observation event;
 - no P0/P1 audit finding is silently omitted;
 - every remaining Owner decision is delivered with a stable decision ID.
+
+A conflict disposition completes only that PR's handling cycle. Report it separately from merged deliveries; it does not satisfy an unmet parent/implementation goal, release requirement or product acceptance. Neither the conversation helper nor Flow Supervisor comments, labels, merges or closes the PR on PRM's behalf, or creates an Owner notification for this ordinary external conflict.
 
 Stopping a watch at the user's request reports incomplete items; it does not relabel them complete.

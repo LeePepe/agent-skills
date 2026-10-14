@@ -1,0 +1,41 @@
+{
+  "scope": {"agent-skills": "https://github.com/example/agent-skills"},
+  "snapshot": {
+    "repository": "agent-skills",
+    "url": "https://github.com/example/agent-skills",
+    "visibility": "public",
+    "revision": "dddddddddddddddddddddddddddddddddddddddd",
+    "expected_paths": ["README.md", "src/export.py", "decisions.md"],
+    "files": [
+      {
+        "path": "README.md", "role": "current", "content": "Export supports CSV.",
+        "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "committed_at": "2026-09-01T10:00:00+00:00"
+      },
+      {
+        "path": "src/export.py", "role": "code", "content": "FORMATS = ['json']",
+        "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "committed_at": "2026-08-01T10:00:00+00:00"
+      },
+      {
+        "path": "decisions.md", "role": "history", "content": "Confirmed: add CSV alongside JSON; this requirement remains active.",
+        "commit": "cccccccccccccccccccccccccccccccccccccccc", "committed_at": "2026-09-01T09:00:00+00:00",
+        "diff": "+ Confirmed: add CSV alongside JSON; this requirement remains active."
+      }
+    ],
+    "gaps": []
+  },
+  "review": {
+    "revision": "dddddddddddddddddddddddddddddddddddddddd",
+    "covered_paths": ["README.md", "src/export.py", "decisions.md"],
+    "gaps": [],
+    "assessments": [{
+      "statement": {"path": "README.md", "quote": "Export supports CSV."},
+      "decision": {"path": "decisions.md", "quote": "Confirmed: add CSV alongside JSON; this requirement remains active."},
+      "implementation": [{"path": "src/export.py", "quote": "FORMATS = ['json']"}],
+      "state": "active", "outcome": "implementation_gap",
+      "reason": "The confirmed CSV requirement is absent from the exhaustive formats in this synthetic example.",
+      "desired": "Support CSV export alongside JSON.",
+      "acceptance": "CSV export succeeds and existing JSON export remains available."
+    }]
+  },
+  "projects": [{"workspace": "fixture-workspace", "project": "fixture-project", "repo_url": "https://github.com/example/agent-skills"}]
+}

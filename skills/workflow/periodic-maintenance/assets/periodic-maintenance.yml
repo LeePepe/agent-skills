@@ -1,0 +1,21 @@
+# INERT TEMPLATE: keep outside .github/workflows. Activation remains on HOLD.
+# Future host: this repository; independent read-only review on its existing
+# Codex runner, with ordinary unassigned backlog output only.
+name: periodic-maintenance-template
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # weekly; illustrative UTC time, not an enabled schedule
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  maintenance:
+    if: ${{ !always() }} # always false: source-only HOLD, including when copied
+    runs-on: ubuntu-latest # placeholder, deliberately not an existing runner label
+    steps:
+      - name: Require a separately reviewed activation implementation
+        run: |
+          echo 'HOLD: runner isolation, read-only collection and backlog transport are not wired.'
+          exit 1

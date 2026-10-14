@@ -1,0 +1,5 @@
+{
+  "name": "periodic-maintenance",
+  "description": "06 周期维护的未启用源码入口：按有效决定核对公开仓当前文档与相关实现，准备有证据的普通 backlog 或待澄清草稿。用于维护规则审查和离线演练；真实运行仍受启用 HOLD 约束。",
+  "category": "workflow"
+}

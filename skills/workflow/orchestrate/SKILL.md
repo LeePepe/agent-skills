@@ -1,12 +1,13 @@
 ---
 name: orchestrate
-description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成可交付切片，选执行来源（Dev Team issue 或 subagent），派发、监督并按 PR 证据验收；自己不写产品代码。用于“完成这个跨仓目标 / 继续某个 goal / 看看怎么继续 / 协调多个 repo 的升级 / 派活并盯到合并”。
+description: 跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。
 ---
 
-# W0 总体编排
+# 跨仓拆分与编排
 
-主 agent 只做：**计划 → 委派 → 观察 → 验收 → 向 Owner 报告**。实现、审查、合并分别属于 W3、W4 的角色。
-全局索引与合并规则见 [workflow 索引](../README.md)。
+主 agent 只做：**计划 → 委派 → 观察 → 验收 → 向 Owner 报告**。实现、独立审查与 PR 交付保持职责分离。
+W0 是六个 workflow 的总图，本 skill 是跨仓协调入口。开始前读 [workflow 索引](../README.md) 中的聊天准入、执行版本、
+plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受保护操作权限。
 
 ## 1. 读状态（每次继续前）
 
@@ -18,35 +19,45 @@ description: W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成�
 
 ## 2. 切片
 
-- W0 明确各 repo 的目标、验收和真实依赖；跨 repo 按 provider → 发布 → 消费者（W5）。
-- 先读[仓库已有的 layer/PR 规范](../README.md#仓库先定义角色再执行)。Dev Team 的 Planner 据此拆需求/spec task，W0 不另定义架构边界。
-  其他 agent 也遵循同一仓库规范，但不要求 Dev Team 的 Planner/task 流程；合同缺失先按 repo-kit 补齐，而非让角色各定一套。
+- 将已确认方案中的各 repo 目标、验收和真实依赖写入本次 plan；跨 repo 按 provider → 发布 → 原任务消费者，
+  指向适用版本的 repo guide/shared 规则，并写明每步完成后的下一动作。
+- 先读[仓库已有的 layer/PR 规范](../README.md#仓库先定义角色再执行)。Dev Team 的 Planner 据此拆需求/spec task，编排者不另定义架构边界。
+  其他 agent 也遵循同一仓库规范，但不要求 Dev Team 的 Planner/task 流程；合同缺失先按 repo-kit 在授权范围补齐，
+  需要新权限则报告阻塞，而非让角色各定一套。
 - 依赖只按真实的数据/接口关系排；无依赖的切片并行，但**同一 repo 同一路径只有一个写者**。
 - 共享接口、迁移、全局重构串行；机械推广（多仓同一模板）可并行。
-- 需求不清先问 Owner（W7）或用 grilling；架构迁移不夹带功能/UX 改动。
+- 超出当前约定的新要求回同一个需求沟通与规划入口，保留在途版本；架构迁移不夹带功能/UX 改动。
 
 完成条件：仓库合同可读取，目标、验收、依赖和承接者明确；Dev Team 的任务拆分由 Planner 与既有 spec/plan gate 保证。
 
 ## 3. 选来源并派发
 
-| 适合 Dev Team（W1→W2） | 适合 subagent（直接 W3） |
+| 适合 Dev Team | 适合 subagent |
 |---|---|
-| 产品功能/bug、需要 Planner 拆解、要留 issue 历史 | 模板推广、脚手架、调研、一次性工具、Dev Team 不可用时 |
+| 普通产品任务的默认出口；已定方案的设计修改/workflow refine 也可承接 | 明确选择的直接执行；已定方案的设计修改/workflow refine 也可承接 |
 
-派发内容包含[交接最小字段](../README.md#交接最小字段)，并指向仓库规范。给 Dev Team 的目标交其 Planner 按这些规范产出任务图；
+派发先核对固定方案、Owner 执行确认和已有唯一 owner。所选团队离线或结果未知时保留版本与执行方，先对账再补派，不自动改派。
+内容包含[交接最小字段](../README.md#交接最小字段)，并指向仓库规范。给 Dev Team 的目标交其 Planner 复用、校验、补齐已有任务图，
+保留 spec/plan 审查；TL 按依赖推进。
 直接派发其他 agent 时写明目标 repo/base、任务与验收、“从 AGENTS.md 目录读取开发指南”、禁止事项及完成时回报 PR URL。
-携带当前任务需要的指针，不假设执行者或部署角色会自动读到个人 skills 的更新。
+主会话按 plan 接续 subagent 的后续动作。携带当前任务需要的指针，不假设执行者或部署角色会自动读到个人 skills 的更新。
 
 ## 4. 观察
 
-- 以 PR 为观察单位：CI 结果、review comment、是否卡住。实现/检查失败交回**原作者**；Dev Team 的规划调整由 TL 返回 Planner；确需新审批、权限或运行边界决策才交 Owner。不开第二个写者。
-- 不给 PRM 增加 PR 大小/范围反馈或验收职责；它按现有 CI/review 与合并条件推进。
-- 主 agent 可以安全停止失控的执行，但不手工替代 Supervisor/PRM 去推进，否则如实记为手工介入。
-- 故障（Multica/NAS/daemon/runner 不可用）走 [W6](../runtime-recovery/SKILL.md)，不重复重试。
+- 观察任务输出、PRM 的交付证据及依赖；当次实现必要验证／审查满足且 PR 创建／更新成功后交 PRM，
+  不把实现者变成持续 CI watcher。PRM 回派仍是普通需求，按来源沿 TL／既有主会话交回原作者。
+- 本版必要补拆记录进 plan；新需求回同一需求入口，不改当前版。按[实现修复与升级](../README.md#实现修复与升级)
+  保留两轮历史：团队 TL、subagent 既有主会话组织诊断，仍无解带证据交 Owner，不自动换执行方。
+- 已进入查证结论等待 Owner 的工作保持未完成；后来新证据到达不自行恢复。独立已授权任务继续。
+- PRM 独占任意来源非 Draft PR 生命周期；Draft 保留原作者／审批路径。Flow Supervisor 只唤醒真中断的团队原责任方，
+  不接管 subagent 主会话。协调者不因观察而获得取消其他会话、合并或替代角色的权限。
+- 故障走 [运行恢复](../runtime-recovery/SKILL.md)，未知结果先对账，不重复重试。
 
 ## 5. 验收与报告
 
 - 交付完成 = PR merged + 验收项在 PR 上有证据（CI、review、必要时截图/消费者 build），不追加通用范围门禁。
+- 当次实现输出与交付完成分开；既有固定合同要求的远端 checks/review 仍须满足，不因本地完成或已交 PRM 放行。
+- 普通外部 PR 的[冲突保留终态](../README.md#普通外部-pr-的冲突保留终态)只收口本轮 PR 处理，不满足未交付的切片／目标验收；保留其分来源通知边界及作者更新后的 PRM 重处理路径。
 - 目标完成 = 所有切片完成 + goal 的整体验收项逐条有证据；不从“CI 绿”推断“已消费/已发布”。
 - 向 Owner 报告：完成了什么（链接）、还剩什么、哪些等 Owner、下一步。不写过程流水账。
 

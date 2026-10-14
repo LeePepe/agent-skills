@@ -10,7 +10,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RECIPES = {
     "repo-kit": ("skills/repo/repo-kit/SKILL.md", "## adopt：", "## split："),
-    "shared-release": ("skills/workflow/shared-release/SKILL.md", "## 3.", "## 4."),
 }
 
 

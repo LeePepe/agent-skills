@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "count": 17,
+  "count": 19,
   "skills": [
     {
       "name": "multica-delivery-supervisor",
@@ -15,27 +15,45 @@
       "name": "orchestrate",
       "category": "workflow",
       "path": "skills/workflow/orchestrate",
-      "description": "W0 总体编排——主 agent 把 Owner 的多 repo 目标拆成可交付切片，选执行来源（Dev Team issue 或 subagent），派发、监督并按 PR 证据验收；自己不写产品代码。用于“完成这个跨仓目标 / 继续某个 goal / 看看怎么继续 / 协调多个 repo 的升级 / 派活并盯到合并”。",
+      "description": "跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。",
       "user_invocable": false,
       "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "periodic-maintenance",
+      "category": "workflow",
+      "path": "skills/workflow/periodic-maintenance",
+      "description": "06 周期维护的未启用源码入口：按有效决定核对公开仓当前文档与相关实现，准备有证据的普通 backlog 或待澄清草稿。用于维护规则审查和离线演练；真实运行仍受启用 HOLD 约束。",
+      "user_invocable": false,
+      "has_references": true,
       "has_eval": false
     },
     {
       "name": "runtime-recovery",
       "category": "workflow",
       "path": "skills/workflow/runtime-recovery",
-      "description": "W6 运行恢复——Multica 控制面/NAS/Azure 链路、本机 Multica daemon、self-hosted GitHub runner 不可用或执行者中断时，定位故障层、暂停依赖动作、自动拉起 daemon/runner、恢复后触发 Supervisor 巡检并由原 owner 接回。用于“Multica 连不上 / daemon 挂了 / runner offline / PR 卡在 codex-review pending / agent 中断后接续”。",
+      "description": "运行恢复辅助——控制面、daemon、runner 不可用或执行者中断时，定位故障层并按已有授权恢复，由原责任方接回。用于 Multica 连不上、runner offline、review pending 或任务中断；不接管 PR 交付，不授权主机配置或凭据变更。",
       "user_invocable": false,
-      "has_references": false,
-      "has_eval": false
+      "has_references": true,
+      "has_eval": true
     },
     {
       "name": "shared-release",
       "category": "workflow",
       "path": "skills/workflow/shared-release",
-      "description": "W5 共享库发布与消费者升级——shared-* 仓合并后打不可变版本，随版本发布 ai/ 合同，在外部消费者验证，再为每个消费 repo 开独立 pin 升级 PR。用于“发布 shared-ci/telemetry/design-system/tokens/VoxKit 新版本 / 让产品升级到新版共享库 / 回滚共享库版本”。",
+      "description": "04 自动化发布——合并至默认分支且前置检查通过后触发的自动化发布工作流，引用 shared-ci v0.5.0 发布模板与规范。用于指导 shared-* 库及各 repo 的自动化发布接线、版本决策与发布边界。",
       "user_invocable": false,
       "has_references": false,
+      "has_eval": false
+    },
+    {
+      "name": "team-workflow-audit",
+      "category": "workflow",
+      "path": "skills/workflow/team-workflow-audit",
+      "description": "Audit an explicitly named team, repository, or project delivery workflow against evidence, current instructions, workflow fitness, and delivered outcomes. Use only when the user explicitly invokes $team-workflow-audit or directly asks to run this audit. Never remediate or mutate audited systems.",
+      "user_invocable": false,
+      "has_references": true,
       "has_eval": false
     },
     {
@@ -78,7 +96,7 @@
       "name": "layered-ci-autofix",
       "category": "repo",
       "path": "skills/repo/layered-ci-autofix",
-      "description": "运行时(run-time)闭环:把改动 commit/push、开 PR、监督 PR 的 required CI、失败时读结构化失败信号 {layer, path, kind, detail, red_lines} 做**按 layer 收窄的自动修复**,修完再 push、重新等 CI,直到绿灯或触发升级。它是 repo-kit(setup-time 脚手架)的**运行时消费者**——消费后者铺好的 CI 信号与每层 red_lines/test;门用 auto-review-merge,不自己重造。当用户想\"项目改完自动 commit、监督 PR CI、CI 挂了自动修、跑通再合\"时使用。用于:一次任务收尾的 push→监督→修复闭环。不用于:装脚手架(那是 repo-kit)、纯搭 CI 门(那是 auto-review-merge)。",
+      "description": "PRM 的 CI 诊断与原路径修复辅助。用于读取准确 PR head 的失败信号、定位仓库约束并交回原执行者，或执行已交回的具体修复；不启动第二条 PR watcher，不接管 Draft，不安装 CI 或自行合并。",
       "user_invocable": false,
       "has_references": true,
       "has_eval": true
@@ -96,7 +114,7 @@
       "name": "multica-issue",
       "category": "repo",
       "path": "skills/repo/multica-issue",
-      "description": "向 Multica dev team 提交新 issue,让 dev team(Team Lead → Fullstack Engineer → AI Reviewer → PR Manager)完成任务。给一句用户输入,skill 会:按当前 repo 的 github remote 反查正确的 Multica project;判定输入属于 bugfix / 新功能 / 技术架构(tech-context)变更;bug 会检索同一问题历史并记录 duplicate / ineffective fix / regression 关系;需要等待 TestFlight 或实际使用时可建立不派发 Agent 的 Outcome Check。实现类 issue 默认直接派发。当用户想「提个 issue 给 dev team / 让 dev team 做 X / 提 bug / 记录复发问题 / 等 TF 使用后验证 / 提新功能需求 / 改技术架构 / 把 tasks 批量入 Multica」时使用。",
+      "description": "从当前 repo 定位 Multica project，把已确认的 bug/feature/架构实施需求或现有 plan/tasks 交给 Dev Team；记录问题历史与 ineffective/regression 关系，或创建不派发 Agent 的 Outcome Check。适用于明确提 issue、交团队实现、批量入库或等待发布后验证；现象反馈与诊断请求先澄清，不自动派发。",
       "user_invocable": true,
       "has_references": true,
       "has_eval": true
@@ -105,7 +123,7 @@
       "name": "owner-decision-loop",
       "category": "repo",
       "path": "skills/repo/owner-decision-loop",
-      "description": "Resolve delivery decisions through reusable owner calibration. Use when Team Lead cannot determine Planner or Fullstack content from repository authority because product intent, acceptance, scope, architecture, policy, terminology, or conflicting evidence requires the owner's choice; do not use for routine implementation decisions already delegated to a role.",
+      "description": "Resolve owner choices or unresolved repair investigations when existing repository authority cannot decide. Use for product, scope, architecture, policy or evidence conflicts, or failed diagnosis by Team Lead or the original subagent coordinator. Routine implementation remains with its owner.",
       "user_invocable": false,
       "has_references": true,
       "has_eval": true
@@ -123,7 +141,7 @@
       "name": "teamwork",
       "category": "repo",
       "path": "skills/repo/teamwork",
-      "description": "Multi-agent pipeline for complex tasks — spec-first, plan-led execution with gated review, verification, and shipping. team-lead orchestrates; specialist agents do the work.",
+      "description": "Synchronous Dev Team workflow 02 execution — spec-first, plan-led implementation from single-source roles to a non-Draft PR handoff.",
       "user_invocable": false,
       "has_references": false,
       "has_eval": false
