@@ -33,11 +33,12 @@ Roles resolve directly from the loaded bundle at `../../workflow/dev-team-roles/
 The CLI session replaces Multica issue comments, mentions, and wakeups with synchronous subagent invocations (`Agent` tool) and direct in-memory handoffs:
 
 1. **Preflight**: Verify bundle source roles exist and subagent capability is active; otherwise fail closed.
-2. **Planner**: Spawn Planner with task intent; await reviewable spec and plan.
-3. **Spec Gate**: Spawn AI Reviewer with spec/plan; await verdict. If changes needed, iterate with Planner (max 2 rounds).
-4. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan. Fullstack implements, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Do not switch writer identity on unknown startup/receipt.
-5. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict.
-6. **Publish & Handoff**: Spawn original Fullstack Engineer to push the reviewed SHA unchanged and open a non-Draft PR. Report PR link/head and hand off to external workflow 03 PR Manager (PRM is never spawned as a local subagent).
+2. **Team Lead**: Spawn Team Lead first for request confirmation and triage; await orchestration handoff.
+3. **Planner**: Spawn Planner with task intent; await reviewable spec and plan.
+4. **Spec Gate**: Spawn AI Reviewer with spec/plan; await verdict. Review rounds, same-root accumulation, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
+5. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan. Fullstack implements, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Retain writer identity if startup/receipt is unknown.
+6. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict (security/performance specialists are invoked by AI Reviewer on demand, never as fixed executing roles).
+7. **Publish & Handoff**: Resume/reinvoke the already-created original Fullstack Engineer by identity (never spawn a replacement writer) to push the reviewed SHA unchanged and open a non-Draft PR. Report PR link/head and hand off to external workflow 03 PR Manager (PRM is never spawned as a local subagent).
 
 ## Backend & Rules
 
