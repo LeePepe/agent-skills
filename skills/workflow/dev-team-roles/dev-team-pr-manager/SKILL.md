@@ -43,9 +43,11 @@ verify identity with one cheap authenticated read (e.g. `gh api repos/<owner>/<r
 on a bound repo), and cross-check against the previous sweep's deferred list; failed identity proof
 or any contradiction is a blocker, not a zero result. A repo bound to more than one project is
 skipped and reported. For each PR, find its tracking: a Multica issue that links or names the full
-`<owner>/<repo>#<n>` or PR URL (search all projects and statuses), or your existing receipt. A
-cancelled/won't-do tracking hit is final and terminal: never create a duplicate issue or revisit
-cancelled delivery.
+`<owner>/<repo>#<n>` or PR URL (search all projects and every issue status, including `blocked`),
+or your existing receipt. Any tracking hit suppresses a new tracking issue and reuses the existing
+receipt/state. A cancelled/won't-do tracking hit is final and terminal: never create a duplicate issue
+or revisit cancelled delivery. A PR already recorded as infrastructure/bootstrap blocked is parked and
+not rerun or redispatched until concrete unblock evidence appears.
 - **Untracked PR**: route by source (below). Idempotency: re-run the search immediately before any
   create. At most **3** new tracking issues per sweep; list the rest for the next sweep.
 - **Already tracked PR**: revisit it when no other live PR Manager or Fullstack Engineer run owns that
@@ -126,17 +128,21 @@ not a merge gate once the ruleset is in place.
 
 - **Normal PR**: when all gates pass, enable auto-merge (or merge) with the repo's merge method. No
   Owner approval is needed.
-- **Important PR** — any changed path matches the repo's `CODEOWNERS` (or, if absent: `.github/**`,
-  policy/schema/gate files, `AGENTS.md`/constitution, dependency pin bumps, credentials/privacy/
-  data migrations): needs Owner approval. Where the ruleset does not enforce CODEOWNERS review, add the label
+- **Important PR** — any changed path matches the target repository's effective, contract-derived
+  `CODEOWNERS` active pattern set: needs Owner approval. Missing, unreadable, or contract-invalid
+  `CODEOWNERS` is conflicting protection evidence and goes to Team Lead; it never activates an
+  invented fallback list. Where the ruleset does not enforce CODEOWNERS review, add the label
   `owner-review`, do not enable auto-merge or merge, record the wait in the receipt, and ship only
   after the Owner explicitly approves that PR and head SHA (a comment by the human member in the
   Multica thread, or the Owner merging it). After the App switch the ruleset enforces CODEOWNERS
   review and you wait for the required approval.
-- **Unapproved behaviour change**: if AI Reviewer or `codex-review-target` flags a removed/weakened
-  existing test or a changed existing behaviour that the spec did not approve, label the PR
-  `owner-review`, do not enable auto-merge or merge, name each flagged item in the receipt, and wait
-  for the Owner's explicit approval of that PR and head SHA (or an Owner-directed fix).
+- **Unapproved behaviour change**: in product repositories, review findings identifying changed
+  existing behaviour or removed/weakened tests do not create a direct Owner wait; route them per
+  PR source (Dev Team implementer/Team Lead, or clear small issue / receipt) for correction, sending
+  genuine unresolved product decisions to Team Lead's Owner-decision path. In shared repositories,
+  or where the target repo's spec/contract requires it, label `owner-review`, do not enable auto-merge
+  or merge, name each flagged item in the receipt, and wait for Owner's explicit approval of that PR
+  and head SHA (or an Owner-directed fix).
 - **Owner-decision conflict**: a review finding contradicting a recorded Owner decision goes to
   Team Lead's ask-once flow; label `owner-review`, do not enable auto-merge or merge pending resolution.
   A PR comment on this PR whose first line starts with `Owner decision:`, from the Owner account
@@ -189,8 +195,9 @@ not a merge gate once the ruleset is in place.
 
 1. Recheck delivery occupancy: no in-flight implementation, review, repair or unpublished work for
    the current candidate. Unknown → tracking only; tell Team Lead the release condition.
-2. Ship per the merge rules. Never force-push, bypass protection, dismiss required reviews, fabricate
-   checks or push to a protected target. Release/TestFlight is manual and not authorized here.
+2. Ship per the merge rules. Never use `gh pr merge --admin` or any other branch-protection, review,
+   or required-check bypass. Never force-push, weaken, fabricate, dismiss, or route around a gate or
+   push to a protected target. Release/TestFlight is manual and not authorized here.
 3. Confirm the exact revision (or documented merge result) reached the target: PR state, merge
    commit, target, final checks. CI green ≠ merged; merged ≠ released.
 4. Remove only task-owned branches/worktrees after a proven merge; never broad-clean or delete an
@@ -205,7 +212,9 @@ not a merge gate once the ruleset is in place.
 ## Red lines
 
 No code/config/test edits, conflict resolution, own reviews, acceptance changes, agent assignment,
-issue closure other than PR-tracking issues after a proven merge, contacting CLI sessions, or changes to schedules, triggers, permissions, credentials, network or services.
+`gh pr merge --admin` or any protection/gate bypass, issue closure other than PR-tracking issues
+after a proven merge, contacting CLI sessions, or changes to schedules, triggers, permissions,
+credentials, network or services.
 
 ## GitHub identity
 
