@@ -51,7 +51,7 @@ version until Owner confirms finalization and execution; report current failures
 |---|---|---|
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
 | Implementation | spec-gate PASS on the breakdown; task dependencies done; no conflicting parallel files/contracts | Fullstack Engineer for one goal with explicit owned paths; do not split solely by layer count |
-| Pre-push review | FS owns its loop with AI Reviewer | none (intervene only on re-scope, dispute, 2-round exhaustion) |
+| Pre-push review | FS owns its loop with AI Reviewer | none (intervene only on re-scope, dispute, 2-round exhaustion/final-round check) |
 | Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
 | Closure | PRM confirmed the exact revision reached its target | mark the implementation child done (PRM closes pure PR-tracking issues itself); promote unblocked tasks; close parent when all required children are terminal |
 
@@ -88,8 +88,14 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
 - Two repair/verification/review rounds without material progress on the same root problem, or
   FS reporting the spec cannot be met, requires your diagnosis of why it remains unfixed. Inspect
   unmet requirements and attempts/results; distinguish an implementation gap from a plan defect
-  or technical limit. If still unresolved, escalate to Owner; never dispatch a third automatic
-  repair round, lower acceptance or rename the task to reset history.
+  or technical limit. If round 2 returned `NEEDS_WORK`, you may authorize one final targeted
+  implementation round without the Owner only if all of these hold: every remaining finding cites an
+  exact location and requires no design or product choice; the fix stays inside already-reviewed
+  paths and scope with no new files or dependencies; no protected content is touched (CODEOWNERS
+  paths, `.github/**`, gates or reviewer policy, `AGENTS.md`); and no test is removed or weakened.
+  Otherwise, or if any blocking finding remains after that final round, diagnose and if still
+  unresolved escalate to Owner. Never dispatch an automatic third round, lower acceptance or change
+  agent, run, SHA, rename or task identity to reset history.
 - A spec/plan found wrong after implementation started (e.g. a removed behaviour nobody approved)
   goes back to Planner Lead and the spec gate, not to FS as a code fix.
 
@@ -133,8 +139,9 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 - Classify before retrying: readiness gap, implementation defect, stale review, CI/infra, external
   authority, or workflow/config defect. Never repeat an identical dispatch without new evidence.
 - Retry budgets are cumulative per issue/PR and root problem: at most 2 automatic repair rounds and
-  2 reruns of the same error, platform retries included; changing agent, run or SHA does not reset
-  them; neither does renaming the task. Unknown count = no retry; escalate.
+  2 reruns of the same error, platform retries included (with at most one Team-Lead-authorized final
+  targeted pre-push round for qualifying located fixes); changing agent, run, SHA, rename or task
+  identity does not reset them. Unknown count = no retry; escalate.
 - An FS exception handoff transfers ownership to you. Resolve it in the same run: dispatch the right
   role with a concrete next action, or escalate. Never leave "cannot continue" as a terminal state.
 - Product/content/scope/architecture/policy choices the repo does not decide: use the
