@@ -19,38 +19,9 @@ PRM 唯一负责任意来源非 Draft PR 生命周期；本 skill 是该责任�
 - Dev Team／Owner subagent 经真实归属核实后回原路径；其他来源的普通欠缺交 Dev Team。
   第三方 fork／受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
 - 当前执行者只负责本次实现／修复：必要验证、适用审查及 PR 创建／更新成功后，交出结果；后续由 PRM 持续跟进。
-  尚未有 PR 时遵守本仓 commit／push／模板规则；辅助提交可按下述交接使用已有 git-monitor。
+  尚未有 PR 时遵守本仓 commit／push／模板规则。
 
 完成条件：PR/head、唯一交付责任与原修复路径明确；未知归属或结果先只读对账，不盲重派。
-
-### 可选 git-monitor 交接
-
-仅在本次提交确需该 helper 时执行，不启动 teamwork 全流程。将运行时实际加载的本 skill 目录绑定为
-`CI_AUTOFIX_SKILL_DIR`（可为软链），按运行时既有发现／override 优先级查明**实际选中的 git-monitor 文件**，
-绑定为 `GIT_MONITOR_ROLE_FILE`；路径作为数据传入，不作为 shell 文本求值。
-调用前及恢复后读取该角色全文检查冲突，并运行同一 bundle 的只读兼容检查：
-
-```bash
-: "${CI_AUTOFIX_SKILL_DIR:?loaded layered-ci-autofix skill directory is required}"
-: "${GIT_MONITOR_ROLE_FILE:?actual selected git-monitor file is required}"
-CI_AUTOFIX_SOURCE=$(cd "$CI_AUTOFIX_SKILL_DIR" && pwd -P) || exit 1
-WORKFLOW_DIR=$(cd "$CI_AUTOFIX_SOURCE/../../workflow" && pwd -P) || exit 1
-WORKFLOW_CONTRACT_PATH="$WORKFLOW_DIR/README.md"
-[ -f "$WORKFLOW_CONTRACT_PATH" ] && [ -r "$WORKFLOW_CONTRACT_PATH" ] || {
-  echo "required workflow contract is unavailable in the loaded bundle" >&2
-  exit 1
-}
-python3 "$CI_AUTOFIX_SOURCE/../teamwork/scripts/check_contract_handoff.py" git-monitor "$GIT_MONITOR_ROLE_FILE" || exit 1
-printf '%s\n' "$WORKFLOW_CONTRACT_PATH"
-```
-
-仅检查成功且无指令冲突时调用，将输出的原合同绝对路径作为 `workflow_contract_path`，连同准确候选、
-验证／审查证据、任务 worktree 和明确文件清单交给 git-monitor；它须在任何 Git 写入前读取该合同。
-先由原执行者 commit 并完成该 SHA 的验证／审查，再传入 `candidate_sha`、`tested_sha`、`reviewed_sha`；
-helper 只原样 push 三者一致的 commit，变化回原执行者重验／重审。
-不能从复制后的 `.claude/agents` 位置重算合同。选择未知、缺少 bundle／合同／检查器、接口不兼容或指令冲突时
-停止该交接并报告具体 setup 缺口；保留 override 优先级与内容，不覆盖、不静默改选 bundled role。
-检查器只验证必需接口，不证明任意 override 或模型行为正确；角色选择变化后须重新核对。
 
 ## 2. PRM 读取对应 head 的信号
 

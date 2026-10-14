@@ -138,10 +138,8 @@ R2 增加 `packages/data/tests/repo.test.ts` 后，序列为 `[lint_docs, data.t
 
 ## 执行与报告
 
-可选 git-monitor 直接调用还需验证：实际选中兼容 override 时，保留其内容并将加载 bundle 的原合同指针
-交给复制安装的角色；选择未知、旧版接口、缺合同或冲突指令时，在调用／Git 写入前停止，不能静默改选角色。
-恢复后角色已变更须重查；这些情形不启动 teamwork 全流程或额外 PR watcher。
-可执行的路径／兼容回归位于 `skills/repo/teamwork/scripts/test_contract_handoff.py`，
+原执行者修复与准确 candidate 发布还需验证：在专用 worktree/branch 内完成修复与完整适用验证，由原执行者 commit 并提交准确 SHA 审查；PR 更新成功后移交 PRM 接续，不启动第二条 PR watcher。
+可执行的路径／契约回归位于 `skills/repo/teamwork/scripts/test_contract_handoff.py`，
 它们不替代冲突指令判断及模型行为评估。
 
 ### PAIR — 分离盲评与同一 grader

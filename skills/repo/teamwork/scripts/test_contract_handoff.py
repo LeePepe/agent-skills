@@ -1,394 +1,135 @@
-"""Exercise documented entry/loader/role boundaries without an agent or host install."""
-import os
-import json
-import hashlib
+"""Exercise teamwork contract, authority links, and boundaries without external hosts."""
 from pathlib import Path
 import re
 import shutil
-import subprocess
 import tempfile
 import unittest
 
 
 TEAMWORK = Path(__file__).resolve().parents[1]
-CI_AUTOFIX = TEAMWORK.parent / "layered-ci-autofix"
-LEGACY = json.loads((Path(__file__).parent / "fixtures/legacy-roles.json").read_text())
+SKILL_MD = TEAMWORK / "SKILL.md"
 
 
-def bash_block(document, section):
-    body = document.split(section, 1)[1]
-    return re.search(r"```bash\n(.*?)\n```", body, re.S).group(1)
+class TeamworkContractTests(unittest.TestCase):
+    def test_skill_file_under_100_lines(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        line_count = len(text.splitlines())
+        self.assertLess(line_count, 100, f"SKILL.md is {line_count} lines, must be < 100")
 
+    def test_no_copied_agents_directory(self):
+        agents_dir = TEAMWORK / "agents"
+        self.assertFalse(agents_dir.exists(), "agents directory must be removed")
 
-class ContractHandoffTests(unittest.TestCase):
-    def test_publication_requires_the_clean_reviewed_commit(self):
-        repo = self.root / "candidate"
-        repo.mkdir()
+    def test_all_six_authority_links_exist_and_readable(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        expected_links = [
+            ("../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-planner/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-squad/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-pr-manager/SKILL.md#clear-small-issue-owner-2026-10-13", "clear-small-issue-owner-2026-10-13"),
+        ]
+        for link, anchor in expected_links:
+            with self.subTest(link=link):
+                self.assertIn(link, text, f"Link {link} must be in SKILL.md")
+                rel_path = link.split("#", 1)[0]
+                target = (TEAMWORK / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Target {target} must exist")
+                content = target.read_text(encoding="utf-8")
+                self.assertTrue(len(content) > 0, f"Target {target} must not be empty")
+                if anchor:
+                    heading_pattern = rf"^#+\s+.*{re.escape('Clear small issue')}"
+                    self.assertTrue(
+                        bool(re.search(heading_pattern, content, re.M | re.IGNORECASE)),
+                        f"Heading for anchor {anchor} not found in {target}",
+                    )
 
-        def git(*args, input=None):
-            return subprocess.check_output(["git", *args], cwd=repo, env=self.env,
-                                           input=input, text=True).strip()
+    def test_prm_is_not_a_local_subagent(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("PR Manager is not a local subagent", text)
+        self.assertIn("No Local PRM", text)
+        executing_roles = ["Team Lead", "Planner", "Fullstack Engineer", "AI Reviewer"]
+        for role in executing_roles:
+            self.assertIn(role, text)
 
-        # Synthetic objects only: no add/commit/push or publication to a remote.
-        git("init", "-q")
-        git("fast-import", "--quiet", input="""commit refs/heads/task
-committer Fixture <fixture@example.invalid> 1 +0000
-data 4
-one
-M 100644 inline file.txt
-data 4
-one
+    def test_symlink_and_space_paths_resolution(self):
+        with tempfile.TemporaryDirectory(prefix="teamwork bundle with spaces ") as tmp:
+            tmp_path = Path(tmp)
+            bundle_dir = tmp_path / "bundle with spaces"
+            skills_dir = bundle_dir / "skills"
+            repo_dir = skills_dir / "repo"
+            teamwork_copy = repo_dir / "teamwork"
+            workflow_roles = bundle_dir / "skills/workflow/dev-team-roles"
 
-commit refs/heads/replacement
-committer Fixture <fixture@example.invalid> 2 +0000
-data 4
-two
-from refs/heads/task
+            workflow_roles.mkdir(parents=True)
+            repo_dir.mkdir(parents=True)
+            shutil.copytree(TEAMWORK, teamwork_copy)
 
-done
-""")
-        git("symbolic-ref", "HEAD", "refs/heads/task")
-        git("read-tree", "--reset", "-u", "HEAD")
-        sha = git("rev-parse", "HEAD")
-        replacement = git("rev-parse", "replacement")
-        self.assertEqual(git("rev-parse", "HEAD^{tree}"), git("rev-parse", "replacement^{tree}"))
-        script = bash_block((TEAMWORK / "agents/git-monitor.md").read_text(),
-                            "## Candidate identity preflight")
-        bindings = dict(CANDIDATE_SHA=sha, REVIEWED_SHA=sha, TESTED_SHA=sha)
+            real_roles = (TEAMWORK / "../../workflow/dev-team-roles").resolve()
+            for child in real_roles.iterdir():
+                if child.is_dir():
+                    shutil.copytree(child, workflow_roles / child.name)
 
-        def check(expected, overrides=None):
-            before = (git("rev-parse", "HEAD"), git("status", "--porcelain"))
-            result = subprocess.run(["/bin/bash", "-c", script], cwd=repo, capture_output=True,
-                                    text=True, env={**self.env, **bindings, **(overrides or {})})
-            self.assertEqual(result.returncode == 0, expected, result.stderr)
-            self.assertEqual((git("rev-parse", "HEAD"), git("status", "--porcelain")), before)
-            self.assertEqual(result.stdout.strip(), sha if expected else "")
+            skill_text = (teamwork_copy / "SKILL.md").read_text(encoding="utf-8")
+            for link in [
+                "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-pr-manager/SKILL.md#clear-small-issue-owner-2026-10-13",
+            ]:
+                rel_path = link.split("#", 1)[0]
+                target = (teamwork_copy / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Path with spaces failed to resolve: {target}")
 
-        check(True)
-        for field in bindings:
-            for value in ("", sha[:8], replacement):
-                with self.subTest(field=field, value=value):
-                    check(False, {field: value})
-        (repo / "file.txt").write_text("unreviewed\n")
-        check(False)
-        git("read-tree", "--reset", "-u", "HEAD")
-        git("update-index", "--force-remove", "file.txt")
-        (repo / "file.txt").unlink()
-        check(False)
-        git("read-tree", "--reset", "-u", "HEAD")
-        (repo / "new.txt").touch()
-        check(False)
-        (repo / "new.txt").unlink()
-        git("update-ref", "refs/heads/task", replacement)
-        check(False)  # Same tree, different commit: old evidence cannot authorize it.
+            consumer_dir = tmp_path / "consumer"
+            consumer_skill = consumer_dir / ".claude/skills/teamwork"
+            consumer_skill.parent.mkdir(parents=True)
+            consumer_skill.symlink_to(teamwork_copy, target_is_directory=True)
 
-    def test_legacy_fixtures_are_the_actual_preserved_git_blobs(self):
-        expected = {
-            "team_lead": "e0224985aebb2b7fa06463ad9603ec5359196f82",
-            "git_monitor": "9869b20ee329c6015e11f857de4dc1b29ff5d89b",
-        }
-        for role, oid in expected.items():
-            raw = LEGACY[role].encode()
-            self.assertEqual(hashlib.sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest(), oid)
+            for link in [
+                "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+            ]:
+                rel_path = link.split("#", 1)[0]
+                target = (consumer_skill.resolve() / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Symlinked bundle failed to resolve: {target}")
 
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="teamwork-contract-")
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        self.home = self.root / "home"
-        self.consumer = self.root / "consumer"
-        self.bundle = self.root / "bundle with spaces"
-        self.source = self.bundle / "skills/repo/teamwork"
-        self.ci_source = self.bundle / "skills/repo/layered-ci-autofix"
-        self.canonical = self.bundle / "skills/workflow/README.md"
-        self.home.mkdir()
-        self.consumer.mkdir()
-        shutil.copytree(TEAMWORK, self.source, ignore=shutil.ignore_patterns("__pycache__"))
-        shutil.copytree(CI_AUTOFIX, self.ci_source)
-        self.canonical.parent.mkdir(parents=True)
-        self.canonical.write_text("# Canonical workflow\n\nUnique fixture policy, never copy me.\n")
-        self.env = {"HOME": str(self.home), "PATH": os.environ["PATH"], "TMPDIR": str(self.root)}
-        self.run_shell("git init -q")
-        self.installed_skill = self.consumer / ".claude/skills/teamwork"
-        self.installed_skill.parent.mkdir(parents=True)
-        self.installed_skill.symlink_to(self.source, target_is_directory=True)
+    def test_missing_source_fails_closed(self):
+        with tempfile.TemporaryDirectory(prefix="teamwork-isolated-") as tmp:
+            isolated_teamwork = Path(tmp) / "isolated-teamwork"
+            shutil.copytree(TEAMWORK, isolated_teamwork)
 
-    def run_shell(self, script, check=True, bindings=None):
-        return subprocess.run(
-            ["/bin/bash", "-eu", "-c", script], cwd=self.consumer,
-            env={**self.env, **(bindings or {})}, text=True, capture_output=True, timeout=10, check=check,
-        )
+            expected_roles = [
+                isolated_teamwork / "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+                isolated_teamwork / "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+                isolated_teamwork / "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+                isolated_teamwork / "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+                isolated_teamwork / "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+            ]
+            for role_path in expected_roles:
+                self.assertFalse(role_path.resolve().exists(), f"Isolated role path should not exist: {role_path}")
 
-    def copy_role(self):
-        lead = (self.source / "agents/team-lead.md").read_text()
-        loader = bash_block(lead, "## Progressive Loading")
-        self.run_shell(loader.replace("<stage_roles>", "git-monitor"),
-                       bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        return self.consumer / ".claude/agents/git-monitor.md"
+    def test_no_business_repo_fallback(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("Never search target repositories or fall back to copied role files", text)
+        self.assertIn("Fail-Closed", text)
 
-    def contract_read(self, role):
-        text = role.read_text()
-        legacy_link = re.search(r"\[workflow delivery boundary\]\(([^)]+)\)", text)
-        if legacy_link:
-            # Exercise the original public instruction literally to expose the copied-role failure.
-            target = role.parent / legacy_link.group(1).split("#", 1)[0]
-            return target.read_text(), target.resolve()
-        entry = (self.source / "SKILL.md").read_text()
-        resolver = bash_block(entry, "### 3. Delegate to `team-lead`")
-        result = self.run_shell(resolver, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(self.source / "agents/team-lead.md"),
-        })
-        target = Path(result.stdout.strip())
-        # Pass the entry's real result through the documented role input, not a copied contract.
-        preflight = bash_block(text, "## Required workflow contract")
-        return self.run_shell(preflight, bindings={"WORKFLOW_CONTRACT_PATH": str(target)}).stdout, target
+    def test_exact_sha_and_original_fullstack_publication_boundary(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("Original Fullstack Engineer", text)
+        self.assertIn("push reviewed SHA + non-Draft PR", text)
+        self.assertIn("External workflow 03 PR Manager handoff", text)
+        self.assertIn("exact-SHA pre-push review", text)
 
-    def test_copied_role_reads_the_original_contract(self):
-        role = self.copy_role()
-        self.assertTrue(role.is_file())
-        self.assertFalse(role.is_symlink())
-        content, target = self.contract_read(role)
-        self.assertEqual(content, "# Canonical workflow\n\nUnique fixture policy, never copy me.\n")
-        self.assertTrue(target.samefile(self.canonical))
-        self.assertEqual(list((self.consumer / ".claude/agents").iterdir()), [role])
-
-    def test_actual_base_team_lead_override_stops_entry(self):
-        selected = self.consumer / ".claude/agents/team-lead.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["team_lead"])
-        before = selected.read_bytes()
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, check=False, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0, "legacy selected team-lead was admitted without the mandatory handoff")
-        self.assertEqual(selected.read_bytes(), before)
-
-    def test_actual_v1_git_monitor_override_stops_loader(self):
-        role = self.consumer / ".claude/agents/git-monitor.md"
-        role.parent.mkdir(parents=True)
-        role.write_text(LEGACY["git_monitor"])
-        before = role.read_bytes()
-        loader = bash_block((self.source / "agents/team-lead.md").read_text(), "## Progressive Loading")
-        result = self.run_shell(loader.replace("<stage_roles>", "git-monitor"), check=False,
-                                bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        self.assertNotEqual(result.returncode, 0, "legacy selected git-monitor was retained and admitted")
-        self.assertEqual(role.read_bytes(), before)
-
-    def test_actual_selected_monitor_is_checked_before_spawn(self):
-        self.copy_role()  # A compatible loader destination cannot vouch for another selected role.
-        selected = self.home / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["git_monitor"])
-        before = selected.read_bytes()
-        check = bash_block((self.source / "agents/team-lead.md").read_text(),
-                           "## Required workflow contract handoff")
-        result = self.run_shell(check, check=False, bindings={
-            "TEAMWORK_SOURCE_DIR": str(self.source), "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(selected.read_bytes(), before)
-
-    def test_changed_role_is_rechecked_at_spawn(self):
-        selected = self.copy_role()
-        selected.write_text(LEGACY["git_monitor"])
-        check = bash_block((self.source / "agents/team-lead.md").read_text(),
-                           "## Required workflow contract handoff")
-        result = self.run_shell(check, check=False, bindings={
-            "TEAMWORK_SOURCE_DIR": str(self.source), "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(selected.read_text(), LEGACY["git_monitor"])
-
-    def test_compatible_selected_team_lead_override_is_retained(self):
-        selected = self.consumer / ".claude/agents/team-lead.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text((self.source / "agents/team-lead.md").read_text() + "\nLocal notes.\n")
-        before = selected.read_bytes()
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill), "TEAM_LEAD_ROLE_FILE": str(selected),
-        })
-        self.assertTrue(Path(result.stdout.strip()).samefile(self.canonical))
-        self.assertEqual(selected.read_bytes(), before)
-
-    def test_unknown_role_selection_stops_before_delegation(self):
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, check=False,
-                                bindings={"TEAMWORK_SKILL_DIR": str(self.installed_skill)})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-
-    def test_preinstalled_role_still_uses_current_handoff(self):
-        role = self.copy_role()
-        role.write_text(role.read_text() + "\nConsumer override preserved.\n")
-        before = role.read_bytes()
-        self.copy_role()
-        self.assertEqual(role.read_bytes(), before)
-        content, target = self.contract_read(role)
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
-
-    def test_home_skill_symlink_survives_copy_to_consumer(self):
-        self.installed_skill.unlink()
-        self.installed_skill = self.home / ".claude/skills/teamwork"
-        self.installed_skill.parent.mkdir(parents=True)
-        self.installed_skill.symlink_to(self.source, target_is_directory=True)
-        role = self.copy_role()
-        content, target = self.contract_read(role)
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
-
-    def test_plugin_bundle_loads_roles_without_repo_or_home_skill_links(self):
-        self.installed_skill.unlink()
-        self.installed_skill = self.source  # Runtime-loaded plugin outside either discovery root.
-        self.assertFalse((self.consumer / ".claude/skills/teamwork").exists())
-        self.assertFalse((self.home / ".claude/skills/teamwork").exists())
-        loader = bash_block((self.source / "agents/team-lead.md").read_text(), "## Progressive Loading")
-        result = self.run_shell(loader.replace("<stage_roles>", "planner-lead git-monitor"),
-                                check=False, bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        self.assertEqual(result.returncode, 0, result.stderr)
-        for name in ("planner-lead", "git-monitor"):
-            installed = self.consumer / f".claude/agents/{name}.md"
-            self.assertEqual(installed.read_bytes(), (self.source / f"agents/{name}.md").read_bytes())
-        content, target = self.contract_read(self.consumer / ".claude/agents/git-monitor.md")
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
-
-    def test_loader_preserves_repo_and_home_source_priority_over_bundle(self):
-        self.installed_skill.unlink()
-        repo_role = self.installed_skill / "agents/git-monitor.md"
-        home_role = self.home / ".claude/skills/teamwork/agents/git-monitor.md"
-        for role, note in ((repo_role, "Repo customization."), (home_role, "Home customization.")):
-            role.parent.mkdir(parents=True)
-            role.write_text((self.source / "agents/git-monitor.md").read_text() + f"\n{note}\n")
-        for expected in (repo_role, home_role):
-            with self.subTest(expected=expected):
-                installed = self.copy_role()
-                self.assertEqual(installed.read_bytes(), expected.read_bytes())
-                installed.unlink()
-                expected.unlink()
-
-    def test_missing_bundle_contract_stops_resolution(self):
-        self.canonical.unlink()
-        resolver = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(resolver, check=False, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(self.source / "agents/team-lead.md"),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-
-    def test_missing_or_invalid_handoff_cannot_pass_role_preflight(self):
-        role = self.copy_role()
-        preflight = bash_block(role.read_text(), "## Required workflow contract")
-        for bindings in ({}, {"WORKFLOW_CONTRACT_PATH": ""},
-                         {"WORKFLOW_CONTRACT_PATH": str(self.root / "absent.md")},
-                         {"WORKFLOW_CONTRACT_PATH": str(self.canonical.parent)}):
-            with self.subTest(bindings=bindings):
-                result = self.run_shell(preflight, check=False, bindings=bindings)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
-
-    def test_contract_removed_after_resolution_stops_role_preflight(self):
-        role = self.copy_role()
-        _, target = self.contract_read(role)
-        self.canonical.unlink()
-        preflight = bash_block(role.read_text(), "## Required workflow contract")
-        result = self.run_shell(preflight, check=False, bindings={"WORKFLOW_CONTRACT_PATH": str(target)})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-
-    def test_legacy_copied_role_is_a_sensitive_negative_control(self):
-        role = self.copy_role()
-        role.write_text("Read [workflow delivery boundary](../../../workflow/README.md).\n")
-        with self.assertRaises(FileNotFoundError):
-            self.contract_read(role)
-
-    def direct_handoff(self, bindings, check=False):
-        preflight = bash_block((self.ci_source / "SKILL.md").read_text(),
-                               "### 可选 git-monitor 交接")
-        return self.run_shell(preflight, check=check, bindings=bindings)
-
-    def test_direct_caller_passes_original_contract_to_copied_override(self):
-        # The direct helper path has no team-lead or full teamwork pipeline.
-        selected = self.consumer / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        shutil.copyfile(self.source / "agents/git-monitor.md", selected)
-        selected.write_text(selected.read_text() + "\nConsumer override preserved.\n")
-        before = selected.read_bytes()
-        for parent in (self.consumer, self.home):
-            with self.subTest(parent=parent):
-                installed = parent / ".claude/skills/layered-ci-autofix"
-                installed.parent.mkdir(parents=True, exist_ok=True)
-                installed.symlink_to(self.ci_source, target_is_directory=True)
-                result = self.direct_handoff({
-                    "CI_AUTOFIX_SKILL_DIR": str(installed),
-                    "GIT_MONITOR_ROLE_FILE": str(selected),
-                }, check=True)
-                target = Path(result.stdout.strip())
-                self.assertTrue(target.samefile(self.canonical))
-                preflight = bash_block(selected.read_text(), "## Required workflow contract")
-                read = self.run_shell(preflight, bindings={"WORKFLOW_CONTRACT_PATH": str(target)})
-                self.assertEqual(read.stdout, self.canonical.read_text())
-                self.assertEqual(selected.read_bytes(), before)
-                self.assertEqual(list(selected.parent.iterdir()), [selected])
-
-    def test_direct_caller_rejects_actual_selected_legacy_override(self):
-        self.copy_role()  # A valid repo copy cannot vouch for a different runtime selection.
-        selected = self.home / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["git_monitor"])
-        before = selected.read_bytes()
-        result = self.direct_handoff({
-            "CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-            "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-        self.assertEqual(selected.read_bytes(), before)
-
-    def test_direct_caller_rechecks_changed_selection_on_resume(self):
-        selected = self.copy_role()
-        bindings = {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                    "GIT_MONITOR_ROLE_FILE": str(selected)}
-        self.direct_handoff(bindings, check=True)
-        selected.write_text(LEGACY["git_monitor"])
-        result = self.direct_handoff(bindings)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-        self.assertEqual(selected.read_text(), LEGACY["git_monitor"])
-
-    def test_direct_caller_requires_loaded_bundle_and_actual_selection(self):
-        selected = self.copy_role()
-        for bindings in ({}, {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source)},
-                         {"GIT_MONITOR_ROLE_FILE": str(selected)},
-                         {"CI_AUTOFIX_SKILL_DIR": str(self.root / "absent"),
-                          "GIT_MONITOR_ROLE_FILE": str(selected)},
-                         {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                          "GIT_MONITOR_ROLE_FILE": str(self.root / "absent.md")}):
-            with self.subTest(bindings=bindings):
-                result = self.direct_handoff(bindings)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
-
-    def test_direct_caller_requires_contract_and_compatibility_checker(self):
-        selected = self.copy_role()
-        for required in (self.canonical, self.source / "scripts/check_contract_handoff.py"):
-            with self.subTest(required=required):
-                original = required.read_bytes()
-                required.unlink()
-                try:
-                    result = self.direct_handoff({
-                        "CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                        "GIT_MONITOR_ROLE_FILE": str(selected),
-                    })
-                    self.assertNotEqual(result.returncode, 0)
-                    self.assertEqual(result.stdout, "")
-                finally:
-                    required.write_bytes(original)
+    def test_backend_priority_order(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("Codex CLI → Claude native → Copilot", text)
 
 
 if __name__ == "__main__":

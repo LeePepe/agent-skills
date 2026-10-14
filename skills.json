@@ -141,7 +141,7 @@
       "name": "teamwork",
       "category": "repo",
       "path": "skills/repo/teamwork",
-      "description": "Multi-agent pipeline for complex tasks — spec-first, plan-led execution with gated review, verification, and shipping. team-lead orchestrates; specialist agents do the work.",
+      "description": "Synchronous Dev Team workflow 02 execution — spec-first, plan-led implementation from single-source roles to a non-Draft PR handoff.",
       "user_invocable": false,
       "has_references": false,
       "has_eval": false
