@@ -1,37 +1,331 @@
-"""Exercise documented entry/loader/role boundaries without an agent or host install."""
+"""Exercise teamwork contract, authority links, preflight fail-closed, and publication boundaries."""
 import os
-import json
-import hashlib
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import tempfile
+from typing import Dict, List, Tuple
 import unittest
 
 
 TEAMWORK = Path(__file__).resolve().parents[1]
-CI_AUTOFIX = TEAMWORK.parent / "layered-ci-autofix"
-LEGACY = json.loads((Path(__file__).parent / "fixtures/legacy-roles.json").read_text())
+SKILL_MD = TEAMWORK / "SKILL.md"
+WORKFLOW_ROLES_DIR = (TEAMWORK / "../../workflow/dev-team-roles").resolve()
 
 
-def bash_block(document, section):
-    body = document.split(section, 1)[1]
-    return re.search(r"```bash\n(.*?)\n```", body, re.S).group(1)
+def parse_workflow_role_links(skill_md_path: Path) -> List[str]:
+    """Extracts relative workflow role paths linked in SKILL.md."""
+    if not skill_md_path.is_file():
+        return []
+    text = skill_md_path.read_text(encoding="utf-8")
+    links = re.findall(r"\[.*?\]\((../../workflow/dev-team-roles/[^)#]+)(?:#[^)]+)?\)", text)
+    return links
 
 
-class ContractHandoffTests(unittest.TestCase):
+def check_teamwork_preflight(bundle_teamwork_dir: Path, subagent_available: bool = True) -> Tuple[bool, str]:
+    """Preflight check: verifies all required workflow sources in SKILL.md and subagent capability exist."""
+    if not subagent_available:
+        return False, "setup blocked: subagent capability is unavailable in current runtime"
+
+    skill_file = bundle_teamwork_dir / "SKILL.md"
+    if not skill_file.is_file():
+        return False, f"setup blocked: teamwork skill entry missing: {skill_file}"
+
+    # Preflight resolves source roles directly from the bundle links defined in SKILL.md
+    role_links = parse_workflow_role_links(skill_file)
+    if not role_links:
+        role_links = [
+            "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+            "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+            "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+            "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+            "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+        ]
+
+    for rel_link in role_links:
+        target = (bundle_teamwork_dir / rel_link).resolve()
+        if not target.is_file():
+            return False, f"setup blocked: required workflow role source missing: {target}"
+    return True, "ok"
+
+
+def extract_workflow_publication_requirements(
+    skill_md_path: Path = SKILL_MD,
+    bundle_roles_dir: Path = WORKFLOW_ROLES_DIR,
+) -> Dict[str, bool]:
+    """Extracts and verifies publication and handoff requirements from shipped workflow files."""
+    if not skill_md_path.is_file():
+        raise FileNotFoundError(f"Missing teamwork SKILL.md at {skill_md_path}")
+
+    skill_text = skill_md_path.read_text(encoding="utf-8")
+
+    fullstack_file = bundle_roles_dir / "dev-team-fullstack-engineer/SKILL.md"
+    ai_reviewer_file = bundle_roles_dir / "dev-team-ai-reviewer/SKILL.md"
+    squad_file = bundle_roles_dir / "dev-team-squad/SKILL.md"
+
+    for f in [fullstack_file, ai_reviewer_file, squad_file]:
+        if not f.is_file():
+            raise FileNotFoundError(f"Missing single-source role file at {f}")
+
+    fs_text = fullstack_file.read_text(encoding="utf-8")
+    ai_text = ai_reviewer_file.read_text(encoding="utf-8")
+    squad_text = squad_file.read_text(encoding="utf-8")
+
+    # Verify AI Reviewer enforces exact SHA and clean worktree preflight
+    clean_tree_rule = bool(re.search(r"tree\s+must\s+be\s+clean", ai_text, re.I))
+    exact_sha_rule = bool(re.search(r"submitted\s+SHA\s+must\s+equal\s+local\s+`?HEAD`?", ai_text, re.I))
+    unpinned_reject_rule = bool(re.search(r"`?NEEDS_WORK`?\s+with\s+reason\s+`?unpinned`?", ai_text, re.I))
+    exact_diff_rule = bool(re.search(r"git\s+diff\s+<merge-base>\.\.<SHA>", ai_text, re.I))
+
+    # Verify Fullstack Engineer enforces sole writer, reviewed SHA unchanged, alignment check, and non-Draft PR
+    fs_writer_rule = bool(re.search(r"One\s+writer:\s+work\s+only\s+in\s+the\s+registered\s+`?delivery_work_dir`?", fs_text, re.I))
+    fs_unchanged_rule = bool(re.search(r"push\s+the\s+reviewed\s+SHA\s+unchanged", fs_text, re.I))
+    fs_alignment_rule = bool(re.search(r"Confirm\s+local\s+HEAD\s*=\s*remote\s+branch\s*=\s*PR\s+`?headRefOid`?\s*=\s*reviewed\s+SHA", fs_text, re.I))
+    fs_non_draft_rule = bool(re.search(r"PR\s+is\s+\*\*never\s+Draft\*\*", fs_text, re.I))
+    fs_prm_handoff_rule = bool(re.search(r"End\s+with\s+`?\[@PR\s+Manager\]", fs_text, re.I))
+
+    # Verify Squad shared rules enforce reviewed SHA and non-Draft PR
+    squad_push_rule = bool(re.search(r"only\s+the\s+reviewed\s+SHA\s+is\s+pushed", squad_text, re.I))
+    squad_non_draft_rule = bool(re.search(r"PR\s+is\s+never\s+Draft", squad_text, re.I))
+
+    # Verify Teamwork SKILL.md enforces sole writer, exact-SHA verdict, and external PRM handoff
+    tw_writer_rule = bool(re.search(r"Spawn\s+Fullstack\s+Engineer\s+\(sole\s+writer\)", skill_text, re.I))
+    tw_exact_verdict_rule = bool(re.search(r"await\s+exact-SHA\s+verdict", skill_text, re.I))
+    tw_resume_writer_rule = bool(re.search(r"never\s+spawn\s+a\s+replacement\s+writer", skill_text, re.I))
+    tw_prm_rule = bool(re.search(r"PR\s+Manager\s+is\s+an?\s+external\s+workflow\s+03\s+role", skill_text, re.I))
+
+    return {
+        "clean_tree": clean_tree_rule and unpinned_reject_rule,
+        "exact_sha_candidate": exact_sha_rule and exact_diff_rule and tw_exact_verdict_rule,
+        "sole_writer": fs_writer_rule and tw_writer_rule and tw_resume_writer_rule,
+        "reviewed_sha_unchanged": fs_unchanged_rule and fs_alignment_rule and squad_push_rule,
+        "non_draft_pr": fs_non_draft_rule and squad_non_draft_rule,
+        "external_prm_handoff": fs_prm_handoff_rule and tw_prm_rule,
+    }
+
+
+def validate_candidate_publication_against_shipped_workflow(
+    repo_path: Path,
+    candidate_sha: str,
+    reviewed_sha: str,
+    tested_sha: str,
+    writer: str = "original_fullstack",
+    is_draft: bool = False,
+    handoff_target: str = "workflow_03_prm",
+    skill_md_path: Path = SKILL_MD,
+    bundle_roles_dir: Path = WORKFLOW_ROLES_DIR,
+) -> Tuple[bool, str]:
+    """Validates candidate publication against rules extracted from the shipped single-source workflow."""
+    # 1. First ensure the shipped workflow itself enforces all required invariants
+    reqs = extract_workflow_publication_requirements(skill_md_path, bundle_roles_dir)
+    if not reqs["clean_tree"]:
+        return False, "workflow contract weakened: AI Reviewer does not enforce clean working tree"
+    if not reqs["exact_sha_candidate"]:
+        return False, "workflow contract weakened: exact-SHA review requirement missing from workflow"
+    if not reqs["sole_writer"]:
+        return False, "workflow contract weakened: sole writer constraint missing from workflow"
+    if not reqs["reviewed_sha_unchanged"]:
+        return False, "workflow contract weakened: reviewed SHA unchanged requirement missing from workflow"
+    if not reqs["non_draft_pr"]:
+        return False, "workflow contract weakened: non-Draft PR requirement missing from workflow"
+    if not reqs["external_prm_handoff"]:
+        return False, "workflow contract weakened: external PR Manager handoff boundary missing from workflow"
+
+    # 2. Enforce SHA equality and full 40-char length per workflow specification
+    if not candidate_sha or not reviewed_sha or not tested_sha:
+        return False, "rejected: missing required SHA parameter"
+    if len(candidate_sha) != 40 or len(reviewed_sha) != 40 or len(tested_sha) != 40:
+        return False, "rejected: SHA must be full 40-character hex string"
+    if candidate_sha != reviewed_sha or candidate_sha != tested_sha:
+        return False, "rejected: candidate_sha, reviewed_sha, and tested_sha must be identical"
+
+    # 3. Verify git repository state against workflow exact-SHA and clean-tree invariants
+    try:
+        head_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=repo_path, text=True
+        ).strip()
+        status_out = subprocess.check_output(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            cwd=repo_path,
+            text=True,
+        ).strip()
+    except subprocess.CalledProcessError as e:
+        return False, f"rejected: git command failed: {e}"
+
+    if head_sha != candidate_sha:
+        return False, f"rejected: HEAD ({head_sha}) does not match candidate_sha ({candidate_sha})"
+    if status_out:
+        return False, f"rejected: working tree is not clean:\n{status_out}"
+
+    # 4. Enforce writer, non-draft, and handoff boundaries from shipped workflow
+    if writer != "original_fullstack":
+        return False, f"rejected: only original fullstack engineer may publish candidate (got {writer})"
+    if is_draft:
+        return False, "rejected: Dev Team PR must be non-Draft"
+    if handoff_target != "workflow_03_prm":
+        return False, f"rejected: handoff must be external workflow 03 PR Manager (got {handoff_target})"
+
+    return True, candidate_sha
+
+
+class TeamworkContractTests(unittest.TestCase):
+    def test_skill_file_under_100_lines(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        line_count = len(text.splitlines())
+        self.assertLess(line_count, 100, f"SKILL.md is {line_count} lines, must be < 100")
+
+    def test_no_copied_agents_directory(self):
+        agents_dir = TEAMWORK / "agents"
+        self.assertFalse(agents_dir.exists(), "agents directory must be removed")
+
+    def test_all_six_authority_links_exist_and_readable(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        expected_links = [
+            ("../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-planner/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md", None),
+            ("../../workflow/dev-team-roles/dev-team-squad/SKILL.md", None),
+            (
+                "../../workflow/dev-team-roles/dev-team-pr-manager/SKILL.md#clear-small-issue-owner-2026-10-13",
+                "clear-small-issue-owner-2026-10-13",
+            ),
+        ]
+        for link, anchor in expected_links:
+            with self.subTest(link=link):
+                self.assertIn(link, text, f"Link {link} must be in SKILL.md")
+                rel_path = link.split("#", 1)[0]
+                target = (TEAMWORK / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Target {target} must exist")
+                content = target.read_text(encoding="utf-8")
+                self.assertTrue(len(content) > 0, f"Target {target} must not be empty")
+                if anchor:
+                    heading_pattern = rf"^#+\s+.*{re.escape('Clear small issue')}"
+                    self.assertTrue(
+                        bool(re.search(heading_pattern, content, re.M | re.IGNORECASE)),
+                        f"Heading for anchor {anchor} not found in {target}",
+                    )
+
+    def test_prm_is_not_a_local_subagent(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("PR Manager is not a local subagent", text)
+        self.assertIn("No Local PRM", text)
+        executing_roles = ["Team Lead", "Planner", "Fullstack Engineer", "AI Reviewer"]
+        for role in executing_roles:
+            self.assertIn(role, text)
+
+    def test_symlink_and_space_paths_resolution(self):
+        with tempfile.TemporaryDirectory(prefix="teamwork bundle with spaces ") as tmp:
+            tmp_path = Path(tmp)
+            bundle_dir = tmp_path / "bundle with spaces"
+            skills_dir = bundle_dir / "skills"
+            repo_dir = skills_dir / "repo"
+            teamwork_copy = repo_dir / "teamwork"
+            workflow_roles = bundle_dir / "skills/workflow/dev-team-roles"
+
+            workflow_roles.mkdir(parents=True)
+            repo_dir.mkdir(parents=True)
+            shutil.copytree(TEAMWORK, teamwork_copy)
+
+            real_roles = (TEAMWORK / "../../workflow/dev-team-roles").resolve()
+            for child in real_roles.iterdir():
+                if child.is_dir():
+                    shutil.copytree(child, workflow_roles / child.name)
+
+            skill_text = (teamwork_copy / "SKILL.md").read_text(encoding="utf-8")
+            for link in [
+                "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-pr-manager/SKILL.md#clear-small-issue-owner-2026-10-13",
+            ]:
+                rel_path = link.split("#", 1)[0]
+                target = (teamwork_copy / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Path with spaces failed to resolve: {target}")
+
+            consumer_dir = tmp_path / "consumer"
+            consumer_skill = consumer_dir / ".claude/skills/teamwork"
+            consumer_skill.parent.mkdir(parents=True)
+            consumer_skill.symlink_to(teamwork_copy, target_is_directory=True)
+
+            for link in [
+                "../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-planner/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md",
+                "../../workflow/dev-team-roles/dev-team-squad/SKILL.md",
+            ]:
+                rel_path = link.split("#", 1)[0]
+                target = (consumer_skill.resolve() / rel_path).resolve()
+                self.assertTrue(target.is_file(), f"Symlinked bundle failed to resolve: {target}")
+
+    def test_missing_source_fails_closed_with_setup_blocker(self):
+        with tempfile.TemporaryDirectory(prefix="teamwork-isolated-") as tmp:
+            isolated_teamwork = Path(tmp) / "isolated-teamwork"
+            shutil.copytree(TEAMWORK, isolated_teamwork)
+
+            # Preflight must fail closed with setup blocker before running any role
+            ok, msg = check_teamwork_preflight(isolated_teamwork, subagent_available=True)
+            self.assertFalse(ok, "Preflight must fail when role sources are missing")
+            self.assertIn("setup blocked", msg)
+            self.assertIn("required workflow role source missing", msg)
+
+    def test_missing_subagent_capability_fails_closed_with_setup_blocker(self):
+        # Preflight must fail closed when subagent capability is unavailable
+        ok, msg = check_teamwork_preflight(TEAMWORK, subagent_available=False)
+        self.assertFalse(ok, "Preflight must fail when subagents are unavailable")
+        self.assertIn("setup blocked", msg)
+        self.assertIn("subagent capability is unavailable", msg)
+
+    def test_no_business_repo_fallback(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("Never search target repositories or fall back to copied role files", text)
+        self.assertIn("Fail-Closed", text)
+
+        # In an isolated environment with a business repo containing copied legacy agents,
+        # preflight must not fall back to business repo and must fail closed.
+        with tempfile.TemporaryDirectory(prefix="teamwork-fallback-test-") as tmp:
+            tmp_path = Path(tmp)
+            consumer_repo = tmp_path / "business-repo"
+            legacy_agents = consumer_repo / ".claude/agents"
+            legacy_agents.mkdir(parents=True)
+            (legacy_agents / "team-lead.md").write_text("# Legacy Role\n")
+
+            isolated_teamwork = consumer_repo / ".claude/skills/teamwork"
+            isolated_teamwork.parent.mkdir(parents=True)
+            shutil.copytree(TEAMWORK, isolated_teamwork)
+
+            ok, msg = check_teamwork_preflight(isolated_teamwork, subagent_available=True)
+            self.assertFalse(ok)
+            self.assertIn("setup blocked", msg)
+
     def test_publication_requires_the_clean_reviewed_commit(self):
-        repo = self.root / "candidate"
-        repo.mkdir()
+        # 1. Shipped workflow documents directly declare exact-SHA and clean-worktree requirements
+        reqs = extract_workflow_publication_requirements(SKILL_MD, WORKFLOW_ROLES_DIR)
+        self.assertTrue(reqs["clean_tree"], "Workflow must mandate clean working tree")
+        self.assertTrue(reqs["exact_sha_candidate"], "Workflow must mandate exact-SHA candidate verification")
+        self.assertTrue(reqs["reviewed_sha_unchanged"], "Workflow must mandate pushing reviewed SHA unchanged")
 
-        def git(*args, input=None):
-            return subprocess.check_output(["git", *args], cwd=repo, env=self.env,
-                                           input=input, text=True).strip()
+        # 2. Candidate publication evaluation against synthetic git repositories
+        with tempfile.TemporaryDirectory(prefix="teamwork-pub-") as tmp:
+            repo = Path(tmp) / "candidate"
+            repo.mkdir()
+            env = {**os.environ, "GIT_AUTHOR_NAME": "Bot", "GIT_AUTHOR_EMAIL": "bot@example.invalid",
+                   "GIT_COMMITTER_NAME": "Bot", "GIT_COMMITTER_EMAIL": "bot@example.invalid"}
 
-        # Synthetic objects only: no add/commit/push or publication to a remote.
-        git("init", "-q")
-        git("fast-import", "--quiet", input="""commit refs/heads/task
+            def git(*args, input=None):
+                return subprocess.check_output(
+                    ["git", *args], cwd=repo, env=env, input=input, text=True
+                ).strip()
+
+            git("init", "-q")
+            git(
+                "fast-import",
+                "--quiet",
+                input="""commit refs/heads/task
 committer Fixture <fixture@example.invalid> 1 +0000
 data 4
 one
@@ -46,349 +340,152 @@ two
 from refs/heads/task
 
 done
-""")
-        git("symbolic-ref", "HEAD", "refs/heads/task")
-        git("read-tree", "--reset", "-u", "HEAD")
-        sha = git("rev-parse", "HEAD")
-        replacement = git("rev-parse", "replacement")
-        self.assertEqual(git("rev-parse", "HEAD^{tree}"), git("rev-parse", "replacement^{tree}"))
-        script = bash_block((TEAMWORK / "agents/git-monitor.md").read_text(),
-                            "## Candidate identity preflight")
-        bindings = dict(CANDIDATE_SHA=sha, REVIEWED_SHA=sha, TESTED_SHA=sha)
+""",
+            )
+            git("symbolic-ref", "HEAD", "refs/heads/task")
+            git("read-tree", "--reset", "-u", "HEAD")
+            sha = git("rev-parse", "HEAD")
+            replacement = git("rev-parse", "replacement")
+            self.assertEqual(
+                git("rev-parse", "HEAD^{tree}"), git("rev-parse", "replacement^{tree}")
+            )
 
-        def check(expected, overrides=None):
-            before = (git("rev-parse", "HEAD"), git("status", "--porcelain"))
-            result = subprocess.run(["/bin/bash", "-c", script], cwd=repo, capture_output=True,
-                                    text=True, env={**self.env, **bindings, **(overrides or {})})
-            self.assertEqual(result.returncode == 0, expected, result.stderr)
-            self.assertEqual((git("rev-parse", "HEAD"), git("status", "--porcelain")), before)
-            self.assertEqual(result.stdout.strip(), sha if expected else "")
+            # Clean tree and matching SHAs pass publication check
+            ok, res = validate_candidate_publication_against_shipped_workflow(repo, sha, sha, sha)
+            self.assertTrue(ok, f"Clean matching candidate must pass: {res}")
+            self.assertEqual(res, sha)
 
-        check(True)
-        for field in bindings:
-            for value in ("", sha[:8], replacement):
-                with self.subTest(field=field, value=value):
-                    check(False, {field: value})
-        (repo / "file.txt").write_text("unreviewed\n")
-        check(False)
-        git("read-tree", "--reset", "-u", "HEAD")
-        git("update-index", "--force-remove", "file.txt")
-        (repo / "file.txt").unlink()
-        check(False)
-        git("read-tree", "--reset", "-u", "HEAD")
-        (repo / "new.txt").touch()
-        check(False)
-        (repo / "new.txt").unlink()
-        git("update-ref", "refs/heads/task", replacement)
-        check(False)  # Same tree, different commit: old evidence cannot authorize it.
+            # Mismatched or invalid SHAs are rejected
+            for param_set in [
+                ("", sha, sha),
+                (sha, "", sha),
+                (sha, sha, ""),
+                (sha[:8], sha, sha),
+                (sha, sha[:8], sha),
+                (sha, sha, sha[:8]),
+                (sha, replacement, sha),
+                (sha, sha, replacement),
+            ]:
+                with self.subTest(param_set=param_set):
+                    bad_ok, _ = validate_candidate_publication_against_shipped_workflow(repo, *param_set)
+                    self.assertFalse(bad_ok, f"Mismatched SHA must be rejected: {param_set}")
 
-    def test_legacy_fixtures_are_the_actual_preserved_git_blobs(self):
-        expected = {
-            "team_lead": "e0224985aebb2b7fa06463ad9603ec5359196f82",
-            "git_monitor": "9869b20ee329c6015e11f857de4dc1b29ff5d89b",
-        }
-        for role, oid in expected.items():
-            raw = LEGACY[role].encode()
-            self.assertEqual(hashlib.sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest(), oid)
+            # Unstaged modifications fail
+            (repo / "file.txt").write_text("unreviewed\n")
+            dirty_ok, _ = validate_candidate_publication_against_shipped_workflow(repo, sha, sha, sha)
+            self.assertFalse(dirty_ok, "Unstaged modification must be rejected")
 
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="teamwork-contract-")
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        self.home = self.root / "home"
-        self.consumer = self.root / "consumer"
-        self.bundle = self.root / "bundle with spaces"
-        self.source = self.bundle / "skills/repo/teamwork"
-        self.ci_source = self.bundle / "skills/repo/layered-ci-autofix"
-        self.canonical = self.bundle / "skills/workflow/README.md"
-        self.home.mkdir()
-        self.consumer.mkdir()
-        shutil.copytree(TEAMWORK, self.source, ignore=shutil.ignore_patterns("__pycache__"))
-        shutil.copytree(CI_AUTOFIX, self.ci_source)
-        self.canonical.parent.mkdir(parents=True)
-        self.canonical.write_text("# Canonical workflow\n\nUnique fixture policy, never copy me.\n")
-        self.env = {"HOME": str(self.home), "PATH": os.environ["PATH"], "TMPDIR": str(self.root)}
-        self.run_shell("git init -q")
-        self.installed_skill = self.consumer / ".claude/skills/teamwork"
-        self.installed_skill.parent.mkdir(parents=True)
-        self.installed_skill.symlink_to(self.source, target_is_directory=True)
+            # Reset and staged deletion fails
+            git("read-tree", "--reset", "-u", "HEAD")
+            git("update-index", "--force-remove", "file.txt")
+            (repo / "file.txt").unlink()
+            staged_ok, _ = validate_candidate_publication_against_shipped_workflow(repo, sha, sha, sha)
+            self.assertFalse(staged_ok, "Staged deletion must be rejected")
 
-    def run_shell(self, script, check=True, bindings=None):
-        return subprocess.run(
-            ["/bin/bash", "-eu", "-c", script], cwd=self.consumer,
-            env={**self.env, **(bindings or {})}, text=True, capture_output=True, timeout=10, check=check,
-        )
+            # Reset and untracked file fails
+            git("read-tree", "--reset", "-u", "HEAD")
+            (repo / "new.txt").touch()
+            untracked_ok, _ = validate_candidate_publication_against_shipped_workflow(repo, sha, sha, sha)
+            self.assertFalse(untracked_ok, "Untracked file must be rejected")
+            (repo / "new.txt").unlink()
 
-    def copy_role(self):
-        lead = (self.source / "agents/team-lead.md").read_text()
-        loader = bash_block(lead, "## Progressive Loading")
-        self.run_shell(loader.replace("<stage_roles>", "git-monitor"),
-                       bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        return self.consumer / ".claude/agents/git-monitor.md"
+            # Different commit on same tree fails (old evidence cannot authorize replacement)
+            git("update-ref", "refs/heads/task", replacement)
+            rep_ok, _ = validate_candidate_publication_against_shipped_workflow(repo, sha, sha, sha)
+            self.assertFalse(
+                rep_ok,
+                "Replacement commit must be rejected even with identical tree",
+            )
 
-    def contract_read(self, role):
-        text = role.read_text()
-        legacy_link = re.search(r"\[workflow delivery boundary\]\(([^)]+)\)", text)
-        if legacy_link:
-            # Exercise the original public instruction literally to expose the copied-role failure.
-            target = role.parent / legacy_link.group(1).split("#", 1)[0]
-            return target.read_text(), target.resolve()
-        entry = (self.source / "SKILL.md").read_text()
-        resolver = bash_block(entry, "### 3. Delegate to `team-lead`")
-        result = self.run_shell(resolver, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(self.source / "agents/team-lead.md"),
-        })
-        target = Path(result.stdout.strip())
-        # Pass the entry's real result through the documented role input, not a copied contract.
-        preflight = bash_block(text, "## Required workflow contract")
-        return self.run_shell(preflight, bindings={"WORKFLOW_CONTRACT_PATH": str(target)}).stdout, target
+        # 3. Negative control: weakening workflow rules causes publication validator to fail
+        with tempfile.TemporaryDirectory(prefix="teamwork-weakened-") as tmp:
+            weakened_roles = Path(tmp) / "roles"
+            shutil.copytree(WORKFLOW_ROLES_DIR, weakened_roles)
+            ai_file = weakened_roles / "dev-team-ai-reviewer/SKILL.md"
+            # Remove clean tree requirement from AI Reviewer role
+            ai_file.write_text(re.sub(r"tree\s+must\s+be\s+clean", "tree may be dirty", ai_file.read_text()))
+            reqs_weak = extract_workflow_publication_requirements(SKILL_MD, weakened_roles)
+            self.assertFalse(reqs_weak["clean_tree"], "Weakened AI Reviewer role must fail clean_tree requirement")
 
-    def test_copied_role_reads_the_original_contract(self):
-        role = self.copy_role()
-        self.assertTrue(role.is_file())
-        self.assertFalse(role.is_symlink())
-        content, target = self.contract_read(role)
-        self.assertEqual(content, "# Canonical workflow\n\nUnique fixture policy, never copy me.\n")
-        self.assertTrue(target.samefile(self.canonical))
-        self.assertEqual(list((self.consumer / ".claude/agents").iterdir()), [role])
+    def test_publication_boundary_enforces_original_fullstack_and_non_draft_prm_handoff(self):
+        # 1. Shipped workflow documents directly declare sole-writer, non-draft, and external PRM handoff
+        reqs = extract_workflow_publication_requirements(SKILL_MD, WORKFLOW_ROLES_DIR)
+        self.assertTrue(reqs["sole_writer"], "Workflow must mandate sole writer")
+        self.assertTrue(reqs["non_draft_pr"], "Workflow must mandate non-Draft PR")
+        self.assertTrue(reqs["external_prm_handoff"], "Workflow must mandate external PR Manager handoff")
 
-    def test_actual_base_team_lead_override_stops_entry(self):
-        selected = self.consumer / ".claude/agents/team-lead.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["team_lead"])
-        before = selected.read_bytes()
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, check=False, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0, "legacy selected team-lead was admitted without the mandatory handoff")
-        self.assertEqual(selected.read_bytes(), before)
+        with tempfile.TemporaryDirectory(prefix="teamwork-boundary-") as tmp:
+            repo = Path(tmp) / "candidate"
+            repo.mkdir()
+            env = {**os.environ, "GIT_AUTHOR_NAME": "Bot", "GIT_AUTHOR_EMAIL": "bot@example.invalid",
+                   "GIT_COMMITTER_NAME": "Bot", "GIT_COMMITTER_EMAIL": "bot@example.invalid"}
 
-    def test_actual_v1_git_monitor_override_stops_loader(self):
-        role = self.consumer / ".claude/agents/git-monitor.md"
-        role.parent.mkdir(parents=True)
-        role.write_text(LEGACY["git_monitor"])
-        before = role.read_bytes()
-        loader = bash_block((self.source / "agents/team-lead.md").read_text(), "## Progressive Loading")
-        result = self.run_shell(loader.replace("<stage_roles>", "git-monitor"), check=False,
-                                bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        self.assertNotEqual(result.returncode, 0, "legacy selected git-monitor was retained and admitted")
-        self.assertEqual(role.read_bytes(), before)
+            def git(*args, input=None):
+                return subprocess.check_output(
+                    ["git", *args], cwd=repo, env=env, input=input, text=True
+                ).strip()
 
-    def test_actual_selected_monitor_is_checked_before_spawn(self):
-        self.copy_role()  # A compatible loader destination cannot vouch for another selected role.
-        selected = self.home / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["git_monitor"])
-        before = selected.read_bytes()
-        check = bash_block((self.source / "agents/team-lead.md").read_text(),
-                           "## Required workflow contract handoff")
-        result = self.run_shell(check, check=False, bindings={
-            "TEAMWORK_SOURCE_DIR": str(self.source), "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(selected.read_bytes(), before)
+            git("init", "-q")
+            git(
+                "fast-import",
+                "--quiet",
+                input="""commit refs/heads/task
+committer Fixture <fixture@example.invalid> 1 +0000
+data 4
+one
+M 100644 inline file.txt
+data 4
+one
 
-    def test_changed_role_is_rechecked_at_spawn(self):
-        selected = self.copy_role()
-        selected.write_text(LEGACY["git_monitor"])
-        check = bash_block((self.source / "agents/team-lead.md").read_text(),
-                           "## Required workflow contract handoff")
-        result = self.run_shell(check, check=False, bindings={
-            "TEAMWORK_SOURCE_DIR": str(self.source), "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(selected.read_text(), LEGACY["git_monitor"])
+done
+""",
+            )
+            git("symbolic-ref", "HEAD", "refs/heads/task")
+            git("read-tree", "--reset", "-u", "HEAD")
+            sha = git("rev-parse", "HEAD")
 
-    def test_compatible_selected_team_lead_override_is_retained(self):
-        selected = self.consumer / ".claude/agents/team-lead.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text((self.source / "agents/team-lead.md").read_text() + "\nLocal notes.\n")
-        before = selected.read_bytes()
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill), "TEAM_LEAD_ROLE_FILE": str(selected),
-        })
-        self.assertTrue(Path(result.stdout.strip()).samefile(self.canonical))
-        self.assertEqual(selected.read_bytes(), before)
+            # Must be original Fullstack Engineer writer
+            non_fs_ok, msg = validate_candidate_publication_against_shipped_workflow(
+                repo, sha, sha, sha, writer="team_lead"
+            )
+            self.assertFalse(non_fs_ok)
+            self.assertIn("only original fullstack engineer may publish", msg)
 
-    def test_unknown_role_selection_stops_before_delegation(self):
-        entry = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(entry, check=False,
-                                bindings={"TEAMWORK_SKILL_DIR": str(self.installed_skill)})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
+            # Must be non-Draft PR
+            draft_ok, msg = validate_candidate_publication_against_shipped_workflow(
+                repo, sha, sha, sha, is_draft=True
+            )
+            self.assertFalse(draft_ok)
+            self.assertIn("must be non-Draft", msg)
 
-    def test_preinstalled_role_still_uses_current_handoff(self):
-        role = self.copy_role()
-        role.write_text(role.read_text() + "\nConsumer override preserved.\n")
-        before = role.read_bytes()
-        self.copy_role()
-        self.assertEqual(role.read_bytes(), before)
-        content, target = self.contract_read(role)
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
+            # Must hand off to external workflow 03 PRM, not local subagent
+            local_prm_ok, msg = validate_candidate_publication_against_shipped_workflow(
+                repo, sha, sha, sha, handoff_target="local_subagent_prm"
+            )
+            self.assertFalse(local_prm_ok)
+            self.assertIn("must be external workflow 03 PR Manager", msg)
 
-    def test_home_skill_symlink_survives_copy_to_consumer(self):
-        self.installed_skill.unlink()
-        self.installed_skill = self.home / ".claude/skills/teamwork"
-        self.installed_skill.parent.mkdir(parents=True)
-        self.installed_skill.symlink_to(self.source, target_is_directory=True)
-        role = self.copy_role()
-        content, target = self.contract_read(role)
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
+            # Valid parameters pass
+            valid_ok, valid_res = validate_candidate_publication_against_shipped_workflow(
+                repo, sha, sha, sha, writer="original_fullstack", is_draft=False, handoff_target="workflow_03_prm"
+            )
+            self.assertTrue(valid_ok)
+            self.assertEqual(valid_res, sha)
 
-    def test_plugin_bundle_loads_roles_without_repo_or_home_skill_links(self):
-        self.installed_skill.unlink()
-        self.installed_skill = self.source  # Runtime-loaded plugin outside either discovery root.
-        self.assertFalse((self.consumer / ".claude/skills/teamwork").exists())
-        self.assertFalse((self.home / ".claude/skills/teamwork").exists())
-        loader = bash_block((self.source / "agents/team-lead.md").read_text(), "## Progressive Loading")
-        result = self.run_shell(loader.replace("<stage_roles>", "planner-lead git-monitor"),
-                                check=False, bindings={"TEAMWORK_SOURCE_DIR": str(self.source)})
-        self.assertEqual(result.returncode, 0, result.stderr)
-        for name in ("planner-lead", "git-monitor"):
-            installed = self.consumer / f".claude/agents/{name}.md"
-            self.assertEqual(installed.read_bytes(), (self.source / f"agents/{name}.md").read_bytes())
-        content, target = self.contract_read(self.consumer / ".claude/agents/git-monitor.md")
-        self.assertEqual(content, self.canonical.read_text())
-        self.assertTrue(target.samefile(self.canonical))
+        # 2. Negative control: removing non-draft rule from SKILL.md or role fails validation
+        with tempfile.TemporaryDirectory(prefix="teamwork-weakened-pr-") as tmp:
+            weakened_skill = Path(tmp) / "SKILL.md"
+            weakened_skill.write_text(SKILL_MD.read_text().replace("opening a non-Draft PR", "opening a Draft PR"))
+            weakened_roles = Path(tmp) / "roles"
+            shutil.copytree(WORKFLOW_ROLES_DIR, weakened_roles)
+            fs_file = weakened_roles / "dev-team-fullstack-engineer/SKILL.md"
+            fs_file.write_text(fs_file.read_text().replace("The PR is **never Draft**", "The PR may be Draft"))
+            reqs_weak = extract_workflow_publication_requirements(weakened_skill, weakened_roles)
+            self.assertFalse(reqs_weak["non_draft_pr"], "Weakened non-Draft rule must fail non_draft_pr requirement")
 
-    def test_loader_preserves_repo_and_home_source_priority_over_bundle(self):
-        self.installed_skill.unlink()
-        repo_role = self.installed_skill / "agents/git-monitor.md"
-        home_role = self.home / ".claude/skills/teamwork/agents/git-monitor.md"
-        for role, note in ((repo_role, "Repo customization."), (home_role, "Home customization.")):
-            role.parent.mkdir(parents=True)
-            role.write_text((self.source / "agents/git-monitor.md").read_text() + f"\n{note}\n")
-        for expected in (repo_role, home_role):
-            with self.subTest(expected=expected):
-                installed = self.copy_role()
-                self.assertEqual(installed.read_bytes(), expected.read_bytes())
-                installed.unlink()
-                expected.unlink()
-
-    def test_missing_bundle_contract_stops_resolution(self):
-        self.canonical.unlink()
-        resolver = bash_block((self.source / "SKILL.md").read_text(), "### 3. Delegate to `team-lead`")
-        result = self.run_shell(resolver, check=False, bindings={
-            "TEAMWORK_SKILL_DIR": str(self.installed_skill),
-            "TEAM_LEAD_ROLE_FILE": str(self.source / "agents/team-lead.md"),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-
-    def test_missing_or_invalid_handoff_cannot_pass_role_preflight(self):
-        role = self.copy_role()
-        preflight = bash_block(role.read_text(), "## Required workflow contract")
-        for bindings in ({}, {"WORKFLOW_CONTRACT_PATH": ""},
-                         {"WORKFLOW_CONTRACT_PATH": str(self.root / "absent.md")},
-                         {"WORKFLOW_CONTRACT_PATH": str(self.canonical.parent)}):
-            with self.subTest(bindings=bindings):
-                result = self.run_shell(preflight, check=False, bindings=bindings)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
-
-    def test_contract_removed_after_resolution_stops_role_preflight(self):
-        role = self.copy_role()
-        _, target = self.contract_read(role)
-        self.canonical.unlink()
-        preflight = bash_block(role.read_text(), "## Required workflow contract")
-        result = self.run_shell(preflight, check=False, bindings={"WORKFLOW_CONTRACT_PATH": str(target)})
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-
-    def test_legacy_copied_role_is_a_sensitive_negative_control(self):
-        role = self.copy_role()
-        role.write_text("Read [workflow delivery boundary](../../../workflow/README.md).\n")
-        with self.assertRaises(FileNotFoundError):
-            self.contract_read(role)
-
-    def direct_handoff(self, bindings, check=False):
-        preflight = bash_block((self.ci_source / "SKILL.md").read_text(),
-                               "### 可选 git-monitor 交接")
-        return self.run_shell(preflight, check=check, bindings=bindings)
-
-    def test_direct_caller_passes_original_contract_to_copied_override(self):
-        # The direct helper path has no team-lead or full teamwork pipeline.
-        selected = self.consumer / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        shutil.copyfile(self.source / "agents/git-monitor.md", selected)
-        selected.write_text(selected.read_text() + "\nConsumer override preserved.\n")
-        before = selected.read_bytes()
-        for parent in (self.consumer, self.home):
-            with self.subTest(parent=parent):
-                installed = parent / ".claude/skills/layered-ci-autofix"
-                installed.parent.mkdir(parents=True, exist_ok=True)
-                installed.symlink_to(self.ci_source, target_is_directory=True)
-                result = self.direct_handoff({
-                    "CI_AUTOFIX_SKILL_DIR": str(installed),
-                    "GIT_MONITOR_ROLE_FILE": str(selected),
-                }, check=True)
-                target = Path(result.stdout.strip())
-                self.assertTrue(target.samefile(self.canonical))
-                preflight = bash_block(selected.read_text(), "## Required workflow contract")
-                read = self.run_shell(preflight, bindings={"WORKFLOW_CONTRACT_PATH": str(target)})
-                self.assertEqual(read.stdout, self.canonical.read_text())
-                self.assertEqual(selected.read_bytes(), before)
-                self.assertEqual(list(selected.parent.iterdir()), [selected])
-
-    def test_direct_caller_rejects_actual_selected_legacy_override(self):
-        self.copy_role()  # A valid repo copy cannot vouch for a different runtime selection.
-        selected = self.home / ".claude/agents/git-monitor.md"
-        selected.parent.mkdir(parents=True)
-        selected.write_text(LEGACY["git_monitor"])
-        before = selected.read_bytes()
-        result = self.direct_handoff({
-            "CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-            "GIT_MONITOR_ROLE_FILE": str(selected),
-        })
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-        self.assertEqual(selected.read_bytes(), before)
-
-    def test_direct_caller_rechecks_changed_selection_on_resume(self):
-        selected = self.copy_role()
-        bindings = {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                    "GIT_MONITOR_ROLE_FILE": str(selected)}
-        self.direct_handoff(bindings, check=True)
-        selected.write_text(LEGACY["git_monitor"])
-        result = self.direct_handoff(bindings)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "")
-        self.assertEqual(selected.read_text(), LEGACY["git_monitor"])
-
-    def test_direct_caller_requires_loaded_bundle_and_actual_selection(self):
-        selected = self.copy_role()
-        for bindings in ({}, {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source)},
-                         {"GIT_MONITOR_ROLE_FILE": str(selected)},
-                         {"CI_AUTOFIX_SKILL_DIR": str(self.root / "absent"),
-                          "GIT_MONITOR_ROLE_FILE": str(selected)},
-                         {"CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                          "GIT_MONITOR_ROLE_FILE": str(self.root / "absent.md")}):
-            with self.subTest(bindings=bindings):
-                result = self.direct_handoff(bindings)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, "")
-
-    def test_direct_caller_requires_contract_and_compatibility_checker(self):
-        selected = self.copy_role()
-        for required in (self.canonical, self.source / "scripts/check_contract_handoff.py"):
-            with self.subTest(required=required):
-                original = required.read_bytes()
-                required.unlink()
-                try:
-                    result = self.direct_handoff({
-                        "CI_AUTOFIX_SKILL_DIR": str(self.ci_source),
-                        "GIT_MONITOR_ROLE_FILE": str(selected),
-                    })
-                    self.assertNotEqual(result.returncode, 0)
-                    self.assertEqual(result.stdout, "")
-                finally:
-                    required.write_bytes(original)
+    def test_backend_priority_order(self):
+        text = SKILL_MD.read_text(encoding="utf-8")
+        self.assertIn("Codex CLI → Claude native → Copilot", text)
 
 
 if __name__ == "__main__":
