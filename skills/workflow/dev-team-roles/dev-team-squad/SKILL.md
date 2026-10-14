@@ -79,10 +79,12 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
 Any new SHA invalidates the review; FS gets a new one before pushing it. At most 2 review rounds per
 root problem, then Team Lead; after round 2 returns `NEEDS_WORK`, Team Lead may authorize one final
-targeted pre-push round without the Owner when all remaining findings cite exact locations and require
-no design or product choice, fixes stay inside already-reviewed paths and scope with no new files or
-dependencies, no protected content is touched (CODEOWNERS paths, `.github/**`, gates or reviewer
-policy, `AGENTS.md`), and no test is removed or weakened. AI Reviewer covers spec + architecture
+targeted spec-gate round (only when every remaining finding cites an exact location, the required
+correction is mechanical and requires no product or design choice, and the correction remains inside the
+accepted scope) or one final targeted pre-push round without the Owner (when all remaining findings cite
+exact locations and require no design or product choice, fixes stay inside already-reviewed paths and scope
+with no new files or dependencies, no protected content is touched (CODEOWNERS paths, `.github/**`, gates
+or reviewer policy, `AGENTS.md`), and no test is removed or weakened). AI Reviewer covers spec + architecture
 pre-push; `codex-review-target` covers defects/standards at the PR head. Neither repeats the other's job.
 
 ## Handoffs

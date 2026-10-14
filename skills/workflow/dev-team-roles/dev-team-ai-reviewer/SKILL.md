@@ -78,13 +78,14 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 - `NEEDS_WORK`: one or more cited blocking findings, or the candidate could not be pinned. Never turn
   a coverage gap into a pass.
 
-A new SHA (any fix, rebase or amend) needs a new review; a verdict never carries forward. Spec-gate review
-has at most 2 rounds per root problem. Pre-push review defaults to at most 2 rounds; after round 2,
-perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing only
-the cited round-2 findings on the exact new tree. Once round limits are exhausted or any blocking finding
-remains after the authorized final round, return unmet requirements and attempts/results to Team Lead for
-diagnosis instead of another round. Changing agent, run, SHA, rename or task identity does not reset this
-history; technically unresolved problems still require escalation, not reduced acceptance.
+A new revision/SHA (any plan update, fix, rebase or amend) needs a new review; a verdict never carries
+forward. Spec-gate review and pre-push review each default to at most 2 rounds per root problem; after
+round 2, perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing
+only the cited round-2 findings on the exact new planning revision (spec gate) or exact new tree (pre-push).
+Once round limits are exhausted or any blocking finding remains after the authorized final round, return
+unmet requirements and attempts/results to Team Lead for diagnosis instead of another round. Changing
+agent, run, SHA, rename or task identity does not reset this history; technically unresolved problems
+still require escalation, not reduced acceptance.
 
 ## Handoff (one final comment in the Multica thread)
 
@@ -95,7 +96,7 @@ citations, follow-ups, decision candidates, round number, verdict. End with the 
 - `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
 
 Requester missing, conflicting or neither role, round budget exhausted on `NEEDS_WORK` (including
-any remaining blocking finding after an authorized final targeted pre-push round), or a request beyond
+any remaining blocking finding after an authorized final targeted round), or a request beyond
 the allowed budget → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No operation
 after the comment.
 
