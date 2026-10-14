@@ -78,10 +78,13 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 - `NEEDS_WORK`: one or more cited blocking findings, or the candidate could not be pinned. Never turn
   a coverage gap into a pass.
 
-A new SHA (any fix, rebase or amend) needs a new review; a verdict never carries forward. At most 2
-review rounds per root problem: once exhausted, return unmet requirements and attempts/results to
-Team Lead for diagnosis instead of a third round. A renamed task does not reset this history;
-technically unresolved problems still require escalation, not reduced acceptance.
+A new SHA (any fix, rebase or amend) needs a new review; a verdict never carries forward. Spec-gate review
+has at most 2 rounds per root problem. Pre-push review defaults to at most 2 rounds; after round 2,
+perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing only
+the cited round-2 findings on the exact new tree. Once round limits are exhausted or any blocking finding
+remains after the authorized final round, return unmet requirements and attempts/results to Team Lead for
+diagnosis instead of another round. A renamed task does not reset this history; technically unresolved
+problems still require escalation, not reduced acceptance.
 
 ## Handoff (one final comment in the Multica thread)
 
@@ -91,8 +94,9 @@ citations, follow-ups, decision candidates, round number, verdict. End with the 
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
 - `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
 
-Requester missing, conflicting or neither role, or round budget exhausted → return it to
-`[@Team Lead](mention://agent/<Team Lead agent ID>)`. No operation after the comment.
+Requester missing, conflicting or neither role, or round budget exhausted (including after an authorized
+final targeted pre-push round) → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No
+operation after the comment.
 
 ## Red lines
 

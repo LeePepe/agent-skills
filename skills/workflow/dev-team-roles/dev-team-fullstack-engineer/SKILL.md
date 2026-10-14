@@ -60,8 +60,10 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    reconcile receipt/run state and deduplicate before a retry after recovery. Persistent failure
    goes to TL; do not substitute another executor or review path. Stop.
 6. **Process the verdict**: `NEEDS_WORK` → fix in-scope findings, new commit, request again (a
-   verdict for an older SHA never covers a newer one). At most 2 rounds per root problem;
-   unsupported, out-of-scope or exhausted → Team Lead. `PASS` for the current HEAD → step 7.
+   verdict for an older SHA never covers a newer one). At most 2 rounds per root problem (or one
+   further final targeted round if Team Lead explicitly authorizes it for qualifying located fixes);
+   unsupported, out-of-scope, exhausted or any remaining blocking finding after the final round →
+   Team Lead. `PASS` for the current HEAD → step 7.
 7. **Publish**: push the reviewed SHA unchanged, open or update the PR with the repo's PR template:
    *Existing behaviour*, *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test
    evidence*. The PR is **never Draft**; a needed Owner wait is expressed by the `owner-review` label
@@ -85,11 +87,13 @@ by PRM return the same way with the new SHA and its fresh pre-push verdict.
 ## Retry budgets and exceptions
 
 - Cumulative per PR and root problem: at most 2 automatic repair rounds and 2 reruns of the same
-  error, platform retries included; a new run, agent, SHA or task name does not reset them. Then stop.
+  error, platform retries included (plus at most one Team-Lead-authorized final targeted pre-push round
+  for qualifying located fixes); a new run, agent, SHA or task name does not reset them. Then stop.
 - Current-version implementation gaps remain with the original FS. After two repair/verification/
-  review rounds without material progress, give TL unmet requirements, attempts/results, known
-  causes, unknowns and a recommendation for diagnosis and, if still unresolved, Owner escalation.
-  Technical inability is an exception too; preserve acceptance rather than retry indefinitely.
+  review rounds without material progress (or if any blocking finding remains after an authorized
+  final targeted round), give TL unmet requirements, attempts/results, known causes, unknowns and
+  a recommendation for diagnosis and, if still unresolved, Owner escalation. Technical inability
+  is an exception too; preserve acceptance rather than retry indefinitely.
 - A push or PR call whose result is unknown: reconcile read-only (remote ref, PR head) before any
   retry; never blind-retry.
 - When work cannot continue: leave status unchanged, preserve the worktree, and post one exception

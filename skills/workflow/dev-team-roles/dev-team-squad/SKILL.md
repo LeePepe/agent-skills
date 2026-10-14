@@ -78,8 +78,11 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
    backstop either way and ships on the server-required checks (below).
 
 Any new SHA invalidates the review; FS gets a new one before pushing it. At most 2 review rounds per
-root problem, then Team Lead. AI Reviewer covers spec + architecture pre-push;
-`codex-review-target` covers defects/standards at the PR head. Neither repeats the other's job.
+root problem, then Team Lead; after round 2 returns `NEEDS_WORK`, Team Lead may authorize one final
+targeted pre-push round without the Owner when all remaining findings have exact locations and require
+no design/product choice, new files/dependencies, protected paths or test removals. AI Reviewer covers
+spec + architecture pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
+repeats the other's job.
 
 ## Handoffs
 
@@ -99,10 +102,11 @@ root problem, then Team Lead. AI Reviewer covers spec + architecture pre-push;
   proof of non-execution. Never blindly replay or automatically switch to the current CLI or a
   subagent. Persistent failure goes to TL as a blocker; this adds no background recovery service.
 - Current-version implementation gaps return to the original FS. After two repair/verification/
-  review rounds without material progress on the same problem, TL diagnoses why it remains
-  unfixed. If still unresolved, TL escalates to Owner with unmet requirements, attempts/results,
-  known causes, unknowns and a recommendation, including technically unsolved cases. Preserve
-  acceptance and cumulative history; renaming a task never resets the budget.
+  review rounds without material progress on the same problem (or if round 2 fails without qualifying
+  for Team Lead's one targeted final round, or if any blocking finding remains after that final round),
+  TL diagnoses why it remains unfixed. If still unresolved, TL escalates to Owner with unmet
+  requirements, attempts/results, known causes, unknowns and a recommendation, including technically
+  unsolved cases. Preserve acceptance and cumulative history; renaming a task never resets the budget.
 - Follow the workspace `Delivery workspace protocol`; every role reuses the one issue-scoped
   checkout through delivery and cleanup.
 
