@@ -76,8 +76,12 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    `[@AI Reviewer](mention://agent/<AI Reviewer agent ID>)`. Stop.
 7. **Process the verdict** (spec/plan gate): on `NEEDS_WORK`, fix within scope, pin a new revision,
    request again. A stale-revision verdict does not decide a newer revision. After 2 review rounds
-   on the same root problem, hand Team Lead unmet requirements, attempts/results and known/unknown
-   causes for diagnosis instead of a third round; task renaming does not reset the history. On `PASS`,
+   on the same root problem, request a third round only when Team Lead explicitly authorizes one
+   targeted final spec-gate round where every remaining finding cites an exact location, the required
+   correction is mechanical and requires no product or design choice, and the fix remains inside
+   accepted scope; otherwise hand Team Lead unmet requirements, attempts/results and known/unknown
+   causes for diagnosis instead of a third round. If the authorized targeted final round still blocks,
+   stop and return/park it with Team Lead. Task renaming does not reset the history. On `PASS`,
    reconcile Multica children with the reviewed task graph (no role assignment), then hand off and
    stop.
 
