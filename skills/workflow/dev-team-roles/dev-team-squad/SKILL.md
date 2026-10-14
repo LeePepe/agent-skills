@@ -79,10 +79,11 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
 Any new SHA invalidates the review; FS gets a new one before pushing it. At most 2 review rounds per
 root problem, then Team Lead; after round 2 returns `NEEDS_WORK`, Team Lead may authorize one final
-targeted pre-push round without the Owner when all remaining findings have exact locations and require
-no design/product choice, new files/dependencies, protected paths or test removals. AI Reviewer covers
-spec + architecture pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
-repeats the other's job.
+targeted pre-push round without the Owner when all remaining findings cite exact locations and require
+no design or product choice, fixes stay inside already-reviewed paths and scope with no new files or
+dependencies, no protected content is touched (CODEOWNERS paths, `.github/**`, gates or reviewer
+policy, `AGENTS.md`), and no test is removed or weakened. AI Reviewer covers spec + architecture
+pre-push; `codex-review-target` covers defects/standards at the PR head. Neither repeats the other's job.
 
 ## Handoffs
 
@@ -106,7 +107,8 @@ repeats the other's job.
   for Team Lead's one targeted final round, or if any blocking finding remains after that final round),
   TL diagnoses why it remains unfixed. If still unresolved, TL escalates to Owner with unmet
   requirements, attempts/results, known causes, unknowns and a recommendation, including technically
-  unsolved cases. Preserve acceptance and cumulative history; renaming a task never resets the budget.
+  unsolved cases. Preserve acceptance and cumulative history; changing agent, run, SHA, rename or
+  task identity never resets the budget.
 - Follow the workspace `Delivery workspace protocol`; every role reuses the one issue-scoped
   checkout through delivery and cleanup.
 

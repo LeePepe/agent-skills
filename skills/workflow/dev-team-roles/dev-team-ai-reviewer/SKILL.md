@@ -83,8 +83,8 @@ has at most 2 rounds per root problem. Pre-push review defaults to at most 2 rou
 perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing only
 the cited round-2 findings on the exact new tree. Once round limits are exhausted or any blocking finding
 remains after the authorized final round, return unmet requirements and attempts/results to Team Lead for
-diagnosis instead of another round. A renamed task does not reset this history; technically unresolved
-problems still require escalation, not reduced acceptance.
+diagnosis instead of another round. Changing agent, run, SHA, rename or task identity does not reset this
+history; technically unresolved problems still require escalation, not reduced acceptance.
 
 ## Handoff (one final comment in the Multica thread)
 
@@ -94,9 +94,10 @@ citations, follow-ups, decision candidates, round number, verdict. End with the 
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
 - `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
 
-Requester missing, conflicting or neither role, or round budget exhausted (including after an authorized
-final targeted pre-push round) → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No
-operation after the comment.
+Requester missing, conflicting or neither role, round budget exhausted on `NEEDS_WORK` (including
+any remaining blocking finding after an authorized final targeted pre-push round), or a request beyond
+the allowed budget → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No operation
+after the comment.
 
 ## Red lines
 

@@ -94,8 +94,8 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
   paths and scope with no new files or dependencies; no protected content is touched (CODEOWNERS
   paths, `.github/**`, gates or reviewer policy, `AGENTS.md`); and no test is removed or weakened.
   Otherwise, or if any blocking finding remains after that final round, diagnose and if still
-  unresolved escalate to Owner. Never dispatch an automatic third round, lower acceptance or rename
-  the task to reset history.
+  unresolved escalate to Owner. Never dispatch an automatic third round, lower acceptance or change
+  agent, run, SHA, rename or task identity to reset history.
 - A spec/plan found wrong after implementation started (e.g. a removed behaviour nobody approved)
   goes back to Planner Lead and the spec gate, not to FS as a code fix.
 
@@ -140,8 +140,8 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   authority, or workflow/config defect. Never repeat an identical dispatch without new evidence.
 - Retry budgets are cumulative per issue/PR and root problem: at most 2 automatic repair rounds and
   2 reruns of the same error, platform retries included (with at most one Team-Lead-authorized final
-  targeted pre-push round for qualifying located fixes); changing agent, run or SHA does not reset
-  them; neither does renaming the task. Unknown count = no retry; escalate.
+  targeted pre-push round for qualifying located fixes); changing agent, run, SHA, rename or task
+  identity does not reset them. Unknown count = no retry; escalate.
 - An FS exception handoff transfers ownership to you. Resolve it in the same run: dispatch the right
   role with a concrete next action, or escalate. Never leave "cannot continue" as a terminal state.
 - Product/content/scope/architecture/policy choices the repo does not decide: use the
