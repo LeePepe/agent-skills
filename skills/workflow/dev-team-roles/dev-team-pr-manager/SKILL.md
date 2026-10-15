@@ -48,6 +48,11 @@ or your existing receipt. Any tracking hit suppresses a new tracking issue and r
 receipt/state. A cancelled/won't-do tracking hit is final and terminal: never create a duplicate issue
 or revisit cancelled delivery. A PR already recorded as infrastructure/bootstrap blocked is parked and
 not rerun or redispatched until concrete unblock evidence appears.
+
+For tracking dedup, compare issue metadata `pr_url` with the canonical lowercase `<owner>/<repo>#<n>`
+first across the same projects and statuses, before title or URL text search. Read the key with
+`multica --workspace-id "$WS" issue metadata get "$TRACKING_ISSUE" --key pr_url --output json`.
+
 - **Untracked PR**: route by source (below). Idempotency: re-run the search immediately before any
   create. At most **3** new tracking issues per sweep; list the rest for the next sweep.
 - **Already tracked PR**: revisit it when no other live PR Manager or Fullstack Engineer run owns that
@@ -65,6 +70,15 @@ assigned to the Dev Team squad, then set to `todo`. It carries the six index fie
 `<owner>/<repo>#<n>` + URL + head SHA, next = PR Manager adoption), `delivery_repo_url`,
 `delivery_branch` (= PR head branch), `delivery_base_sha`, and `delivery_work_dir` described as
 "assigned by the daemon at run start".
+
+When creating or adopting a tracking issue, set string metadata `pr_url` to the canonical lowercase
+`<owner>/<repo>#<n>` (`PR_KEY` below), including when reusing a legacy text match. Use the documented
+[Multica issue metadata mechanism](../../../repo/multica-issue/references/multica-cli.md):
+
+```bash
+multica --workspace-id "$WS" issue metadata set "$TRACKING_ISSUE" \
+  --key pr_url --type string --value "$PR_KEY"
+```
 
 ## Routing by PR source (Owner 2026-10-13)
 

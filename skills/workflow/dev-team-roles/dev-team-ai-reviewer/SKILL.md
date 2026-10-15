@@ -118,6 +118,16 @@ citations, follow-ups, decision candidates, round number, verdict. End with the 
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
 - `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
 
+Every verdict comment carries exactly one machine-readable line immediately before the requester mention:
+
+```text
+<!-- review: gate=<spec|impl> round=<n> verdict=<PASS|NEEDS_WORK> p0=<n> p1=<n> missed=<n> sha=<short sha> -->
+```
+
+All values must match the comment body: `gate=spec` for job (a), `gate=impl` for job (b);
+`round` and `verdict` are the stated round and verdict; `p0`/`p1` count blocking findings by priority;
+`missed` counts findings labeled `missed-in-round-N`; `sha` is the short form of the stated reviewed SHA, or `none` when the reviewed revision has no Git SHA (e.g. issue-only planning inputs).
+
 Requester missing, conflicting or neither role, round budget exhausted on `NEEDS_WORK` (including
 any remaining blocking finding after an authorized final targeted round), or a request beyond
 the allowed budget → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No operation
