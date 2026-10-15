@@ -49,6 +49,9 @@ Send one compact packet:
 Reply with A/B/C or a replacement decision.
 ```
 
+Each decision request comment carries `<!-- decision-request: id=<8-char id unique within the issue> -->`.
+Choose an 8-character ID unique within the issue and use it to link the answer record.
+
 Keep orthogonal choices separate. Do not hide a second decision inside an option. Make no content or shipping mutation while awaiting the answer.
 
 For an unresolved technical blocker, send the failed requirement and impact, fixed task/plan revision, attempts and results, established cause or `unknown`, and recommended next step with any help/decision needed. Do not invent A/B/C choices or pretend the owner knows the root cause. The hold applies to affected work, not unrelated tasks.
@@ -64,6 +67,10 @@ After the owner answers, publish an interim issue decision record containing:
 - sources considered;
 - superseded decision, if any;
 - roles responsible for persistence and execution.
+
+Whoever records the decision adds `<!-- decision: request=<id> by=<owner|lead> choice=<label> -->` to that comment.
+`request` matches the request's ID; `by=owner` for the Owner's answer, `by=lead` when a lead decides on the Owner's behalf under existing authority.
+`choice` is the chosen option label, or a stable single-token label for a replacement decision, also stated in the body.
 
 TL (Dev Team) or the existing main conversation (subagent path) owns interim routing, not a replacement implementation lane. Place durable truth through the existing owner of its canonical artifact:
 

@@ -144,6 +144,16 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   2 reruns of the same error, platform retries included (with at most one Team-Lead-authorized final
   targeted pre-push round for qualifying located fixes); changing agent, run, SHA, rename or task
   identity does not reset them. Unknown count = no retry; escalate.
+- When you park delivery (`blocked`/`backlog`, including exhausted rounds) or abandon/cancel it,
+  the disposition comment carries one line:
+
+  ```text
+  <!-- disposition: <parked|abandoned> reason=<category> -->
+  ```
+
+  Use `parked` for `blocked`/`backlog`, `abandoned` for abandonment/cancellation. `reason` must match
+  the comment and be one of: `plan-too-heavy`, `missed-in-round-1`, `line-only-repair`,
+  `self-confirming-test`, `env-or-external`, `owner-deferred`, `superseded`, `other`.
 - An FS exception handoff transfers ownership to you. Resolve it in the same run: dispatch the right
   role with a concrete next action, or escalate. Never leave "cannot continue" as a terminal state.
 - Product/content/scope/architecture/policy choices the repo does not decide: use the

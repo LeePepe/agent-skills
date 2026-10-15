@@ -33,6 +33,8 @@ Use these entries in order; a re-review checks prior findings and the repair dif
    follow-ups; list them separately or write `None`. They do not extend the review loop.
 5. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
    naming any remaining blockers or coverage gaps.
+   End the comment with the same machine-readable review line immediately before the requester mention,
+   as defined in [SKILL.md Handoff](../SKILL.md#handoff-one-final-comment-in-the-multica-thread).
 
 Follow SKILL.md's round budget and escalation rules; this output grants no additional round.
 
