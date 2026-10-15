@@ -55,6 +55,10 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
    adaptation/test additions are valid within existing repos, scope, approach, acceptance and
    authority, with no new repo, permission or writer. General policy stays in the repo guide or
    versioned shared docs referenced by the plan.
+5. **Feasibility and proportionality**: every hard invariant (must-not-log, must-prove, fail-closed,
+   permission boundary, etc.) states how the actual tools/steps enforce it and which test proves it.
+   Flag unsupported absolute guarantees or infeasible requirements as plan-stage findings; also
+   flag requirements disproportionate to the change size.
 
 ## (b) Pre-push review — spec conformance + architecture
 
@@ -77,6 +81,17 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 - `PASS`: no blocking finding; coverage sufficient. Bound to the exact revision/SHA reviewed.
 - `NEEDS_WORK`: one or more cited blocking findings, or the candidate could not be pinned. Never turn
   a coverage gap into a pass.
+
+Review rounds, within the budget below:
+
+- **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and
+  report all blocking findings at once.
+- **Rounds >=2** may block only on (a) prior findings not resolved, (b) regressions introduced by
+  the repair, or (c) a new P1 with an explicit explanation of why it was not visible in round 1
+  (e.g. the code did not exist yet). All other new findings become non-blocking follow-ups; the
+  authorized final targeted round still reviews only the cited round-2 findings below.
+- Every blocking finding traces to an AC, a cited repository rule, or a real defect. Do not add
+  requirements beyond the accepted ACs; proposals for new requirements are follow-ups.
 
 A new revision/SHA (any plan update, fix, rebase or amend) needs a new review; a verdict never carries
 forward. Spec-gate review and pre-push review each default to at most 2 rounds per root problem; after
