@@ -86,6 +86,7 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 
 Review rounds, within the budget below:
 
+- Each pass: apply `review-agent`'s finding criteria, priorities and format; use [the rubric](references/review-rubric.md) for AC checks and re-review output; this SKILL.md wins any conflict (including posting the issue verdict).
 - **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and keep
   going until every qualifying finding is listed; do not stop at the first, and do not pad.
 - **Rounds >=2 are scoped re-reviews, not fresh reviews**: mark each prior finding ADDRESSED or NOT
