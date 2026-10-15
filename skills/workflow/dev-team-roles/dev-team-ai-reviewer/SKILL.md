@@ -58,7 +58,9 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 5. **Feasibility and proportionality**: every hard invariant (must-not-log, must-prove, fail-closed,
    permission boundary, etc.) states how the actual tools/steps enforce it and which test proves it.
    Flag unsupported absolute guarantees or infeasible requirements as plan-stage findings; also
-   flag requirements disproportionate to the change size.
+   flag requirements disproportionate to the change size. Report only gaps where the builder would
+   have to guess and a wrong guess would matter; items the plan explicitly leaves to the builder are
+   not findings.
 
 ## (b) Pre-push review — spec conformance + architecture
 
@@ -84,14 +86,19 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 
 Review rounds, within the budget below:
 
-- **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and
-  report all blocking findings at once.
-- **Rounds >=2** may block only on (a) prior findings not resolved, (b) regressions introduced by
-  the repair, or (c) a new P1 with an explicit explanation of why it was not visible in round 1
-  (e.g. the code did not exist yet). All other new findings become non-blocking follow-ups; the
-  authorized final targeted round still reviews only the cited round-2 findings below.
-- Every blocking finding traces to an AC, a cited repository rule, or a real defect. Do not add
-  requirements beyond the accepted ACs; proposals for new requirements are follow-ups.
+- **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and keep
+  going until every qualifying finding is listed; do not stop at the first, and do not pad.
+- **Rounds >=2 are scoped re-reviews, not fresh reviews**: mark each prior finding ADDRESSED or NOT
+  ADDRESSED and inspect the repair diff for regressions. A concrete defect found outside the repair
+  diff still blocks when it is P0/P1 (security, data loss, wrong behaviour against an AC) or violates
+  a mandatory repository rule; label it `missed-in-round-N` with why it was missed. Lower-severity
+  observations outside the repair diff are non-blocking follow-ups and do not extend the loop.
+- **What blocks**: an issue introduced by this change that traces to an AC, a cited mandatory rule or
+  a real defect, with a concrete trigger scenario. Speculative breakage must name the provably
+  affected code. Pre-existing issues are follow-ups. Do not demand rigor beyond the repository's
+  existing standard or add requirements beyond the accepted ACs; those are follow-ups.
+- **Severity**: P0/P1 block; P2/P3 are follow-ups. Verify each blocking finding against the pinned
+  content before reporting; if you are not certain it is real, do not block on it.
 
 A new revision/SHA (any plan update, fix, rebase or amend) needs a new review; a verdict never carries
 forward. Spec-gate review and pre-push review each default to at most 2 rounds per root problem; after
