@@ -50,6 +50,8 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    an existing test unless the spec's *removed behaviour* section authorizes it.
 3. **Verify** through the repo's single verify entry and its normal hooks. Never `--no-verify`,
    disable hooks, force-push or weaken a gate. A gate you cannot pass is exception evidence.
+   Never weaken or stub a real dependency or test to get past a timeout or flake; fix the cause
+   or report it with evidence.
 4. **Self-review** with the assigned `code-review` skill against the merge-base; fix findings, then
    commit locally (do not push yet).
 5. **Request pre-push review**: post one request with issue, spec path (or issue acceptance),
@@ -65,6 +67,9 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    changing only those cited remaining findings and no other content); unsupported, out-of-scope,
    exhausted or any remaining blocking finding after the final round → Team Lead. `PASS` for the
    current HEAD → step 7.
+   **Repair by class**: for each finding, state the invariant it violates, find all instances of
+   that class in the candidate and fix them all within authorized scope. Add a regression test
+   that would fail on that class; the repair note lists the invariant and all instances fixed.
 7. **Publish**: push the reviewed SHA unchanged, open or update the PR with the repo's PR template:
    *Existing behaviour*, *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test
    evidence*. The PR is **never Draft**; a needed Owner wait is expressed by the `owner-review` label

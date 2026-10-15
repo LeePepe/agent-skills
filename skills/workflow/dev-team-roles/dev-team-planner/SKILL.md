@@ -57,6 +57,9 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    subagents may help; they never dispatch Multica roles.
    Plans carry tasks, versions, dependencies, completion conditions and next actions; reference the
    applicable repo-guide/shared-doc version for general update/migration policy instead of copying it.
+   For each hard invariant (must-not-log, must-prove, fail-closed, permission boundary, etc.), name
+   the mechanism (which actual tool/step enforces it) and the test that proves it. Prefer the
+   simplest design that meets the ACs; keep requirements proportional to the change.
 3. **Slice** with `to-tickets` only where the existing task graph needs completion: one goal per
    PR, concrete owned paths/layers, exclusions, contract impact, task-local acceptance, verification
    and context pointers. A goal may span layers; keep contracts and dependency edges explicit
