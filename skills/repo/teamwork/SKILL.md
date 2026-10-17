@@ -15,20 +15,21 @@ Synchronously executes Dev Team workflow 02 in the current CLI session using sin
 ```
 
 Natural-language trigger: `Use teamwork to implement <feature>`.
-Activate only on explicit teamwork intent; casual prompts run directly without subagents.
-Direct CLI execution still follows the [common execution contract](../../workflow/execution-contract.md);
-it does not activate this team adapter.
+Activate only on explicit teamwork intent. Ordinary CLI requests follow the role-separated
+[common execution contract](../../workflow/execution-contract.md) without activating this team adapter.
 
 ## Single Source & Authority
 
 Roles resolve directly from the loaded bundle at `../../workflow/dev-team-roles/` (supporting full bundles and symlinks). If source roles or subagent capabilities are missing, fail closed with a setup blocker before executing any role. Never search target repositories or fall back to copied role files.
 
 All handoffs explicitly carry the [common execution contract](../../workflow/execution-contract.md)
-and accepted baseline. Goal/Target/Task decomposition and target-level review follow that single source;
+and role/source assignment, original intent, authority, owned scope and accepted baseline.
+Global loading never grants coordinator status; helper use stays within the assigned role.
+Goal/Target/Task decomposition and target-level review follow that single source;
 do not create a role invocation, PR or full review for every internal task.
 
 - [Team Lead](../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md) — orchestration, scheduling, and escalation
-- [Planner](../../workflow/dev-team-roles/dev-team-planner/SKILL.md) — spec and task breakdown
+- [Planner](../../workflow/dev-team-roles/dev-team-planner/SKILL.md) — Goal/Targets/Tasks, acceptance, dependencies and spec
 - [Fullstack Engineer](../../workflow/dev-team-roles/dev-team-fullstack-engineer/SKILL.md) — implementation, validation, self-review, and PR creation
 - [AI Reviewer](../../workflow/dev-team-roles/dev-team-ai-reviewer/SKILL.md) — spec gate and exact-SHA pre-push review
 - Shared rules: [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md)
@@ -40,7 +41,7 @@ The CLI session replaces Multica issue comments, mentions, and wakeups with sync
 
 1. **Preflight**: Verify bundle source roles exist and subagent capability is active; otherwise fail closed.
 2. **Team Lead**: Spawn Team Lead first for request confirmation and triage; await orchestration handoff.
-3. **Planner**: If no valid unchanged baseline and breakdown are already reviewed, spawn Planner with goal intent; await one reviewable baseline including targets, tasks, dependencies and acceptance mapping. Reuse an already-reviewed unchanged baseline; do not re-plan for ledger updates.
+3. **Planner**: If no valid unchanged baseline and breakdown are already reviewed, spawn Planner with the original request, settled Owner decisions and existing artifacts; Planner determines/validates Goal, Targets, Tasks, dependencies and AC mapping. Do not predefine those results for endorsement. Reuse an already-reviewed unchanged baseline; do not re-plan for ledger updates.
 4. **Spec Gate**: For a new or changed reviewed baseline, spawn AI Reviewer with spec/plan; await verdict. Reuse valid exact-revision evidence otherwise. Review rounds, same-root accumulation, targeted final review, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
 5. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan and one target's tasks. Fullstack completes those tasks in dependency order, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Retain writer identity if startup/receipt is unknown.
 6. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict confirming the target's task/acceptance coverage (security/performance specialists are invoked by AI Reviewer on demand, never as fixed executing roles). Repairs reuse the findings ledger and check the repair plus impact; preserve full target coverage and existing round limits.
@@ -50,4 +51,5 @@ The CLI session replaces Multica issue comments, mentions, and wakeups with sync
 
 - **CLI Backend Priority**: Codex CLI → Claude native → Copilot.
 - **Fail-Closed**: Missing bundle sources or subagent capabilities stop immediately with a setup blocker.
+  Keep the assignment and existing work; the coordinator does not become Planner or Fullstack.
 - **No Local PRM**: PR Manager is an external workflow 03 role; do not spawn PRM locally.

@@ -115,7 +115,7 @@ Spec-gate review and pre-push review each default to at most 2 rounds per root p
 round 2, perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing
 only the cited round-2 findings on the exact new planning revision (spec gate) or exact new tree (pre-push).
 Once round limits are exhausted or any blocking finding remains after the authorized final round, return
-unmet requirements and attempts/results to Team Lead for diagnosis instead of another round. Changing
+unmet requirements and attempts/results to Team Lead to route diagnosis to original Planner/FS instead of another round. Changing
 agent, run, SHA, rename or task identity does not reset this history; technically unresolved problems
 still require escalation, not reduced acceptance.
 

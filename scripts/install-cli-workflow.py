@@ -18,8 +18,11 @@ For development requirements, planning, implementation and delivery, read and fo
 the [common CLI/subagent execution contract](<{contract}>).
 Load it before substantive work unless this session already has the current version.
 Use its Goal/Target/Task, reviewed-baseline, delegation and independent-acceptance rules.
-When delegating, explicitly pass this contract and the accepted baseline, scope,
-ownership and expected evidence; do not assume a subagent inherits personal skills.
+Loading it grants no role: bind the role to invocation provenance and explicit assignment.
+A planning worker defines or validates Goal/Targets; the coordinator only allocates,
+supervises, routes decisions and reports evidence. Workers never self-promote.
+When delegating, pass this contract, role/source binding, original intent, accepted
+baseline, scope, ownership and expected evidence; do not assume skill inheritance.
 Repository instructions, authorization boundaries and required checks remain in force.
 {END}"""
 

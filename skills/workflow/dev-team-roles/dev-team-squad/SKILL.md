@@ -14,6 +14,8 @@ documented rules and gates. Project exceptions never belong in squad or role tex
 The [common CLI/subagent execution contract](../../execution-contract.md) defines Goal → Target → Task,
 the reviewed baseline versus execution ledger, and target-level acceptance. It applies to this team too;
 this file retains the team's transport, role boundaries, exact-SHA gates and round budgets.
+Loading shared instructions does not assign a role. Bind each run to its trusted invocation source,
+explicit role/coordinator, scope and return; workers and helpers remain bounded, never self-promote.
 
 ## Workflow boundary and accepted version
 
@@ -25,8 +27,9 @@ labels in existing artifacts do not change an already dispatched version.
 
 - Chat feedback without an implementation request gets a quick assessment first. A clear request
   to fix or implement with a defined goal and scope already expresses implementation intent.
-- For design changes and workflow refinement, Owner and CLI settle requirements, design and the
-  basic implementation approach before handing work to Dev Team or subagents. Unselected design
+- For design changes and workflow refinement, a planning worker derives or validates requirements,
+  Goal/Targets, design and the basic implementation approach, preserving settled Owner decisions;
+  the coordinator routes choices and dispatches the reviewed package. Unselected design
   exploration is not default team implementation input. An explicit choice of the current CLI as
   executor still follows repo rules.
 - Bind execution and acceptance to the handed-off plan version. Record later design changes for
@@ -50,8 +53,8 @@ labels in existing artifacts do not change an already dispatched version.
 
 | Role | Owns |
 |---|---|
-| Team Lead | scheduling, re-scope, blocked work, recovery, Owner escalation, closure |
-| Planner Lead | spec/plan/tasks with stable AC IDs and existing behaviour / compatibility / removed behaviour |
+| Team Lead | scheduling/supervision, re-scope routing, blocked-work/recovery routing, Owner escalation, evidence-backed closure |
+| Planner Lead | Goal/Targets/Tasks, acceptance/dependencies and spec/plan with stable AC IDs and existing behaviour / compatibility / removed behaviour |
 | AI Reviewer | (a) spec/plan gate; (b) pre-push spec + architecture review of FS's local HEAD |
 | Fullstack Engineer | implement, verify, self-review, push the reviewed SHA + PR |
 | PR Manager | Discover → Adopt → CI/review → repair routing → Ship → delivery confirmation; the backstop for PRs nobody is driving |
@@ -116,7 +119,7 @@ pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
 - Current-version implementation gaps return to the original FS. After two repair/verification/
   review rounds without material progress on the same problem (or if round 2 fails without qualifying
   for Team Lead's one targeted final round, or if any blocking finding remains after that final round),
-  TL diagnoses why it remains unfixed. If still unresolved, TL escalates to Owner with unmet
+  TL routes diagnosis to original Planner/FS and supervises the next action. If still unresolved, TL escalates to Owner with unmet
   requirements, attempts/results, known causes, unknowns and a recommendation, including technically
   unsolved cases. Preserve acceptance and cumulative history; changing agent, run, SHA, rename or
   task identity never resets the budget.

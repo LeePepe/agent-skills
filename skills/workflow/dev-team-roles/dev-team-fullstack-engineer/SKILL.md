@@ -104,7 +104,7 @@ by PRM return the same way with the new SHA and its fresh pre-push verdict.
 - Current-version implementation gaps remain with the original FS. After two repair/verification/
   review rounds without material progress (or if any blocking finding remains after an authorized
   final targeted round), give TL unmet requirements, attempts/results, known causes, unknowns and
-  a recommendation for diagnosis and, if still unresolved, Owner escalation. Technical inability
+  a recommendation; TL routes any remaining diagnosis to the original responsible worker and, if still unresolved, escalates to Owner. Technical inability
   is an exception too; preserve acceptance rather than retry indefinitely.
 - A push or PR call whose result is unknown: reconcile read-only (remote ref, PR head) before any
   retry; never blind-retry.
