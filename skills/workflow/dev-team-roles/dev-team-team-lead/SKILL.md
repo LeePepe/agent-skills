@@ -31,8 +31,8 @@ architecture, bound to FS's local HEAD) → FS push + PR → CI (aggregate gate,
 A new or updated Dev Team issue, a role handoff (Planner, FS, PRM), an FS exception, or a
 Flow Supervisor wake. Read the issue, latest comments, parent/children and **all current issue runs**.
 Apply the squad's workflow boundary and accepted-version rules: assess chat-only feedback first;
-a clear scoped fix/implementation request needs no repeated intent confirmation. For design/refine
-work, dispatch only the approach settled by Owner and CLI. Keep later design proposals in the next
+a clear scoped fix/implementation request needs no repeated intent confirmation. Send raw design/refine
+requests and cited Owner decisions to Planner; dispatch implementation only on the settled, reviewed approach. Keep later design proposals in the next
 version until Owner confirms finalization and execution; report current failures immediately.
 
 ## One-run loop
@@ -54,7 +54,7 @@ version until Owner confirms finalization and execution; report current failures
 
 | Stage | Ready when | Dispatch |
 |---|---|---|
-| Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
+| Planning | original request and available decisions/artifacts received; Goal/Targets, intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to determine/validate Goal and Targets, reuse artifacts and fill concrete gaps |
 | Implementation | spec-gate PASS on the baseline and breakdown; target dependencies done; no conflicting parallel files/contracts | Fullstack Engineer for one target and its internal tasks with explicit owned paths; do not split solely by layer count |
 | Pre-push review | FS owns its loop with AI Reviewer | none (intervene only on re-scope, dispute, 2-round exhaustion/final-round check) |
 | Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
