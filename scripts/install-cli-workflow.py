@@ -78,6 +78,9 @@ def main(argv=None):
         updates = []
         # Validate every destination before changing any file.
         for path in destinations(args.client, args.codex_home.expanduser(), args.claude_home.expanduser()):
+            for parent in path.parents:
+                if (parent.exists() or parent.is_symlink()) and not parent.is_dir():
+                    raise ValueError(f"instruction parent is not a directory: {parent}")
             if path.is_symlink():
                 raise ValueError(f"refusing to replace symlink instruction file: {path}")
             original = path.read_bytes().decode("utf-8") if path.exists() else ""

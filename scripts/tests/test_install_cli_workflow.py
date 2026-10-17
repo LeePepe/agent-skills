@@ -103,6 +103,24 @@ class InstallCliWorkflowTests(unittest.TestCase):
         self.assertEqual(target.read_text(), "Original instructions\n")
         self.assertFalse(self.claude.exists())
 
+    def test_invalid_second_parent_preserves_first_file_bytes_and_mtime(self):
+        self.codex.mkdir()
+        first = self.codex / "AGENTS.md"
+        first.write_text("Personal text\n<!-- agent-skills:workflow:begin -->\nOld reference\n"
+                         "<!-- agent-skills:workflow:end -->\n")
+        before = first.read_bytes(), first.stat().st_mtime_ns
+        invalid = self.home / "regular-file"
+        invalid.write_text("Preserve this file too.\n")
+        dangling = self.home / "dangling-link"
+        dangling.symlink_to(self.home / "missing-directory")
+        for second_home in (invalid, invalid / "nested", dangling / "nested"):
+            with self.subTest(second_home=second_home):
+                result = self.run_installer("--claude-home", str(second_home))
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual((first.read_bytes(), first.stat().st_mtime_ns), before)
+                self.assertEqual(invalid.read_text(), "Preserve this file too.\n")
+                self.assertTrue(dangling.is_symlink())
+
 
 if __name__ == "__main__":
     unittest.main()
