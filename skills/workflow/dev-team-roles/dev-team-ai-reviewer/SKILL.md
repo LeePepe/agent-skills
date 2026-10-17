@@ -38,6 +38,8 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
   must be clean; otherwise → `NEEDS_WORK` with reason `unpinned`. Review `git diff <merge-base>..<SHA>` of that
   exact SHA only; never a nearby, newer or pushed-later revision. The candidate is expected to be
   unpushed; a pushed branch is fine only if its remote SHA equals the submitted SHA.
+- Re-review: pin the last reviewed revision/SHA and its findings alongside the new candidate,
+  repair diff/impact and progress evidence. Retain the prior whole-target coverage record.
 - Judge against the handed-off version's approach, scope and acceptance. Later design suggestions
   are next-version candidates until Owner explicitly confirms finalization and execution. Still
   report real current-version failures and safety blockers; they cannot be deferred to earn `PASS`.
@@ -94,15 +96,19 @@ Review rounds, within the budget below:
 - Each pass: apply `review-agent`'s finding criteria, priorities and format; use [the rubric](references/review-rubric.md) for AC checks and re-review output; this SKILL.md wins any conflict (including posting the issue verdict).
 - **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and keep
   going until every qualifying finding is listed; do not stop at the first, and do not pad.
-- **Rounds >=2 are scoped re-reviews, not fresh reviews**: mark each prior finding ADDRESSED or NOT
-  ADDRESSED and inspect the repair diff for regressions. A concrete defect found outside the repair
+- **Rounds >=2 are scoped re-reviews, not fresh reviews**: use the last reviewed revision/SHA to
+  identify the repair diff, mark each prior finding ADDRESSED or NOT ADDRESSED and inspect that diff
+  and its impact for regressions, retaining whole-target coverage. A concrete defect found outside the repair
   diff still blocks when it is P0/P1 (security, data loss, wrong behaviour against an AC) or violates
   a mandatory repository rule; label it `missed-in-round-N` with why it was missed. Lower-severity
   observations outside the repair diff are non-blocking follow-ups and do not extend the loop.
-- **What blocks**: an issue introduced by this change that traces to an AC, a cited mandatory rule or
-  a real defect, with a concrete trigger scenario. Speculative breakage must name the provably
-  affected code. Pre-existing issues are follow-ups. Do not demand rigor beyond the repository's
-  existing standard or add requirements beyond the accepted ACs; those are follow-ups.
+- **What blocks**: a concrete content defect within this role's remit that traces to an AC or a
+  cited mandatory rule, with a concrete trigger scenario. Speculative breakage must name the provably
+  affected code. Pre-existing issues are follow-ups only when they do not block a current AC or
+  mandatory repository gate; being pre-existing does not exempt a real current blocker. Gate execution
+  and judgment remain with FS/CI; use pinned content evidence within your remit, not gate state, to
+  establish a finding. Do not demand rigor beyond the repository's existing standard or add requirements
+  beyond the accepted ACs; those are follow-ups.
 - **Severity**: P0/P1 block; P2/P3 are follow-ups. Verify each blocking finding against the pinned
   content before reporting; if you are not certain it is real, do not block on it.
 

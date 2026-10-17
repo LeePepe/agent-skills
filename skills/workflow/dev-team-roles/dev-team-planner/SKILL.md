@@ -50,6 +50,10 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
 
 1. **Frame or validate** Goal, Target boundaries, outcome, actors, acceptance, constraints and non-goals. Reuse a valid unchanged accepted baseline; resume or progress alone does not require a new one. Resolve facts from repo evidence
    and cited Owner decisions; send genuine product/content/authority choices to Team Lead.
+   For feasibility questions, reuse existing evidence first. Identify only the critical unknown that
+   could change the next action, its expected evidence and end condition under the common contract.
+   Once evidence suffices, stop investigating and continue the authorized next action; otherwise
+   check only the remaining critical unknown. Known facts need no new research stage.
 2. **Complete** the existing spec artifacts (see "What counts as the spec"): spec, plan, tasks,
    contracts, ADR/domain context as needed. Every acceptance criterion gets a stable ID (`FR-003`,
    `US1/AC2`) so review findings can cite it; UI/experience ACs name their `manual` evidence form. The spec must
@@ -66,7 +70,7 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
 3. **Slice** with `to-tickets` only where the existing task graph needs completion: one coherent target per
    PR, concrete owned paths/layers, exclusions, contract impact, task-local acceptance, verification
    and context pointers. A goal may span layers; keep contracts and dependency edges explicit
-   without splitting by layer count. Necessary omitted adaptation/tests may join the current
+   without splitting by layer count. Omitted adaptation/tests required by current ACs or existing gates may join the current
    version only within existing repos, scope, approach, acceptance and authority, with no added
    repo, permission or writer; record the addition. Unresolved feasibility goes to TL with evidence,
    not an unrequested exploration task or a silently changed implementation approach.

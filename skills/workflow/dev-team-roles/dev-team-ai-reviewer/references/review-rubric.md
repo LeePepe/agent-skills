@@ -24,7 +24,10 @@ missing proof explicitly required by an AC or mandatory rule is assessed against
 
 ## Re-review (rounds >=2) output
 
-Use these entries in order; a re-review checks prior findings and the repair diff:
+Pin the last reviewed revision/SHA and prior findings, the new candidate revision/SHA, and the
+repair diff/impact and progress-evidence pointers. A re-review checks those findings and that repair
+delta while retaining whole-target coverage. Start the output with both revisions and the repair/impact
+and progress pointers, then use these entries in order:
 
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.

@@ -42,14 +42,21 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
 
 ## Workflow
 
-1. **Diagnose** when needed: reproduce with a tight check, find the root cause, keep temporary
-   instrumentation identifiable and remove it before commit. Protect secrets and personal data.
+1. **Diagnose** when needed: reuse existing evidence; for a critical unknown that can change the
+   next action, name the expected evidence and end condition, then reproduce with a tight check.
+   Stop investigating once evidence suffices for the authorized next action; otherwise check only
+   the remaining critical unknown without bypassing real blockers. Keep temporary instrumentation
+   identifiable and remove it before commit. Protect secrets and personal data.
 2. **Implement** one target per PR inside its owned paths/layers, completing internal tasks in dependency order with behaviour tests for
    the spec/issue acceptance; layer count alone does not require separate PRs. Record necessary
-   omitted adaptation/tests in the current plan version only within its existing repos, scope,
+   omitted adaptation/tests required by current ACs or existing gates in the current plan version only within its existing repos, scope,
    approach, acceptance and authority, adding no repo, permission or writer. Hand dependency or
    planning gaps to TL; keep normal review gates. Do not change existing behaviour or delete/weaken
-   an existing test unless the spec's *removed behaviour* section authorizes it.
+   an existing test unless the spec's *removed behaviour* section authorizes it. Route new findings
+   under the common contract: keep current AC/gate blockers with the original owner, use the original
+   decision route for real baseline/authority changes, and record non-blocking improvements once in
+   the existing backlog/deferred record while continuing delivery. Optional refactors or new capabilities
+   do not silently expand scope; this does not authorize issue creation.
 3. **Verify** through the repo's single verify entry and its normal hooks. Never `--no-verify`,
    disable hooks, force-push or weaken a gate. A gate you cannot pass is exception evidence.
    Never weaken or stub a real dependency or test to get past a timeout or flake; fix the cause
@@ -66,15 +73,21 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    started. If unavailable or receipt is unknown, preserve the version/task and review request;
    reconcile receipt/run state and deduplicate before a retry after recovery. Persistent failure
    goes to TL; do not substitute another executor or review path. Stop.
-6. **Process the verdict**: `NEEDS_WORK` → fix in-scope findings, new commit, request again (a
-   verdict for an older SHA never covers a newer one). At most 2 rounds per root problem (or one
+6. **Process the verdict**: on `NEEDS_WORK`, repair known actionable in-scope blockers together,
+   complete relevant required verification, then freeze a new committed candidate before formal
+   re-review. Carry prior findings, last reviewed SHA, new candidate SHA, repair diff/impact and
+   progress evidence in the existing request/note; a verdict for an older SHA never covers a newer one.
+   Keep unresolved or external blockers explicit. If not ready, continue the authorized repair or
+   return diagnosis/exception evidence instead of requesting review on known unchanged blockers.
+   At most 2 rounds per root problem (or one
    further final targeted round if Team Lead explicitly authorizes it for qualifying located fixes,
    changing only those cited remaining findings and no other content); unsupported, out-of-scope,
    exhausted or any remaining blocking finding after the final round → Team Lead. `PASS` for the
    current HEAD → step 7.
    **Repair by class**: for each finding, state the invariant it violates, find all instances of
    that class in the candidate and fix them all within authorized scope. Add a regression test
-   that would fail on that class; the repair note lists the invariant and all instances fixed.
+   that would fail on that class; the repair note lists the invariant, all instances fixed and the
+   material new evidence or blocker removed this round.
 7. **Publish**: push the reviewed SHA unchanged, open or update the PR with the repo's PR template:
    *Existing behaviour*, *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test
    evidence*. The PR is **never Draft**; a needed Owner wait is expressed by the `owner-review` label
@@ -101,10 +114,12 @@ by PRM return the same way with the new SHA and its fresh pre-push verdict.
   error, platform retries included (plus at most one Team-Lead-authorized final targeted pre-push round
   for qualifying located fixes); changing agent, run, SHA, rename or task identity does not reset
   them. Then stop.
-- Current-version implementation gaps remain with the original FS. After two repair/verification/
+- Current AC/gate-blocking implementation gaps remain with the original FS. After two repair/verification/
   review rounds without material progress (or if any blocking finding remains after an authorized
   final targeted round), give TL unmet requirements, attempts/results, known causes, unknowns and
-  a recommendation; TL routes any remaining diagnosis to the original responsible worker and, if still unresolved, escalates to Owner. Technical inability
+  a recommendation; TL routes any remaining diagnosis to the original responsible worker to change
+  the implementation/validation path or explain why no safe path exists and, if still unresolved,
+  escalates to Owner. This grants no extra automatic round. Technical inability
   is an exception too; preserve acceptance rather than retry indefinitely.
 - A push or PR call whose result is unknown: reconcile read-only (remote ref, PR head) before any
   retry; never blind-retry.
