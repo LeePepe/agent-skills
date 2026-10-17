@@ -12,6 +12,10 @@ Classify each conformance gap:
 - **Extra**: behavior was built that the accepted scope did not request.
 - **Misunderstood**: the implementation addresses the requirement with the wrong behavior.
 
+Keep one target acceptance record mapping every task/AC to implementation location, evidence and
+confirmed/gap/manual status. Re-reviews update this record; do not discard prior whole-target coverage
+or start a fresh complete review per internal task.
+
 For an AC that the pinned diff and spec cannot establish, write `⚠️ cannot verify`, identify
 the AC and missing evidence, and declare the coverage gap. Do not broaden the search or invent
 requirements. A coverage gap is not proof of a defect; insufficient coverage cannot earn `PASS`.

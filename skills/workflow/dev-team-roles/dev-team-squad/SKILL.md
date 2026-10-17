@@ -11,6 +11,10 @@ from the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
 documented rules and gates. Project exceptions never belong in squad or role text.
 
+The [common CLI/subagent execution contract](../../execution-contract.md) defines Goal → Target → Task,
+the reviewed baseline versus execution ledger, and target-level acceptance. It applies to this team too;
+this file retains the team's transport, role boundaries, exact-SHA gates and round budgets.
+
 ## Workflow boundary and accepted version
 
 W0 is the overall map of six workflows: 01 requirements and planning, 02 implementation, 03 PR
@@ -65,11 +69,13 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
 1. **Spec gate** — AI Reviewer checks requirement completeness, that *existing behaviour /
    compatibility / removed behaviour* are filled, and the constitution. Spec errors stop here.
-2. **Pre-push review** — AI Reviewer reads the spec/issue acceptance and the diff + tests directly:
+2. **Pre-push review** — once the target's internal tasks are complete, AI Reviewer reads the spec/issue acceptance and the diff + tests directly:
    does the implementation complete it (gaps cited), any unrequested behaviour change, any removed
    or weakened existing test; plus architecture (changed paths resolve to the declared layers,
    `depends_on` respected, no edits outside owned paths, shared libraries used per their pinned
    `ai/`). `PASS` / `NEEDS_WORK` with cited findings, bound to the SHA; not a merge gate.
+   Confirm every task/AC with implementation location and evidence in one target acceptance record;
+   do not start a complete review per task. Intermediate checkpoints need a concrete dependency/risk reason.
 3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft (Owner waits use
    `owner-review`); the PR template carries *Existing behaviour*,
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
@@ -77,7 +83,10 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
    author may stay to watch required checks and fix failures, or hand off and leave; PRM is the
    backstop either way and ships on the server-required checks (below).
 
-Any new SHA invalidates the review; FS gets a new one before pushing it. At most 2 review rounds per
+Any new implementation SHA invalidates the implementation review; FS gets a new one before pushing it.
+Planning-baseline changes need exact-revision review; execution-ledger updates do not change that baseline
+or restart its gate. If a repository requires review of an artifact that changed, refresh its revision evidence
+with a delta/impact review, without re-seeking unchanged execution authorization. At most 2 review rounds per
 root problem, then Team Lead; after round 2 returns `NEEDS_WORK`, Team Lead may authorize one final
 targeted spec-gate round (only when every remaining finding cites an exact location, the required
 correction is mechanical and requires no product or design choice, and the correction remains inside the

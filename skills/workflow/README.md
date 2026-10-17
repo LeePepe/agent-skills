@@ -4,6 +4,10 @@
 repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 shared 合同，遵守原 hooks、review 和 required CI。
 本索引不覆盖已采用的固定合同，不证明角色、定时触发或消费者已经部署。
 
+与 CLI 沟通开发需求、直接执行或委派 subagent 时，必须遵守同一份
+[`CLI 与 subagent 执行规范`](execution-contract.md)：Goal → Target → Task、计划基线、target 集中独立验收与复审。
+显式 Dev Team 同样引用它；个人全局入口的安装见[仓库说明](../../README.md#cli-默认规范)。
+
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
 | 01 需求沟通与规划 | Owner 需求或有证据反馈；澄清目标、范围和必要基本方案，内部按需拆分任务与依赖 | 可交接的方案及实施要求；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
@@ -43,8 +47,10 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 ## Plan 与依赖推进
 
-本次 plan 记录版本、仓库／任务、依赖与可并行关系、验收和下一动作。长期升级／验证／回滚规则在 repo guide
-或版本化 shared 文档；plan 引用实际采用版本，不复制政策。跨仓目标、先后依赖与整体验收由沟通侧明确，团队细化仓内任务。
+本次 plan 按[执行规范](execution-contract.md#plan-与执行基线)区分受审基线和执行台账，记录 Goal／Target／Task、
+验收映射、责任、依赖与可并行关系；基线与拆分一起审，target 集中独立确认 task，进度与内部补拆不自动变成新规划审批。
+长期升级／验证／回滚规则在 repo guide 或版本化 shared 文档；plan 引用实际采用版本，不复制政策。
+跨仓目标、先后依赖与整体验收由沟通侧明确，团队细化仓内任务。
 
 Dev Team 由 TL 按 plan 推进；subagent 由既有主会话按 plan 接续。独立且已授权工作可继续，局部阻塞不能隐藏整体未完成。
 provider source、发布、消费者升级／真实消费分别取证；04 不负责消费者升级，不取消原任务的消费／回滚义务。
@@ -59,12 +65,12 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 - **Dev Team**：Planner 复用、校验、补齐既有 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
   TL 按已审任务及依赖派 FS。独立且路径不冲突的 FS 可并行，同一路径保持唯一写者。
-- **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
+- **FS**：开发、必要验证、修复和执行者自检；自检不自动再启动一套全量独立 reviewer，目标仓明确要求的审查仍保留。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
   通过由原 FS 推送／创建更新 PR，发现当前缺口仍回原 FS，不默认换作者。
 - **Dev Team AI Reviewer**：承担只读 spec/plan（spec gate），以及发布前准确 SHA 的独立 spec 与 architecture 审查；
-  不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整 code-review 自检保留，不能替代独立审查。
-- **subagent**：原执行者负责开发、验证、修复；既有主会话管理依赖与结果，适用审查按仓合同安排。
-  团队 Reviewer 的职责边界不构成其他执行者的通用免审。
+  不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。执行者自检不能替代独立审查。
+- **CLI／subagent**：原执行者负责开发、验证、修复；既有主会话按[公共执行规范](execution-contract.md)管理依赖与结果，
+  显式传递规范和基线，以 target 为单位安排独立验收，复用同职责的现有审查。团队 Reviewer 的职责边界不构成其他执行者的通用免审。
 - **当次实现输出**：本次必要实现、验证与审查满足，且所需 PR 成功创建／更新后回报 PR URL、准确 head、
   对应证据、剩余限制与下一责任。执行者可选择留下等待 required checks 并自行修复失败，也可直接交接离场；PR Manager 均为兜底。不隐去已知失败或缺失验证。
   push／PR 失败不是本次实现成功；此交接不是 PR 最终交付或仓合同的远端 done，required gates 全部保留。

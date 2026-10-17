@@ -63,6 +63,20 @@
 scripts/install-symlinks.sh
 ```
 
+### CLI 默认规范
+
+让普通 Codex／Claude CLI 会话也遵守[公共执行规范](skills/workflow/execution-contract.md)，无需显式调用 skill：
+
+```bash
+python3 scripts/install-cli-workflow.py --client codex --client claude
+python3 scripts/install-cli-workflow.py --client codex --client claude --check
+```
+
+安装器在当前配置目录的全局 `AGENTS.md`／`CLAUDE.md` 中维护一个引用源码的薄入口，保留其他指令；
+Codex 已有非空 `AGENTS.override.md` 时使用该生效文件。源码 checkout 需要保留，迁移后重跑安装器。
+新会话加载入口；已启动会话需显式读取规范。委派时须传规范和受审基线，不能假设子会话继承。
+其他 CLI 在其受支持的全局指令入口引用同一文件；本安装器只配置这两种客户端，不部署远端 Dev Team runtime。
+
 Claude Code plugin marketplace:
 
 ```text

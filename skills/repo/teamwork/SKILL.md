@@ -16,10 +16,16 @@ Synchronously executes Dev Team workflow 02 in the current CLI session using sin
 
 Natural-language trigger: `Use teamwork to implement <feature>`.
 Activate only on explicit teamwork intent; casual prompts run directly without subagents.
+Direct CLI execution still follows the [common execution contract](../../workflow/execution-contract.md);
+it does not activate this team adapter.
 
 ## Single Source & Authority
 
 Roles resolve directly from the loaded bundle at `../../workflow/dev-team-roles/` (supporting full bundles and symlinks). If source roles or subagent capabilities are missing, fail closed with a setup blocker before executing any role. Never search target repositories or fall back to copied role files.
+
+All handoffs explicitly carry the [common execution contract](../../workflow/execution-contract.md)
+and accepted baseline. Goal/Target/Task decomposition and target-level review follow that single source;
+do not create a role invocation, PR or full review for every internal task.
 
 - [Team Lead](../../workflow/dev-team-roles/dev-team-team-lead/SKILL.md) — orchestration, scheduling, and escalation
 - [Planner](../../workflow/dev-team-roles/dev-team-planner/SKILL.md) — spec and task breakdown
@@ -34,10 +40,10 @@ The CLI session replaces Multica issue comments, mentions, and wakeups with sync
 
 1. **Preflight**: Verify bundle source roles exist and subagent capability is active; otherwise fail closed.
 2. **Team Lead**: Spawn Team Lead first for request confirmation and triage; await orchestration handoff.
-3. **Planner**: Spawn Planner with task intent; await reviewable spec and plan.
-4. **Spec Gate**: Spawn AI Reviewer with spec/plan; await verdict. Review rounds, same-root accumulation, targeted final review, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
-5. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan. Fullstack implements, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Retain writer identity if startup/receipt is unknown.
-6. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict (security/performance specialists are invoked by AI Reviewer on demand, never as fixed executing roles).
+3. **Planner**: If no valid unchanged baseline and breakdown are already reviewed, spawn Planner with goal intent; await one reviewable baseline including targets, tasks, dependencies and acceptance mapping. Reuse an already-reviewed unchanged baseline; do not re-plan for ledger updates.
+4. **Spec Gate**: For a new or changed reviewed baseline, spawn AI Reviewer with spec/plan; await verdict. Reuse valid exact-revision evidence otherwise. Review rounds, same-root accumulation, targeted final review, and escalation follow linked [squad](../../workflow/dev-team-roles/dev-team-squad/SKILL.md) rules.
+5. **Implementation**: Spawn Fullstack Engineer (sole writer) with approved plan and one target's tasks. Fullstack completes those tasks in dependency order, verifies (UI validation only for user-visible changes), self-reviews, commits locally, and freezes candidate SHA. Retain writer identity if startup/receipt is unknown.
+6. **Pre-Push Review**: Spawn AI Reviewer with frozen candidate SHA and base→candidate diff; await exact-SHA verdict confirming the target's task/acceptance coverage (security/performance specialists are invoked by AI Reviewer on demand, never as fixed executing roles). Repairs reuse the findings ledger and check the repair plus impact; preserve full target coverage and existing round limits.
 7. **Publish & Handoff**: Resume/reinvoke the already-created original Fullstack Engineer by identity (never spawn a replacement writer) and await that same subagent through pushing the reviewed SHA unchanged, opening a non-Draft PR, reporting the PR link/head, and handing off to external workflow 03 PR Manager (PRM is never spawned as a local subagent).
 
 ## Backend & Rules

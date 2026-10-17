@@ -8,10 +8,11 @@ description: 跨仓拆分与编排——把已确认的多 repo 目标拆成可�
 主 agent 只做：**计划 → 委派 → 观察 → 验收 → 向 Owner 报告**。实现、独立审查与 PR 交付保持职责分离。
 W0 是六个 workflow 的总图，本 skill 是跨仓协调入口。开始前读 [workflow 索引](../README.md) 中的聊天准入、执行版本、
 plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受保护操作权限。
+CLI 与 subagent 的拆分、执行、独立验收共同遵守[公共执行规范](../execution-contract.md)，不另建主管层或每 task 审查链。
 
 ## 1. 读状态（每次继续前）
 
-1. 读 goal 的**单页台账**（每 repo 一行：当前 PR/SHA、下一动作 owner、hold）。台账超过一页就先压缩再继续。
+1. 读 goal 的**单页台账**（每 target 一行：repo、责任人、状态、当前 PR/SHA、未决 findings／证据、下一动作或 hold）。台账超过一页就先压缩再继续。
 2. 刷新真实状态，不信历史描述：各 repo `gh pr list`、最近 CI run、Multica 相关 issue、正在跑的 agent 会话。
 3. 区分：已完成 / 在途（有唯一 owner）/ 等 Owner / 被外部故障阻塞。外部故障只阻塞依赖它的动作。
 
@@ -21,6 +22,8 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 
 - 将已确认方案中的各 repo 目标、验收和真实依赖写入本次 plan；跨 repo 按 provider → 发布 → 原任务消费者，
   指向适用版本的 repo guide/shared 规则，并写明每步完成后的下一动作。
+- 按 Goal → Target → Task 组织，target 是通常对应一个 PR 的交付结果，内部 task 不自动拆成 PR／agent。
+  plan 的基线与拆分一起审；执行进度及不改契约的内部补拆写台账，按公共规范区分重规划与准确版本证据刷新。
 - 先读[仓库已有的 layer/PR 规范](../README.md#仓库先定义角色再执行)。Dev Team 的 Planner 据此拆需求/spec task，编排者不另定义架构边界。
   其他 agent 也遵循同一仓库规范，但不要求 Dev Team 的 Planner/task 流程；合同缺失先按 repo-kit 在授权范围补齐，
   需要新权限则报告阻塞，而非让角色各定一套。
@@ -39,7 +42,8 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 派发先核对固定方案、Owner 执行确认和已有唯一 owner。所选团队离线或结果未知时保留版本与执行方，先对账再补派，不自动改派。
 内容包含[交接最小字段](../README.md#交接最小字段)，并指向仓库规范。给 Dev Team 的目标交其 Planner 复用、校验、补齐已有任务图，
 保留 spec/plan 审查；TL 按依赖推进。
-直接派发其他 agent 时写明目标 repo/base、任务与验收、“从 AGENTS.md 目录读取开发指南”、禁止事项及完成时回报 PR URL。
+直接派发其他 agent 时显式携带公共执行规范路径、受审基线／授权、target／task 与验收映射、目标 repo/base、
+owned paths、唯一执行者、“从 AGENTS.md 目录读取开发指南”、验证／独立验收职责、禁止事项及完成时回报 PR URL。
 主会话按 plan 接续 subagent 的后续动作。携带当前任务需要的指针，不假设执行者或部署角色会自动读到个人 skills 的更新。
 
 ## 4. 观察
@@ -59,6 +63,7 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 - 当次实现输出与交付完成分开；既有固定合同要求的远端 checks/review 仍须满足，不因本地完成或已交 PRM 放行。
 - 普通外部 PR 的[冲突保留终态](../README.md#普通外部-pr-的冲突保留终态)只收口本轮 PR 处理，不满足未交付的切片／目标验收；保留其分来源通知边界及作者更新后的 PRM 重处理路径。
 - 目标完成 = 所有切片完成 + goal 的整体验收项逐条有证据；不从“CI 绿”推断“已消费/已发布”。
+- target 独立 reviewer 逐项确认 task／验收证据，复用同职责的现有审查；执行者完成标记不等于独立验收。
 - 向 Owner 报告：完成了什么（链接）、还剩什么、哪些等 Owner、下一步。不写过程流水账。
 
 ## 红线
