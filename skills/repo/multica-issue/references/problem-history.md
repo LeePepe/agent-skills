@@ -44,7 +44,8 @@ Also write the relationship and evidence into the issue body so humans and agent
 ## Continuation and accepted scope
 
 Before routing follow-up work, apply the [workflow intake and repair boundaries](../../../workflow/README.md).
-New goals or material changes return to the same requirements intake; current defects and necessary in-scope tests remain with the original task.
+Frozen Task repairs retain the original writer; definition, dependency and test gaps follow
+the [execution contract](../../../workflow/execution-contract.md) R3–R5 rather than expanding the Target.
 
 ## Investigation without a safe next step
 

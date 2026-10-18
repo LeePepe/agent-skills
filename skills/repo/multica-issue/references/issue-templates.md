@@ -13,7 +13,7 @@
 - **该层 test** —— 从同 frontmatter 的 `test` 抄,修完跑这条验证。
 
 实现类 body 同时引用固定的方案版本、Owner 对本版执行的确认、唯一执行方和所用 guide/shared 版本。
-涉及多个层时分别列出适用约束，不据层数机械拆 issue；已有 plan/tasks 直接引用并补齐缺项。
+涉及多个层时分别列出适用约束；三层定义与 revision 遵守[执行合同](../../../workflow/execution-contract.md)。
 这些表达也可用于普通需求草稿；维护发现或待澄清结论没有实施意图时保持未派发，不能因套用模板自动 assign／转 todo。
 原修复查证无安全下一步时沿 [问题历史](problem-history.md#investigation-without-a-safe-next-step) 等 Owner 决定，不另造 task 类型。
 
@@ -21,6 +21,25 @@
 > 会带一段 `## 现状基线(basis: main)` 列具体文件/行号 —— 这是**刻意**的,给 dev team 一个精确起点。
 > 所以本模板**允许**一段带 `basis:<ref>` 标注的现状基线;但**行为契约段(Desired/Acceptance)仍不绑路径**,
 > 只描述行为。两者分工:基线段=当下事实(会过时,标了 ref 就行),契约段=目标行为(durable)。
+
+**所有实现类 body 先放共同定义段**（行为段之外显式固定文件／接口范围），再填对应模板，最后加 Working Directory 尾段：
+
+```markdown
+## Goal / Target / revision
+- Goal: <ID、结果、整体验收与不做项；或固定定义链接>
+- Target: <ID、本 issue 的独立交付物、父 Goal、唯一写者>
+- Frozen revision / authorization: <准确 revision 与授权来源>
+- Scope: <文件、接口、涉及代码层及排除项>
+- Prerequisite Targets: <真实 key 或 None>
+
+## Internal Tasks（不另建 issue）
+| Task ID | 输出与文件／接口／层 | AC ID | 验证命令 | 前置 Task／Target |
+|---|---|---|---|---|
+| <T001> | <指定输出> | <AC1> | <command> | <None> |
+
+```
+
+下方各模板的 Acceptance criteria 使用稳定 AC ID，并逐项写验证命令及所需证据；内部 Tasks 引用这些 ID。
 
 ---
 
@@ -69,16 +88,16 @@ bug
 
 ---
 
-## 模板 2 —— Feature task(speckit sub-issue)
+## 模板 2 —— Feature Target(speckit bridge)
 
-一个 sub-issue = tasks.md 的一个 task。标题 `[T###] [Story] Brief`。
+一个实现 issue = 一个 Target，包含 tasks.md 的一个或多个内部 Tasks。标题 `[Target <ID>] Brief`。
 
 ```markdown
 ## Parent
 <parent feature issue 的 key,如 MY-1234;指向 specs/NNN-name/spec.md>
 
 ## What to build
-<这个 task 在仓库已定义 PR 单元内交付的行为。描述行为,不逐文件写实现。
+<这个 Target 在仓库已定义 PR 单元内交付的行为。具体范围和内部 Tasks 写在共同定义段。
 若 speckit 的 plan/prototype 产出了精确的决策片段(状态机 / schema / 类型形状),可内联那几行。>
 
 ## Acceptance criteria
@@ -86,13 +105,13 @@ bug
 - [ ] <可 demo / 可测的验收 2>
 
 ## Blocked by
-<依赖的具体 task key(如 MY-1235);无则写 "None — 可立即开始"。与 --stage 配合。>
+<前置 Target 的真实 issue key(如 MY-1235)；无则写 None。内部 Task 依赖留在共同定义段。>
 
 ## Constitution refs
 <reference 宪法章节,如「Constitution §III SPM Package 优先」;不重述规则。>
 
 ## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
-- **layer**: <本 task 涉及哪些层;逐层列出下方约束>
+- **layer**: <本 Target 涉及哪些层;逐层列出下方约束>
 - **depends_on**: <该层允许依赖的 layer,别引入反向依赖>
 - **red_lines**: <抄该层 frontmatter red_lines>
 - **test**(交付前跑): `<抄该层 frontmatter test>`
@@ -107,10 +126,12 @@ bug
 ## Spec
 specs/NNN-name/spec.md(+ plan.md / tasks.md)
 
-## Tasks(按 stage)
-- Stage 1: [T001] ... (MY-xxxx)
-- Stage 2: [T002] ... (MY-xxxx)
-- Stage 3: [T003] ... (MY-xxxx)
+## Goal acceptance
+<整体范围、不做项、依赖与每项端到端验收命令>
+
+## Targets(按依赖 stage；parent 仅汇总，不派实现)
+- Stage 1: <Target ID、范围、AC IDs、issue key>
+- Stage 2: <Target ID、范围、AC IDs、issue key>
 
 ## Constitution refs
 <涉及的宪法章节>
@@ -189,7 +210,7 @@ dispatch,所以不追加 Working Directory 尾段。
 
 ## 强制尾段 —— Working Directory 隔离(每个实现类 issue 都要带,CRITICAL)
 
-**每一个实现类** issue body(bug / feature-task / arch 三类)末尾**必须**追加下面这段,
+**每一个实现类** issue body(bug / feature-target / arch 三类)末尾**必须**追加下面这段,
 放在 body 最后；工作树位置从当前任务运行信息核实，不猜测本机目录。
 
 ```markdown
@@ -209,11 +230,11 @@ dispatch,所以不追加 Working Directory 尾段。
 
 ## 填充清单(落任何 issue 前自检)
 
-- [ ] 标题前缀对(`[Bug]` / `[T###] [Story]` / `[Arch]` / `[Outcome Check]`)
+- [ ] 标题前缀对(`[Bug]` / `[Target <ID>]` / `[Arch]` / `[Outcome Check]`)
 - [ ] `## Layer 约束` 的 red_lines + test **来自该层 CONTEXT.md frontmatter**,不是编的
 - [ ] Acceptance 至少一条、且**可测**(能对应一条命令 / 一个可观察结果)
 - [ ] 行为契约段不绑文件路径(基线段可以,标 basis ref)
-- [ ] 按单目标、真实依赖和仓库 PR 单元拆分，各项有验收；没有按 layer 数机械切分
+- [ ] 每个实现 issue 一个冻结 Target，内部 Tasks 映射输出／AC／命令／依赖，共同定义段齐全
 - [ ] 与宪法冲突 → 已获相应政策授权并完成所需 ADR/宪法审查，没有自行放松规则
 - [ ] **每个实现类 body 末尾都带了 `## Working Directory` 强制尾段**(见上,防主 checkout 污染)
 - [ ] Bug 已生成 `problem_fingerprint` 并搜索 active + closed 历史;关系与 affected build 有证据

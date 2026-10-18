@@ -68,11 +68,11 @@ echo "PROJECT_ID=$PROJECT_ID"
 
 | flag | 用途 |
 |---|---|
-| `--title` (必填) | issue 标题。约定前缀:`[Bug] <layer>:`、`[T###] [Story]`(speckit task)、`[Arch]` |
+| `--title` (必填) | issue 标题。约定前缀:`[Bug] <layer>:`、`[Target <ID>]`(speckit bridge)、`[Arch]` |
 | `--project <id>` | 挂到反查出的 project |
 | `--description-file <path>` | **body 从文件读**,保留多行/中文,verbatim。**首选**,不用 `--description` |
 | `--parent <issue-id>` | 挂到 parent issue(feature 总述下的 sub-issue) |
-| `--stage <N>` | staged barrier:同 stage 全完成才唤醒 parent 的 assignee。对应 tasks.md 依赖组 |
+| `--stage <N>` | staged barrier:同 stage 全完成才唤醒 parent 的 assignee。对应 Target 间依赖，内部 Tasks 不落 issue |
 | `--to "Dev Team"` / `--to-id <squad-uuid>` | assign 给 Dev Team squad(dispatch 第1步;第2步是转 todo) |
 | `--priority <p>` | 优先级(bug 建议设) |
 | `--status <s>` | `todo`=触发 pipeline 第2步;`backlog`=暂存不跑(即使已 assign squad) |
@@ -155,7 +155,8 @@ Outcome Check 到此完成:保持 backlog,不 assign Dev Team,不转 todo,不调
 
 ## 依赖顺序 + staged barrier(feature 路径)
 
-speckit 的 tasks.md 常有依赖组(Stage 1 数据层 → Stage 2 组件 → Stage 3 接线)。落法:
+按[执行合同](../../../workflow/execution-contract.md)把 tasks.md 映射进已定义 Targets。
+下面两个 Target 可独立验收且有前置依赖；同一交付的组件／接线 Tasks 只列在 target-a.md 内。
 
 ```bash
 # 1. 先建 parent(feature 总述),拿到 PARENT_KEY
@@ -164,17 +165,15 @@ multica issue create --project "$PROJECT_ID" \
   --output json > parent.json
 PARENT_KEY=$(python3 -c "import sys,json;print(json.load(open('parent.json'))['identifier'])")
 
-# 2. 各 task 作为 sub-issue,按 stage 分组;blocker 先建
+# 2. 每 Target 一个实现 sub-issue；body 含冻结定义与内部 Task 映射，blocker 先建
 multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 1 \
-  --title '[T001] [数据层] Exercise 默认值' --description-file t001.md
+  --title '[Target A] 自定义键盘完整接入' --description-file target-a.md
 multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 2 \
-  --title '[T002] [键盘] WorkoutNumericKeyboard 组件' --description-file t002.md
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 3 \
-  --title '[T003] [接线] SetRow 接入键盘' --description-file t003.md
+  --title '[Target B] 键盘使用数据可查询' --description-file target-b.md
 ```
 
-> 若某 task 显式依赖另一个具体 task,除了 stage,还可在 body 的 **Blocked by** 段写上真实 key
-> (所以要 blocker 先建)。stage 管「批次唤醒」,Blocked-by 管「人读的依赖说明」。
+> **Blocked by** 引用前置 Target 的真实 key（blocker 先建）；内部 Task 依赖引用 Task ID。
+> stage 管批次唤醒，不替代依赖说明；Goal parent 仅汇总，不派实现。
 
 ---
 

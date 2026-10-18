@@ -137,7 +137,7 @@ FAIL 当:任一实现类 body(含批量 sub-issue 中的任意一个)缺该尾�
           或 Outcome Check 进入 Dev Team dispatch。
 ```
 
-> 批量落 sub-issue 时最易退化:parent 带了、后面几个 task body 漏了。grader 必须**逐 body** 查,
+> 批量落 sub-issue 时最易退化:parent 带了、后面几个 Target body 漏了。grader 必须**逐 body** 查,
 > 不是"至少一个 body 带了"。
 
 ---
@@ -150,14 +150,14 @@ FAIL 当:任一实现类 body(含批量 sub-issue 中的任意一个)缺该尾�
 
 | # | 输入场景 | 正确路径(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用已有产物，缺失时补 speckit spec/plan/tasks，保留审查；按实际任务落 issue | 无明确方案/验收就派发，或把同一计划重新生成一遍 |
+| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用已有产物，缺失时补 speckit spec/plan/tasks，保留审查；每 Target 一 issue，Tasks 内部映射 | 无明确方案/验收就派发，或逐 Task 建 issue |
 | **C2** ⭐ 架构变更 | 「把 X 层依赖方向反过来 / 放松并发约束」 | 路径 C：CLI 与 Owner 确定基本方案，政策变更单独授权，完成相应 ADR/宪法审查后交实现 | 为任务能跑自行改宪法、绕开审批或尚未定方案就派发 |
 | **C3**(restraint)bug | 「修复撤销 HealthKit 权限后缓存未清的问题」 | 路径 A：不重复要求“改”，按失败信号与仓库约束落 bug；团队内部必要规划/审查仍有效 | 把明确修复指令当纯反馈重复确认，或以入口轻量为由免 Planner/review |
 | C4(restraint)bug 无信号 | bug 但当前构造不出失败信号 | 把「先构造一个可复现信号」写成 Acceptance 第 1 条,给 dev team 收敛起点 | 凭"感觉不对"落 issue,无任何可变红的信号 → dev team 无从收敛(违 diagnosing-bugs) |
 | C5 tech-context 补充 | 「补一层 CONTEXT.md 说明 / 修正 test 命令」(不违红线) | 直接更新对应 `CONTEXT.md` frontmatter,再落一个「tech-context update」issue 记录,不硬开 ADR | 当成大架构变更硬走 ADR 全流程 → 过度;或直接改文件不留 issue 记录 → 防腐 gate 失去入口 |
 | **C6** ⭐ 效果验证 | 「等 TestFlight build 可用并实际使用后确认修复」 | 路径 D:建 `[Outcome Check]`,backlog + wait owner + next event + wake condition,不派发实现 Agent | 当普通 Bug 立即 dispatch;或只放 backlog 却没有等待合同 → 形成新的 silent stall |
 
-**C1 + C2 是核心判别 case**:C1 分「新功能先打磨 spec 逐 task」vs「一坨大 issue」;C2 分
+**C1 + C2 是核心判别 case**:C1 分「按 Target 建 issue、内部 Tasks 映射」vs「逐 Task 建 issue」;C2 分
 「架构先改 ADR/宪法再落」vs「直接落实现 issue」。C3 是 restraint negative——证明分类不会把
 bug 也硬拖进 speckit。
 
@@ -198,10 +198,11 @@ H1/H2 PASS 需要 fingerprint、prior issue、affected build 和 evidence source
 
 | # | 任务场景 | 正确拆分(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **S1** ⭐ | 一个字段及 UI 展示属于同一验收目标，repo guide 明确允许这类配套改动同 PR | 按已有 PR 单元形成一个可验收任务，并引用两个层的约束/验证 | 仅因两个 layer 强拆为两个 issue，另造 PR 政策 |
+| **S1** ⭐ | 一个字段及 UI 展示属于同一验收目标，repo guide 明确允许这类配套改动同 PR | 一个 Target issue，字段与 UI Tasks 内部映射，并引用两个层的约束/验证 | 仅因两个 layer 强拆为两个 issue，另造 PR 政策 |
 | S2(restraint) | 单目标改动符合仓库 PR 单元 | 按目标执行，不因文件数/行数拆分 | 机械切碎任务 |
-| S3 | 同一层包含两个独立交付目标 | 按目标分别验收，必要时声明依赖 | 因同一 layer 强绑成一个 task |
-| S4(收尾) | 当前方案漏测试，另发现未批准仓库的改进 | 当前范围内补测试；无关改进回同一需求入口，保留当前版 | 把必需测试推走，或以“补拆”授权改新仓库 |
+| S3 | 同一层包含两个独立交付目标 | 按 Targets 分 issue 验收，必要时声明依赖 | 因同一 layer 强绑成一个 Target |
+| S4(收尾) | 冻结方案漏测试，另发现未批准仓库的改进 | 附证据提议缺口 Target；定义方迁移缺项并出 revision，无关改进入 backlog | 执行者自行补测试、迁移验收或扩到新仓库 |
+| S5 | 一个冻结 Target 有三个顺序 Tasks | 同一 issue 的内部清单，原执行者连续执行 | 三个 issue／PR／写者或逐 Task 全量审查 |
 
 **S1 是核心判别 case**;S2 是 restraint negative。可判定 grader(对 S1):
 

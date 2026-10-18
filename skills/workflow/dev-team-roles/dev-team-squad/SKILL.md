@@ -5,17 +5,20 @@ description: Shared Dev Team squad rules in Multica (workflow boundary, flow, ha
 
 # Dev Team Squad Instructions
 
-Dev Team delivers one ready issue from spec to merged PR. Each role's instructions define its
+Dev Team delivers one Target per implementation issue from spec to merged PR. Each role's instructions define its
 responsibility; this text defines only the shared flow, handoffs and merge rules. In-repo rules come
 from the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
 documented rules and gates. Project exceptions never belong in squad or role text.
 
+Read the [execution contract](../../execution-contract.md) for Goal/Target/Task definitions,
+assignment authority, frozen revisions, gap routing and scoped review. Role files add only their operational duties.
+
 ## Workflow boundary and accepted version
 
 W0 is the overall map of six workflows: 01 requirements and planning, 02 implementation, 03 PR
 takeover and delivery, 04 automated release, 05 product telemetry analysis, and 06 periodic
-maintenance (HOLD). Task decomposition belongs inside requirements and planning. Recovery and Owner decisions
+maintenance (HOLD). Definition authority follows the contract's assignment rules. Recovery and Owner decisions
 belong to each workflow; neither W0 nor these duties creates another supervisor. Legacy W2/W3/W4/W6
 labels in existing artifacts do not change an already dispatched version.
 
@@ -25,15 +28,8 @@ labels in existing artifacts do not change an already dispatched version.
   basic implementation approach before handing work to Dev Team or subagents. Unselected design
   exploration is not default team implementation input. An explicit choice of the current CLI as
   executor still follows repo rules.
-- Bind execution and acceptance to the handed-off plan version. Record later design changes for
-  the next version, dispatched only after Owner explicitly confirms both finalization and
-  execution; confirming one design opinion is insufficient. Report real failures and safety
-  blockers in the current version, never defer them to claim completion.
-- Each PR serves one goal; layer count does not determine task/PR count. Necessary omitted
-  adaptation or tests may be recorded in the current version within its existing repos, scope,
-  approach, acceptance and authority, with no added repo, permission or writer. TL schedules Dev
-  Team dependencies; subagent ordering stays in the plan and the original main-session dispatch
-  relationship, with no added supervisor.
+- Bind execution to the contract's frozen Target revision. TL schedules Target dependencies;
+  subagent ordering stays with the original main-session dispatch relationship.
 - Work needs a spec or docs before implementation; Spec Kit is not required. Small changes: the
   issue description (current, desired, scope, acceptance) is the spec. Larger features: a spec or
   design doc in the repo, using Spec Kit only where the repo already does. See Planner's "What
@@ -63,28 +59,18 @@ Planner ⇄ AI Reviewer (spec gate) → Team Lead → FS implement
 
 Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
-1. **Spec gate** — AI Reviewer checks requirement completeness, that *existing behaviour /
-   compatibility / removed behaviour* are filled, and the constitution. Spec errors stop here.
-2. **Pre-push review** — AI Reviewer reads the spec/issue acceptance and the diff + tests directly:
-   does the implementation complete it (gaps cited), any unrequested behaviour change, any removed
-   or weakened existing test; plus architecture (changed paths resolve to the declared layers,
-   `depends_on` respected, no edits outside owned paths, shared libraries used per their pinned
-   `ai/`). `PASS` / `NEEDS_WORK` with cited findings, bound to the SHA; not a merge gate.
+1. **Spec gate** — AI Reviewer checks the Target definition and AC/Task mapping under contract V1.
+2. **Pre-push review** — AI Reviewer applies contract V1–V3 to the exact candidate and command
+   evidence; spec + architecture findings cite accepted ACs or repository red lines.
+   `PASS` / `NEEDS_WORK` is bound to the SHA; not a merge gate.
 3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft (Owner waits use
    `owner-review`); the PR template carries *Existing behaviour*,
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
-4. **CI + ship** — handing off a PR is not done; done is required checks green on that head. The
+4. **CI + ship** — Target completion follows the contract's acceptance and legal-merge boundary. The
    author may stay to watch required checks and fix failures, or hand off and leave; PRM is the
    backstop either way and ships on the server-required checks (below).
 
-Any new SHA invalidates the review; FS gets a new one before pushing it. At most 2 review rounds per
-root problem, then Team Lead; after round 2 returns `NEEDS_WORK`, Team Lead may authorize one final
-targeted spec-gate round (only when every remaining finding cites an exact location, the required
-correction is mechanical and requires no product or design choice, and the correction remains inside the
-accepted scope) or one final targeted pre-push round without the Owner (when all remaining findings cite
-exact locations and require no design or product choice, fixes stay inside already-reviewed paths and scope
-with no new files or dependencies, no protected content is touched (CODEOWNERS paths, `.github/**`, gates
-or reviewer policy, `AGENTS.md`), and no test is removed or weakened). AI Reviewer covers spec + architecture
+Any new SHA needs current review evidence under contract V3. AI Reviewer covers spec + architecture
 pre-push; `codex-review-target` covers defects/standards at the PR head. Neither repeats the other's job.
 
 ## Handoffs
@@ -104,13 +90,8 @@ pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
   recovery, query receipt/run state and deduplicate before resending; an unknown result is not
   proof of non-execution. Never blindly replay or automatically switch to the current CLI or a
   subagent. Persistent failure goes to TL as a blocker; this adds no background recovery service.
-- Current-version implementation gaps return to the original FS. After two repair/verification/
-  review rounds without material progress on the same problem (or if round 2 fails without qualifying
-  for Team Lead's one targeted final round, or if any blocking finding remains after that final round),
-  TL diagnoses why it remains unfixed. If still unresolved, TL escalates to Owner with unmet
-  requirements, attempts/results, known causes, unknowns and a recommendation, including technically
-  unsolved cases. Preserve acceptance and cumulative history; changing agent, run, SHA, rename or
-  task identity never resets the budget.
+- Gap and exhausted-review handoffs go through TL to the definer under contract R3–R5/V3;
+  include unmet requirements, attempts/results, known causes, unknowns and a recommendation.
 - Follow the workspace `Delivery workspace protocol`; every role reuses the one issue-scoped
   checkout through delivery and cleanup.
 

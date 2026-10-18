@@ -15,6 +15,8 @@ architecture, bound to FS's local HEAD) → FS push + PR → CI (aggregate gate,
 
 ## Where rules come from
 
+- Follow the [execution contract](../../execution-contract.md) for the three layers, Target authority,
+  frozen definitions, gap routing and review limits; retain the original role/assignment binding.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA). Do not copy or restate repo rules
   here; without a shared-ci pin, follow the repo's documented rules and gates.
@@ -50,16 +52,13 @@ version until Owner confirms finalization and execution; report current failures
 | Stage | Ready when | Dispatch |
 |---|---|---|
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
-| Implementation | spec-gate PASS on the breakdown; task dependencies done; no conflicting parallel files/contracts | Fullstack Engineer for one goal with explicit owned paths; do not split solely by layer count |
-| Pre-push review | FS owns its loop with AI Reviewer | none (intervene only on re-scope, dispute, 2-round exhaustion/final-round check) |
+| Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
+| Pre-push review | FS owns its loop with AI Reviewer | none (route gaps, disputes or exhausted rounds to the definer) |
 | Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
-| Closure | PRM confirmed the exact revision reached its target | mark the implementation child done (PRM closes pure PR-tracking issues itself); promote unblocked tasks; close parent when all required children are terminal |
+| Closure | PRM confirmed legal merge; Target acceptance has evidence | mark the Target issue done; promote unblocked Targets; close Goal only with its end-to-end evidence |
 
-- On an FS gap signal: necessary omitted adaptation/tests within the existing repos, scope,
-  approach, acceptance and authority stay in the current version, recorded and returned to the
-  original FS with dependencies made explicit. Use Planner to fill planning gaps and retain the
-  applicable spec/plan gate. Add no repo, permission or writer under this allowance. A new design
-  or scope goes to the next version for Owner finalization and execution approval.
+- On an FS gap signal, route the evidence through contract R3–R5; have Planner prepare any
+  definition delta and retain its exact-revision gate. Keep the Target/AC mapping in the issue.
 - A merged PR with an open issue is a closure action, not a new ship action.
 - Dev Team never opens Draft PRs. A Dev Team Draft PR is a defect: dispatch the original FS to mark
   it Ready. Owner waits are expressed with `owner-review` and CODEOWNERS approval.
@@ -85,17 +84,8 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
   proof holds, preserve the worktree, confirm no run or orphan process still owns it, then send FS
   one recovery dispatch naming the exact missing evidence. Never overlap runs.
 - Never request implementation review on FS's behalf; route FS to publish a corrected request.
-- Two repair/verification/review rounds without material progress on the same root problem, or
-  FS reporting the spec cannot be met, requires your diagnosis of why it remains unfixed. Inspect
-  unmet requirements and attempts/results; distinguish an implementation gap from a plan defect
-  or technical limit. If round 2 returned `NEEDS_WORK`, you may authorize one final targeted
-  implementation round without the Owner only if all of these hold: every remaining finding cites an
-  exact location and requires no design or product choice; the fix stays inside already-reviewed
-  paths and scope with no new files or dependencies; no protected content is touched (CODEOWNERS
-  paths, `.github/**`, gates or reviewer policy, `AGENTS.md`); and no test is removed or weakened.
-  Otherwise, or if any blocking finding remains after that final round, diagnose and if still
-  unresolved escalate to Owner. Never dispatch an automatic third round, lower acceptance or change
-  agent, run, SHA, rename or task identity to reset history.
+- Route exhausted review or an infeasible spec to the definer under contract V3, with unmet
+  requirements and attempts/results; distinguish implementation, definition and environment causes.
 - A spec/plan found wrong after implementation started (e.g. a removed behaviour nobody approved)
   goes back to Planner Lead and the spec gate, not to FS as a code fix.
 
@@ -115,7 +105,7 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 ## Routine PR repairs
 
-- Merge conflicts, red CI and review findings on FS-implemented or agent/Owner-authored PRs are routine: dispatch Fullstack Engineer
+- In-scope merge conflicts and review fixes on FS-implemented or agent/Owner-authored PRs are routine: dispatch Fullstack Engineer
   on the existing PR branch in the daemon-provided isolated workdir. Default to a fresh issue-scoped
   checkout of that branch when no reusable recorded workspace exists; no Owner authorization or "recovery checkout" request is needed.
 - FS merges the base into the PR branch (no rebase/force-push), gets fresh pre-push `PASS` for the new
@@ -125,7 +115,7 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   is not routine → Owner (Important/decision rules apply). In product repositories, review findings
   flagging changed behaviour or removed/weakened tests return to the implementer or Team Lead's
   Owner-decision path, rather than creating a direct Owner wait.
-- Current-version implementation gaps go back to the original FS. Policy/intent conflicts
+- Definition/dependency gaps follow contract R3. Policy/intent conflicts
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
   also go to Owner, even when no permission is missing.
@@ -140,10 +130,8 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 - Classify before retrying: readiness gap, implementation defect, stale review, CI/infra, external
   authority, or workflow/config defect. Never repeat an identical dispatch without new evidence.
-- Retry budgets are cumulative per issue/PR and root problem: at most 2 automatic repair rounds and
-  2 reruns of the same error, platform retries included (with at most one Team-Lead-authorized final
-  targeted pre-push round for qualifying located fixes); changing agent, run, SHA, rename or task
-  identity does not reset them. Unknown count = no retry; escalate.
+- Apply contract V3's review budget; at most 2 reruns of the same execution error, platform retries
+  included. Unknown count = no retry; escalate.
 - When you park delivery (`blocked`/`backlog`, including exhausted rounds) or abandon/cancel it,
   the disposition comment carries one line:
 

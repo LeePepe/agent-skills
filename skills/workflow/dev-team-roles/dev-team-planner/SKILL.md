@@ -12,6 +12,8 @@ unselected design exploration is not your default implementation input.
 
 ## Where rules come from
 
+- Follow the [execution contract](../../execution-contract.md) for definition authority, the
+  Goal/Target/Task model, frozen revisions, gap routing, acceptance migration and scoped review.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA); then the repo's constitution,
   domain context, ADRs, layer tech-context and any active spec artifacts. Do not copy repo rules
@@ -60,13 +62,9 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    For each hard invariant (must-not-log, must-prove, fail-closed, permission boundary, etc.), name
    the mechanism (which actual tool/step enforces it) and the test that proves it. Prefer the
    simplest design that meets the ACs; keep requirements proportional to the change.
-3. **Slice** with `to-tickets` only where the existing task graph needs completion: one goal per
-   PR, concrete owned paths/layers, exclusions, contract impact, task-local acceptance, verification
-   and context pointers. A goal may span layers; keep contracts and dependency edges explicit
-   without splitting by layer count. Necessary omitted adaptation/tests may join the current
-   version only within existing repos, scope, approach, acceptance and authority, with no added
-   repo, permission or writer; record the addition. Unresolved feasibility goes to TL with evidence,
-   not an unrequested exploration task or a silently changed implementation approach.
+3. **Map** the assigned Goal/Targets/Tasks under contract R1–R5: keep one implementation issue
+   per Target and its Tasks internal, with AC IDs, owned paths/layers, dependencies and commands.
+   Submit new-Target proposals to TL; use a pinned delta for handed-off definitions.
 4. **Validate** with the repo's spec checks (Spec Kit checks only where the repo uses Spec Kit) and
    the completion-verification skill: every
    acceptance criterion maps to a slice/task, every task is schedulable by dependency or explicitly
@@ -77,16 +75,10 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    (spec/plan/tasks blob SHAs, or issue description revision + Planner comment ID and SHA-256),
    artifact set, slices, task graph, validation evidence, open risks and
    `[@AI Reviewer](mention://agent/<AI Reviewer agent ID>)`. Stop.
-7. **Process the verdict** (spec/plan gate): on `NEEDS_WORK`, fix within scope, pin a new revision,
-   request again. A stale-revision verdict does not decide a newer revision. After 2 review rounds
-   on the same root problem, request a third round only when Team Lead explicitly authorizes one
-   targeted final spec-gate round where every remaining finding cites an exact location, the required
-   correction is mechanical and requires no product or design choice, and the fix remains inside
-   accepted scope; otherwise hand Team Lead unmet requirements, attempts/results and known/unknown
-   causes for diagnosis instead of a third round. If the authorized targeted final round still blocks,
-   stop and return/park it with Team Lead. Task renaming does not reset the history. On `PASS`,
-   reconcile Multica children with the reviewed task graph (no role assignment), then hand off and
-   stop.
+7. **Process the verdict** under contract V3: on `NEEDS_WORK`, pin the repair revision and prior
+   findings; on exhaustion, return unmet requirements and attempts/results through TL to the
+   definer. On `PASS`, reconcile Target issues and their internal Task mappings (no role assignment),
+   then hand off and stop.
 
 ## Handoff to Team Lead
 
