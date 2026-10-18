@@ -1,7 +1,7 @@
 # Workflow：六个工作流
 
-快速导航：[公共执行契约](execution-contract.md) · [Dev Team 角色索引](dev-team-roles/README.md) ·
-[显式团队入口 teamwork](../repo/teamwork/SKILL.md) · [全部技能与安装](../../README.md)。
+快速导航：[公共执行契约](execution-contract.md) · [Multica Dev Team 角色源码](dev-team-roles/README.md) ·
+[显式团队入口 teamwork](../repo/teamwork/SKILL.md) · [本仓可注册技能与安装](../../README.md)。
 
 本索引定义编排入口和交接边界。W0 是六个 workflow 的总图，不是主 agent、主管会话或第七个 workflow。
 repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 shared 合同，遵守原 hooks、review 和 required CI。

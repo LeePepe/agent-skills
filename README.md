@@ -8,10 +8,11 @@
 
 | 要找什么 | 入口与用途 |
 |---|---|
-| 全部技能 | [Skills 目录](#skills)与机器索引 [`skills.json`](skills.json)；按现有五类组织 |
+| 本仓可注册技能 | [Skills 目录](#skills)与机器索引 [`skills.json`](skills.json)；按现有五类组织 |
 | 工作流 | [六个 workflow 总览](skills/workflow/README.md)，按任务找到入口与交接边界 |
 | 公共执行规则 | [CLI／subagent 执行契约](skills/workflow/execution-contract.md)，政策正文集中在这里 |
-| 团队入口与角色 | 显式团队入口 [`teamwork`](skills/repo/teamwork/SKILL.md)；[Dev Team 角色索引](skills/workflow/dev-team-roles/README.md)维护角色源码，不属于下方本机 skill 注册目录；本地文件不代表远端已部署 |
+| 显式团队入口 | [`teamwork`](skills/repo/teamwork/SKILL.md) |
+| Multica 角色源码 | [Dev Team 角色索引](skills/workflow/dev-team-roles/README.md)维护七项角色源码，不属于下方本机 skill 注册目录；workspace 已安装技能与 agent 实际绑定需分别查询 |
 | 安装与更新入口 | [安装](#安装)：skill 安装与 CLI 公共规范安装分别操作；本地安装目录保存指向源码 checkout 的链接，不是另一份源码 |
 | 规划与历史 | [`specs/001-code-review/`](specs/001-code-review/)是该功能的交付材料；具体执行证据沿原任务／交接记录查找。审计 skill 内的 dated evidence 按项目和时间范围使用，不替代现行规则 |
 
