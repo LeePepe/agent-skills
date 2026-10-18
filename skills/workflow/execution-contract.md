@@ -47,8 +47,8 @@ Goal／Target／Tasks、owned paths、允许操作、唯一写者、验收命令
   reviewer 直接读准确 revision 的定义、diff 和命令证据，不以执行者勾选代替确认；记录验收项、位置、证据及结论。
   内容 reviewer 不重复执行或裁定 build/test/lint/hooks/CI；执行者和 CI 提供命令结果，缺必要证据不能算通过。
 - **V2 范围外不阻塞**：范围外发现记 backlog，不阻塞当前 Target；只有安全、隐私或数据丢失类 P0 例外，TL 或 lead 可按 R4 将其变成新 Target。
-- **V3 复审与上限**：复审只核对上一轮的问题；同一问题两轮仍不过即交回定义方，不开第三轮，换 agent、run、SHA 或任务名不重置历史。
-  复审携带原 findings、前后 revision、repair diff 和证据，逐项标记已修复／未修复；范围外发现仍按 V2 处理，不追加其他阻塞。
+- **V3 复审与上限**：复审核对上一轮的问题和本次修复 diff；修复引入的验收或强制规则违规仍阻塞，未改动代码不重新扫描；同一问题两轮仍不过即交回定义方，不开第三轮，换 agent、run、SHA 或任务名不重置历史。
+  复审携带原 findings、前后 revision、repair diff 和证据，逐项标记已修复／未修复并列出修复引入的回归；范围外发现仍按 V2 处理。
   新 SHA 需要该 SHA 的证据，但不扩大复审范围；定义改动仅审 R2／R5 的 delta。
 - **V4 CI 范围**：CI 的 codex-review 应仅审 Target 范围或只作参考；shared-ci 门禁修改属于独立 Target，须 Owner 批准，本合同不自行更改或绕过现有门禁。
 

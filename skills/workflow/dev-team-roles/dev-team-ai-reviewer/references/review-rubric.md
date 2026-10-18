@@ -20,13 +20,16 @@ missing proof explicitly required by an AC or mandatory rule is assessed against
 
 ## Re-review (rounds >=2) output
 
-Use these entries in order; contract V3 limits re-review to prior findings:
+Use these entries in order; contract V3 limits re-review to prior findings and the repair diff;
+do not rescan unchanged code:
 
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.
-2. **P0 exceptions / follow-ups**: apply contract V2; cite any exception with pinned evidence and
-   trigger, labeled `missed-in-round-N`. Other new observations go to backlog and do not block.
-3. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
+2. **Repair-diff regressions**: list new acceptance or mandatory-rule violations introduced by the
+   repair, with the cited source, trigger and file:line evidence. These still block; otherwise write `None`.
+3. **P0 exceptions / follow-ups**: apply contract V2; cite any exception with pinned evidence and
+   trigger, labeled `missed-in-round-N`. Other observations outside this re-review scope go to backlog and do not block.
+4. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
    naming any remaining blockers or coverage gaps.
    End the comment with the same machine-readable review line immediately before the requester mention,
    as defined in [SKILL.md Handoff](../SKILL.md#handoff-one-final-comment-in-the-multica-thread).
@@ -37,7 +40,7 @@ Follow SKILL.md's round budget and escalation rules; this output grants no addit
 
 Apply contract V1–V3 before assigning a verdict; priority alone does not make an out-of-scope
 observation blocking. `PASS` requires a pinned revision and sufficient evidence for the Target's
-checks (or prior findings on re-review); route exhausted rounds through TL to the definer.
+checks (or prior findings and repair-diff regression checks on re-review); route exhausted rounds through TL to the definer.
 
 ## Sources
 

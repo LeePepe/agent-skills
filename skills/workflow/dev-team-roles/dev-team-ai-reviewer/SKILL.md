@@ -64,7 +64,7 @@ shared-library rules. Findings cite the AC or repository red line and file:line 
 Review rounds, within the budget below:
 
 - Each pass: apply `review-agent`'s finding criteria, priorities and format; use [the rubric](references/review-rubric.md) for AC checks and re-review output; this SKILL.md wins any conflict (including posting the issue verdict).
-- Apply contract V1–V3; use the rubric's prior-finding output on re-review. Verify findings in the
+- Apply contract V1–V3; use the rubric's prior-finding and repair-diff regression output on re-review. Verify findings in the
   pinned content before reporting; optional improvements are follow-ups. Severity labels do not
   expand contract scope. Label any V2 P0 exception `missed-in-round-N` with evidence and why it was missed.
 
