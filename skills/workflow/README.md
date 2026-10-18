@@ -13,15 +13,15 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
-| 01 需求沟通与规划 | 主 agent 将原始需求／证据交规划 worker，由其确定或校验 Goal、Targets、Tasks、验收和依赖 | 可交接的方案及实施要求；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
-| 02 实现 | Dev Team 或 subagent 按已确认版本完成开发、验证和适用内部审查 | 显式团队入口为 [`teamwork`](../repo/teamwork/SKILL.md)，普通 CLI／subagent 不自动启用它；成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM |
+| 01 需求沟通与规划 | 输入原始请求、已有决定和当前事实／artifact；规划 worker 负责判断与框架，协调者负责分配、路由决定 | 输出调查判断，或固定版本的 Goal／Targets／Tasks、验收、权限、依赖、唯一实现者与验证方案；跨仓协调入口为 [`orchestrate`](orchestrate/SKILL.md) |
+| 02 实现 | 输入已受审且获准执行的固定基线及已满足的依赖；原实现 worker／FS 连续实现、验证、自检和修复 | 普通 CLI／subagent、显式 [`teamwork`](../repo/teamwork/SKILL.md) 或已选 Multica 的 [`multica-issue`](../repo/multica-issue/SKILL.md)；输出适用 PR、准确 head、验证／审查证据、限制与下一责任；后续交 03 |
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
 | 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
 
 需求→实现→非 Draft PR 交付→适用发布；遥测／维护发现回到同一个需求入口，不要求每次任务走遍六个节点。
-拆分属于 01，repo-local 开发与两种执行路径属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
+拆分属于 01，repo-local 开发与所选执行方式属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
 分别复用 [`runtime-recovery`](runtime-recovery/SKILL.md)、[`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md)
 和目标仓合同；它们不是额外节点。AIDash 是 repo 和预留展示平台，展示／采集 UI 不由本索引实现。
 
@@ -30,34 +30,61 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 ## 聊天准入与执行版本
 
-- 仅描述现象或要求诊断时，主会话交相应 worker 查事实、给判断，不自动实施或派发开发。明确且范围清楚的“修复／实现”已表达实施意图，
-  不重复问“改不改”；新增范围、权限与受保护操作仍按现有门禁处理。
-- 设计修改、workflow refine 由规划 worker 提炼需求、设计及基本实现方案，主会话路由必要 Owner 决定，再交实现者。
-  普通修改写清当前／期望行为、证据、范围／不做项和可观察验收；正常根因定位与内部修法由执行方承担。
-- 普通产品任务默认 Dev Team；尊重明确选择，复用原 owner，同一目标不建第二写者。subagent 不额外套团队 task 流程，
-  但仍遵守目标仓验证和独立审查要求。
-- 超出当前约定的新目标／实质变更是新需求，回到本入口澄清、计划和确认实施；不另造需求类型，
-  不自动改写在途方案与验收。单条设计意见获同意不等于整版获准执行。
-- 重复反馈与回流：先查已有需求、修复和决定的证据，不凭相似标题重派或覆盖旧结论。
-  仅在范围、假设、版本、验收目标与证据实质未变时判定为重复，复用已有任务／决定及原 owner；
-  证明既有修复未满足原验收目标的，按修复无效回流原任务；证明此前已满足行为重新失效的，按回归仅重开受影响的需求／任务；
-  证据不足时保持待补事实，不予归类或派发。旧任务／决定只在上述范围、假设、适用版本、验收目标与证据匹配时复用。
-  新证据推翻必要前提时，仅重开受影响的决定，保留原结论、来源、变更理由与未受影响部分。
-- 已批准仓库、范围、基本方案、验收和权限内的必要适配／测试补拆及当前缺陷归当前任务，写入 plan；
-  不借补拆增加仓库、权限或写者，也不把当前缺陷移走后声称完成。
-- 已选执行方不可用或接收未知时，保留固定版本、任务标识、原执行方与真实状态；先对账、去重，
-  再沿已验证入口补派确认未接收的任务。不自动改派，不把后台重试／唤醒描述当已实现能力。
+01 接收原始请求、已有决定、事实与现有方案，由规划 worker 判断需要补什么；协调者不代写方案。
+研究、数仓蓝图或视觉设计按下方地图解决具体内容缺口，不因调用专业 skill 改变流程角色。
+
+| 输入情况 | 当次下一动作与输出 |
+|---|---|
+| 反馈、诊断或方案讨论 | 相应 worker 查证并返回判断、证据与剩余未知；不自动实施或派发 |
+| 明确且范围清楚的修复／实现 | 复用已有实施意图与仓库规则，形成必要的范围、验收与验证依据；不重复询问同一授权 |
+| 已有受审方案／在途实现 | 校验准确版本和适用范围，复用原 owner；只补缺口，不重做同内容规划或启动第二写者 |
+| 新目标、实质方案或权限变化 | 交原决定入口处理受影响部分；单项设计意见、skill 可用或 agent 已绑定不等于整版获准实施 |
+
+普通产品任务沿既有 Dev Team 默认值，明确选择 CLI／subagent 或同步团队时尊重该选择。
+重复反馈先按 [Multica 问题历史](../repo/multica-issue/references/problem-history.md) 核对范围、版本与效果证据，
+不凭标题重派；接收未知先对账，保留固定基线与原执行方。授权、发现分流及原责任规则统一见
+[公共合同](execution-contract.md#plan-与执行基线)。
+
+**01 → 02 交接**：明确的执行意图、适用的独立计划审查、执行者可读取的固定基线和已满足的依赖同时具备，
+才由原实现者继续。有效决定直接复用；视觉方向批准和实施授权分别识别，不重复索取已覆盖的批准。
 
 ## Plan 与依赖推进
 
-本次 plan 按[执行规范](execution-contract.md#plan-与执行基线)区分受审基线和执行台账，记录 Goal／Target／Task、
-验收映射、责任、依赖与可并行关系；基线与拆分一起审，target 集中独立确认 task，进度与内部补拆不自动变成新规划审批。
-长期升级／验证／回滚规则在 repo guide 或版本化 shared 文档；plan 引用实际采用版本，不复制政策。
-跨仓目标、先后依赖与整体验收由规划 worker 明确，团队 Planner 复用并补齐仓内任务。
-主 agent 传原始意图与已有决定，不先定义 Goal／Target 再要求背书。有效已审基线直接复用。
+规划输出固定 Goal／Targets／Tasks、验收映射、责任、真实依赖、权限与验证方案；仓库原生 plan／issue 或
+Spec Kit 产物均可承载，遵守该仓实际要求。跨仓框架由规划 worker 明确，团队 Planner 复用并补齐仓内缺口。
+按[公共合同](execution-contract.md#plan-与执行基线)区分受审基线与执行台账；长期政策引用 repo guide／固定 shared 版本。
+一个跨层 target 可含多个内部 task；issue 按受审 target／仓库交付单元映射，task 不自动建票、拆 PR 或增加审查轮次。
 
 Dev Team 由 TL 按 plan 推进；subagent 由既有主会话按 plan 接续。独立且已授权工作可继续，局部阻塞不能隐藏整体未完成。
 provider source、发布、消费者升级／真实消费分别取证；04 不负责消费者升级，不取消原任务的消费／回滚义务。
+
+## Skill 参与地图与来源边界
+
+下表覆盖已盘点的各组入口，按用途选择能力；没有要求每次调用全部 skill 或经过同一角色链。
+专业能力只在当次 assignment 内工作，不授予协调、实现、部署或独立验收权限。
+
+| 分组 | 名称、参与条件与输出 |
+|---|---|
+| 01／02 入口 | [`orchestrate`](orchestrate/SKILL.md) 跨仓协调；[`multica-issue`](../repo/multica-issue/SKILL.md) 已授权的 Multica 交接；[`teamwork`](../repo/teamwork/SKILL.md) 显式同步团队实现。三者不互相替代 |
+| 01 专业产物 | [`deep-research`](../research/deep-research/SKILL.md) 提供研究证据；[`layered-data-warehouse`](../repo/layered-data-warehouse/SKILL.md) 提供数仓蓝图；[`my-designer`](../design/my-designer/SKILL.md)、[`visual-design-modernization`](../design/visual-design-modernization/SKILL.md) 按项目／视觉需求形成设计产物并支持后续实现。产物本身不启动生产修改 |
+| 02 工程能力 | [`repo-kit`](../repo/repo-kit/SKILL.md) 用于明确的仓库接入／升级／拆库任务；[`xcode-cli`](../repo/xcode-cli/SKILL.md) 用于 Apple 构建验证；[`code-review`](../repo/code-review/SKILL.md) 用于适用的内容审查。不接管 Goal |
+| 横切辅助 | [`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md)、[`runtime-recovery`](runtime-recovery/SKILL.md)、[`multica-delivery-supervisor`](multica-delivery-supervisor/SKILL.md) 处理原流程内的决定、恢复或监督，不增加实施权限 |
+| 其他 workflow／专项任务 | [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) 为 03 修复辅助；[`auto-review-merge`](../repo/auto-review-merge/SKILL.md) 用于明确的自动审查／合并接线任务；[`shared-release`](shared-release/SKILL.md) 属于 04；[`periodic-maintenance`](periodic-maintenance/SKILL.md) 属于 06，启用 HOLD 保留；[`team-workflow-audit`](team-workflow-audit/SKILL.md) 仅用于明确请求的审计 |
+| 独立用途 | [`save-tool`](../meta/save-tool/SKILL.md) 收藏记录，不安装或实施 |
+| 七项角色源码 | [角色索引](dev-team-roles/README.md)：`dev-team-squad` 团队规则；`dev-team-team-lead` 协调；`dev-team-planner` 规划；`dev-team-fullstack-engineer` 实现；`dev-team-ai-reviewer` 方案及 pre-push spec／architecture；`dev-team-pr-manager` 03 交付；`dev-team-flow-supervisor` 中断检查。不是七个本机注册入口 |
+| Multica 规划 helpers | `codebase-design`、`domain-modeling`、`speckit`、`to-tickets` 按缺口使用；不重建已有产物，不由 helper 强制拆票 |
+| Multica 实现 helpers | `fs-codebase-design`、`fs-diagnosing-bugs`、`fs-tdd`、`helix`，以及同名 `xcode-cli`、`code-review`，按实现范围、仓库规则与实际可用性使用 |
+| Multica 审查／完成辅助 | `review-agent`、`Verification Before Completion`、同名 `owner-decision-loop`；绑定不等于每次必须调用，不扩大所属角色职责 |
+| Multica 其余库存 | `daily-digest` 用于独立日总结；`review-code-quality`、`review-doc-sync`、`review-privacy`、`review-security` 保留库存记录，不据名称或空内容宣布弃用或强制接入 |
+| 私有／旧个人入口 | `postmortem` 为专项复盘；`layered-agent-context` 是已由 `repo-kit` 替代的旧入口。保留历史，不删除或迁移 |
+| System 能力 | `imagegen`、`openai-docs`、`review-agent`、`skill-creator`、`skill-installer` 由 provider 管理，按需使用，不复制其规则 |
+| 插件能力 | `visualize`、`documents`、`pdf`、`presentations`、`spreadsheets`、`excel-live-control`、`template-creator` 按产物／工具场景参与，也可独立使用 |
+| 已见 Claude 同步项 | `morning`、`deep-research`、`xlsx`、`pdf`、`import-memory`、`docs`、`skill-creator`、`pptx`、`google-workspace`、`chrome-browser`、`built-in-browser`、`computer-use`、`docx`：按描述用于研究、文档、浏览／操作或独立工具；同名项保留来源变体，不未经证据合并 |
+
+权威源码为 `skills/<category>/<name>/SKILL.md`；公共政策在 [execution-contract.md](execution-contract.md)，
+团队特有职责在角色源码。本表只是阶段路由。客户端软链是安装指针，按实际目标区分版本；provider／插件／同步内容由各自来源维护。
+Multica 安装来源、内容版本和实际绑定须分别回读，参见[只读查询指引](dev-team-roles/README.md#只读核对运行端)；
+本地源码、同名描述或绑定存在都不能证明当前会话已加载候选内容。私有回执、旧部署副本与 dated reviews 只在原时间／版本范围内作历史证据。
 
 ## 仓库先定义，角色再执行
 
@@ -67,19 +94,21 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 ### 实现职责与当次输出
 
-- **Dev Team**：Planner 确定／校验 Goal、Targets、Tasks 及验收依赖，复用、补齐既有 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
-  TL 按已审任务及依赖派 FS。独立且路径不冲突的 FS 可并行，同一路径保持唯一写者。
-- **FS**：开发、必要验证、修复和执行者自检；自检不自动再启动一套全量独立 reviewer，目标仓明确要求的审查仍保留。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
-  通过由原 FS 推送／创建更新 PR，发现当前缺口仍回原 FS，不默认换作者。
-- **Dev Team AI Reviewer**：承担只读 spec/plan（spec gate），以及发布前准确 SHA 的独立 spec 与 architecture 审查；
-  不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。执行者自检不能替代独立审查。
-- **CLI／subagent**：规划 worker 负责方案，原实现 worker 负责开发、验证、修复；既有主会话只分配监督、路由和报告，
-  按[公共执行规范](execution-contract.md#角色与调用来源)显式绑定角色与调用来源、传递规范和基线。全局加载不授予协调者身份；
-  能力缺失不由主会话代做。以 target 为单位安排独立验收，复用同职责的现有审查及其 Goal 整合覆盖，只补真实缺口。
-  团队 Reviewer 的职责边界不构成其他执行者的通用免审。
-- **当次实现输出**：本次必要实现、验证与审查满足，且所需 PR 成功创建／更新后回报 PR URL、准确 head、
-  对应证据、剩余限制与下一责任。执行者可选择留下等待 required checks 并自行修复失败，也可直接交接离场；PR Manager 均为兜底。不隐去已知失败或缺失验证。
-  push／PR 失败不是本次实现成功；此交接不是 PR 最终交付或仓合同的远端 done，required gates 全部保留。
+02 的原实现 worker／FS 接收固定基线和验收映射，连续实现、验证、自检与修复；调用设计、研究、工程能力只解决当前缺口。
+内容规划由规划者负责，构建整合由实现者负责，独立验收由既有 reviewer 负责，依[角色／来源绑定](execution-contract.md#角色与调用来源)执行。
+
+| 所选方式 | 参与与交接 |
+|---|---|
+| 普通 CLI／subagent | 按公共合同，由原实现者完成 target 并交适用独立验收；不额外套团队角色关口 |
+| 显式同步团队 | 使用 [`teamwork`](../repo/teamwork/SKILL.md) 的团队适配器及其角色来源，不替代仓库合同 |
+| 明确选定 Multica | [`multica-issue`](../repo/multica-issue/SKILL.md) 桥接固定 target 与授权；团队按[角色索引](dev-team-roles/README.md)推进，接收、run 结果和交付分别取证 |
+
+实现者自检不默认另起全量独立 reviewer，也不替代仓库必需审查。团队 AI Reviewer 的方案／pre-push spec 与 architecture 职责见
+[`dev-team-ai-reviewer`](dev-team-roles/dev-team-ai-reviewer/SKILL.md)；PR-head defects／standards 由既有 `codex-review-target` 负责。
+角色绑定某个专业 skill 不扩大职责；团队限制不构成其他路径的通用免审。独立验收与修复收敛沿[公共合同](execution-contract.md#独立验收与复审)。
+
+**当次输出**：适用的 PR 成功创建／更新后，回报 PR URL、准确 head、验证／审查证据、限制和下一责任；没有所需 PR 时不得以 push 或 run completed 冒充成功。
+执行者可留下修复后续失败，也可交接离场，03 PRM 兜底；本次输出与最终合并、发布、真实消费分别取证，required gates 保留。
 
 ## PRM 唯一交付责任
 

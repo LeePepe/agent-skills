@@ -10,6 +10,7 @@
 |---|---|
 | 本仓可注册技能 | [Skills 目录](#skills)与机器索引 [`skills.json`](skills.json)；按现有五类组织 |
 | 工作流 | [六个 workflow 总览](skills/workflow/README.md)，按任务找到入口与交接边界 |
+| 沟通与实现 | [01 输入与方案输出](skills/workflow/README.md#聊天准入与执行版本) → [02 参与与交接](skills/workflow/README.md#实现职责与当次输出)；[全部已盘点 skill 的参与地图](skills/workflow/README.md#skill-参与地图与来源边界) |
 | 公共执行规则 | [CLI／subagent 执行契约](skills/workflow/execution-contract.md)，政策正文集中在这里 |
 | 显式团队入口 | [`teamwork`](skills/repo/teamwork/SKILL.md) |
 | Multica 角色源码 | [Dev Team 角色索引](skills/workflow/dev-team-roles/README.md)维护七项角色源码，不属于下方本机 skill 注册目录；workspace 已安装技能与 agent 实际绑定需分别查询 |

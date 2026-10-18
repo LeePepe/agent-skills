@@ -2,6 +2,8 @@
 
 让**另一个模型**当独立核查者——发现者与核查者不同模型时,能抓到同模型自查抓不到的错(同模型倾向于犯同类错、认同自己的输出)。这是本 skill 的对抗性核心。
 
+以下命令仅用于当前 assignment 已授权 helper／跨 CLI 委派且能力可用时；CLI 可执行不代表获准调用。无委派权限时由研究 worker 串行调查／自查，标注未经独立核查，不能用子进程绕过。
+
 三个 CLI 都能非交互调用,互为核查者:
 
 | 模型 | 非交互调用 | 备注 |
@@ -17,11 +19,11 @@
 - **kimi**:`kimi -p` 默认可写、可跑 Bash,**没有强制只读开关**——核查任务纯读推理,prompt 里明确"只做分析和证伪,不要修改任何文件",并在无关目录(如 `/tmp`)下调用,降低误改风险。
 - **claude**:`claude -p` 非交互;核查场景不要授予写权限。
 
-核查者的产物只有一个:`verdict_*.md`(由主 agent 用重定向落盘),核查者本身不应动仓库文件。
+核查者的产物只有一个:`verdict_*.md`(由研究 worker 用重定向落盘),核查者本身不应动仓库文件。
 
 ## 标准跨模型核查流程
 
-1. 主 agent 把待核查发现落盘成 `finding.md`(schema 见 verification-protocol.md)。
+1. 研究 worker 把待核查发现落盘成 `finding.md`(schema 见 verification-protocol.md)。
 2. 挑一个**与发现者不同**的模型当核查者,读文件、证伪、输出 verdict。
 3. 收集 verdict,进圆桌。
 
@@ -54,12 +56,12 @@ claude -p "尝试证伪以下研究发现……(同上)
 codex exec --sandbox read-only --skip-git-repo-check "证伪:$(cat finding.md)" > verdict_codex.md &
 kimi -p "证伪:$(cat finding.md)" > verdict_kimi.md &
 wait
-# 主 agent 读两份 verdict:一致 CONFIRMED→HIGH;任一 REFUTED 且有实证→按反证修正;分歧未解→CONTESTED
+# 研究 worker 读两份 verdict:一致 CONFIRMED→HIGH;任一 REFUTED 且有实证→按反证修正;分歧未解→CONTESTED
 ```
 
 ## 三端如何选核查者(谁在跑,就调别人)
 
-| 当前主 agent | 首选核查者 | 次选 | 机制 |
+| 当前研究 worker | 首选核查者 | 次选 | 机制 |
 |-------------|-----------|------|------|
 | Claude Code | 另起 `Task` 子 agent(不同实例) | `Bash` 调 `codex exec` / `kimi -p` | 优先 Task 子 agent;跨模型作更强对抗时用 Bash 调 CLI |
 | Kimi | `codex exec`(不同模型) | `claude -p` | shell 调兄弟 CLI |
@@ -69,5 +71,5 @@ wait
 
 - 核查者子进程**无当前对话记忆**——prompt 必须自包含,把 finding 全文喂进去(上面用 `$(cat finding.md)`)。
 - 核查者可能没联网/被墙:让它至少做**逻辑自洽 + 数字校验 + 内在矛盾**核查,把"无法联网验证 URL"如实写进 verdict.notes,不要当作 REFUTED。
-- 调用失败(CLI 不存在 / 超时 / 报错)→ 降级为单模型自查,并在报告局限性标注"未经跨模型核查"。永远给出可用结果。
-- 首次接入某端时先探活:`command -v codex && command -v kimi && command -v claude`。
+- 未授权或调用失败(CLI 不存在 / 超时 / 报错)→ 降级为单模型自查,并在报告局限性标注"未经跨模型核查"。永远给出可用结果。
+- 仅在调用获准且需要确认工具可用性时检查:`command -v codex && command -v kimi && command -v claude`。

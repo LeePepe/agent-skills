@@ -1,16 +1,19 @@
 # Speckit bridge —— 功能 / 架构路径的完整流程
 
-本 skill 不重新实现 speckit,它**编排**已装好的 speckit skill(`/speckit-specify` 等)+
-把产出**桥接**到 Multica issue。前提:目标 repo 有 `.specify/`(否则走 SKILL.md §降级)。
+本入口把已定方案**桥接**到 Multica issue，不兼任规划内容 owner。目标仓采用 Spec Kit 时，
+由获分配的 Planner 使用已装好的 speckit 能力补缺项；仓库原生 plan／issue 也可作为固定依据。
 
 参照 `specs/README.md` 的既有约定。先复用、校验、补齐已有 spec/plan/tasks；以下生成步骤只用于缺失产物，
-已有计划继续走必要 spec/plan 审查。设计修改/workflow refine 的基本方案由 Owner 与 CLI 先确定，团队负责实现。
+已有计划继续走必要 spec/plan 审查。规划 worker 形成设计修改/workflow refine 的方案，原入口路由必要决定，再交原实现者；沿用 [公共合同](../../../workflow/execution-contract.md) 的责任与授权。
 
 ---
 
-## 功能路径:specify → clarify → plan → tasks → 逐 task 落 issue
+<a id="功能路径specify--clarify--plan--tasks--逐-task-落-issue"></a>
+## 功能路径：复用方案，按 target 桥接 issue
 
 ### 1. specify
+
+仅当仓库采用 Spec Kit 且缺少当前 spec 时，由规划者执行；已有原生或 Spec Kit 基线则直接进入 target 映射。
 
 ```
 /speckit-specify <用户的功能描述>
@@ -39,31 +42,28 @@
 - **按目标、真实依赖和目标仓 PR 单元拆**，不以 layer 数机械切任务。plan 记录本次方案版本、任务、依赖、
   完成条件与下一动作，引用适用版本的 repo guide/shared 文档；通用政策留在这些来源。
 
-### 4. 逐 task 落 Multica issue(不跑 speckit-implement)
+<a id="4-逐-task-落-multica-issue不跑-speckit-implement"></a>
+### 4. 按 target 落 Multica issue（不跑 speckit-implement）
 
-**关键:不执行 `/speckit-implement`。** 实现交给 Multica pipeline。用 `references/multica-cli.md`
-的命令把 tasks.md 桥接成 issue:
+实现已明确交给 Multica，才进入此桥接。用 `multica-cli.md` 的配方映射受审 target：
 
-1. 建 **parent issue**(feature 总述,body 见 `issue-templates.md` 模板 2 的 parent 版,
-   指向 `specs/NNN/spec.md`)。
-2. tasks.md 每个 task → 一个 sub-issue:
-   - `--parent <parent-key>` `--project $PROJECT_ID`
-   - 标题原样用 tasks.md 的 `[T###] [Story] Brief`
-   - body 用 feature-task 模板，Layer 约束段引用该 task 涉及层的 CONTEXT.md frontmatter
-     (red_lines + depends_on + test)
-   - tasks.md 的依赖组 → `--stage N`(同 stage 全完成才唤醒 parent)
-3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
-4. **spec 先入库门禁**：核实引用的 spec/plan/tasks/ADR 在实际执行基线可读且匹配批准版本。
-   缺失时保持待派发，只在授权内补文档 PR，通过既有 gates 和审批后复核；详见 `SKILL.md` 第 4 步与
-   `multica-cli.md` §「spec 先入库门禁」。
-5. dispatch:parent(或第一个 stage 的 issues)assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)。
+1. 一个 target／仓库交付单元对应一个实现 issue，body 引用准确方案版本、owner、内部 task ID 与验收映射。
+   跨层且必须原子成立的改动保留在同一 target，不将 tasks.md 每一行自动建成 sub-issue。
+2. 单 target 不强制 parent。多个独立交付 target 分别建 issue；确需汇总时才建 parent，
+   `--stage N` 仅表达真实 target 依赖，不直接照搬内部 task 顺序或层次。
+3. blocker 先建，依赖方引用真实 key；已有 issue 与在途执行者沿原记录继续。
+4. **spec 先入库门禁**：引用的 spec/plan/tasks/ADR 或原生方案须在实际执行基线可读并匹配批准版本。
+   缺失时保持待派发，交获授权的文档实现者完成必要文档 PR，经既有 gates／审批后复核。
+   完整内联方案无需虚构外部文件；详见 `SKILL.md` 第 4 步及 `multica-cli.md` 对应门禁。
+5. 授权、依赖与唯一写者检查齐备后，只派发已就绪的 target issue 并验证对应 run，不因汇总 parent 存在重复启动实现。
 
 > 若 repo 装了 speckit 的 `/speckit-taskstoissues`,它是用 **GitHub MCP** 建 GitHub issue 的
 > —— 与本 workflow(Multica issue)**不同**,**不要**用它。本 skill 走 Multica CLI。
 
 ---
 
-## 架构路径:先改 tech-context / 宪法,再落 issue
+<a id="架构路径先改-tech-context--宪法再落-issue"></a>
+## 架构路径：内容 owner 定方案，原实现者改文档
 
 判断改动性质,二选一。
 
@@ -71,19 +71,18 @@
 
 例:补一层 CONTEXT.md 的说明、修正一条 test 命令、澄清数据流。
 
-1. 直接编辑对应层 `Packages/<X>/CONTEXT.md`(含 frontmatter `layer`/`depends_on`/`red_lines`/`test`)
-   或顶层 `CONTEXT.md` 的 `canonical_roles`。
-2. 落一个 `[Arch]` issue 记录这次 tech-context 变更(模板 3),让 pipeline 的 frontmatter 防腐
-   hook / CI 校验一致性。
+1. 规划／技术内容 owner 核对对应层 CONTEXT 或仓库 guide 的事实、约束与验证入口，确定本版修正内容。
+2. 归入已有 target，或按仓库交付单元形成 `[Arch]` issue（模板 3），由原实现者在核实的任务 worktree 修改文档。
+   原有 frontmatter 防腐 hook／CI 与内容审查继续有效；桥接入口不先写源码再补记。
 
 ### C2. 改架构方向 / 违反现宪法
 
 例:加 layer、换依赖方向、放松并发或隐私约束。
 
-先确认 Owner 与 CLI 已定基本方案；政策/权限变化另需明确授权，不能为了实现自行放松红线。
+先确认规划者已定基本方案、必要 Owner 决定与执行授权；政策/权限变化另需明确授权，不能为了实现自行放松红线。
 超出当前约定的新方案回到同一需求沟通入口，Owner 确认该版可以执行后才交接；当前执行版不被讨论自动改写。
 
-1. **先**更新宪法或写 ADR:
+1. **先**由对应内容 owner 准备所需宪法／ADR 变更，再由获授权的实现者按仓库流程提交与接受审查：
    - 跑 `/speckit-constitution` 更新 `.specify/memory/constitution.md` + 版本 bump;或
    - 写 `docs/adr/NNNN-<slug>.md`(记录 Decision / Context / Consequences / 例外原因)。
    - 依据:`specs/README.md`「与 Constitution 冲突 → 先改 Constitution(走 ADR + 版本 bump),
@@ -96,6 +95,6 @@
 ## 降级(无 speckit)
 
 目标 repo 无 `.specify/` 时:
-- 功能路径退化为「直接起草一个 feature issue + 清晰 acceptance」(模板 2 的 parent 版,单 issue),
-  在回复里提示用户「本 repo 未初始化 speckit,如需 spec-driven 流程可先 init」。
+- 功能路径使用固定的仓库原生 spec／plan／issue，明确 target、内部 task 与验收映射；
+  单 target 直接使用模板 2，无需初始化 Spec Kit 或重做已有规划。必要依据确实缺失才交 Planner 补齐。
 - 架构路径退化为「在 issue body 内联记录 Decision/Consequences」,提示补建 `docs/adr/`。

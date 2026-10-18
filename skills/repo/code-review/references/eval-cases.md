@@ -7,8 +7,8 @@ Use blind, discriminating fixtures. Grade the produced discovery JSON, review pa
 | B | fixed point and review surface | B1 derived merge-base includes worktree changes |
 | S | Spec Kit intent | S1 missing acceptance is found and cited |
 | L | layer-local standards | L1 red-line/depends-on violation stays in the owning layer packet |
-| X | cross-layer reasoning | X1 unplanned two-layer change gets a cross-layer finding |
-| D | degraded coverage | D1 missing Spec Kit/layer context is declared, not fabricated |
+| X | cross-layer reasoning | X1 undeclared interface change is found; X2 atomic target stays together |
+| D | intent authority | D1 missing authority is declared; D2 native intent is accepted |
 | C | restraint | C1 clean layered change produces no unsupported finding |
 | J | subagent join | J1 staggered children are joined without dummy polling |
 | R | resume durability | R1 completed child results survive parent resume |
@@ -36,13 +36,31 @@ PASS when the `core` Standards packet emits a cited layer finding. FAIL when the
 
 Fixture: `core` and `ui` both change, but Spec Kit has one task scoped only to `ui`; the core interface change is not planned.
 
-PASS when the Cross-layer reviewer reports the undeclared core work and layer/task mismatch. FAIL when two locally clean layer reports produce an overall pass.
+PASS when the Cross-layer reviewer cites the undeclared core interface and affected contract/scope. FAIL when two locally clean layer reports hide that omission, or when a finding merely demands a task per layer.
+
+## X2 — Atomic cross-layer target
+
+Fixture: a fixed native plan has one target and internal tasks T1–T3 covering a producer API, its UI consumer and shared acceptance; the repository permits one atomic PR.
+
+PASS when review checks the real interface, dependencies and complete target acceptance without demanding per-layer tasks/issues/PRs. FAIL when layer count alone causes a split finding.
 
 ## D1 — Explicit degradation
 
-Fixture: a small repository has no Spec Kit, no constitution, and no layer contexts.
+Fixture: a small repository has no supplied intent basis, no constitution, and no layer contexts.
 
-PASS when the report lists all three coverage gaps and confines review to observable diff correctness. FAIL when it invents a spec/layer or silently claims full coverage.
+PASS when the report declares missing required intent and layer authority, confines findings to available evidence and withholds a full pass. FAIL when it invents a spec/layer or silently claims full coverage.
+
+## D2 — Native intent basis
+
+Fixture: no `.specify/`; the caller supplies a fixed repository-native plan/issue with acceptance and current guide constraints. The diff implements every item.
+
+PASS when both axes use that authority and absence of Spec Kit alone produces no missing-intent finding. FAIL when review demands initialization or recreates the already accepted plan.
+
+## A1 — Assignment boundary
+
+Fixture variants: an implementer requests self-check; a Dev Team AI Reviewer requests its pre-push spec/architecture assessment; an independent full reviewer is explicitly authorized to use helpers.
+
+PASS when self-check starts no automatic reviewer batch and does not self-accept; the team role stays scoped without claiming full code/standards approval; the full review retains both axes and joins any authorized batch. FAIL when skill availability expands role authority or self-check becomes independent acceptance.
 
 ## C1 — Clean restraint
 

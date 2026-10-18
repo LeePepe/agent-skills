@@ -68,11 +68,11 @@ echo "PROJECT_ID=$PROJECT_ID"
 
 | flag | 用途 |
 |---|---|
-| `--title` (必填) | issue 标题。约定前缀:`[Bug] <layer>:`、`[T###] [Story]`(speckit task)、`[Arch]` |
+| `--title` (必填) | issue 标题。约定前缀:`[Bug] <area>:`、`[Target <原 ID>]`、`[Arch]` |
 | `--project <id>` | 挂到反查出的 project |
 | `--description-file <path>` | **body 从文件读**,保留多行/中文,verbatim。**首选**,不用 `--description` |
-| `--parent <issue-id>` | 挂到 parent issue(feature 总述下的 sub-issue) |
-| `--stage <N>` | staged barrier:同 stage 全完成才唤醒 parent 的 assignee。对应 tasks.md 依赖组 |
+| `--parent <issue-id>` | 可选汇总 parent；单 target 不要求 parent／children |
+| `--stage <N>` | staged barrier:同 stage 全完成才唤醒 parent 的 assignee；仅映射真实 target 依赖，不照搬内部 task 或层次 |
 | `--to "Dev Team"` / `--to-id <squad-uuid>` | assign 给 Dev Team squad(dispatch 第1步;第2步是转 todo) |
 | `--priority <p>` | 优先级(bug 建议设) |
 | `--status <s>` | `todo`=触发 pipeline 第2步;`backlog`=暂存不跑(即使已 assign squad) |
@@ -155,26 +155,27 @@ Outcome Check 到此完成:保持 backlog,不 assign Dev Team,不转 todo,不调
 
 ## 依赖顺序 + staged barrier(feature 路径)
 
-speckit 的 tasks.md 常有依赖组(Stage 1 数据层 → Stage 2 组件 → Stage 3 接线)。落法:
+先按受审 target／仓库交付单元映射 issue，保留内部 task ID 与验收映射。单 target 直接建一条：
 
 ```bash
-# 1. 先建 parent(feature 总述),拿到 PARENT_KEY
-multica issue create --project "$PROJECT_ID" \
-  --title '训练页自定义键盘(feature)' --description-file parent.md \
-  --output json > parent.json
-PARENT_KEY=$(python3 -c "import sys,json;print(json.load(open('parent.json'))['identifier'])")
-
-# 2. 各 task 作为 sub-issue,按 stage 分组;blocker 先建
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 1 \
-  --title '[T001] [数据层] Exercise 默认值' --description-file t001.md
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 2 \
-  --title '[T002] [键盘] WorkoutNumericKeyboard 组件' --description-file t002.md
-multica issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 3 \
-  --title '[T003] [接线] SetRow 接入键盘' --description-file t003.md
+multica --workspace-id "$WS" issue create --project "$PROJECT_ID" \
+  --title '[Target A] API 与界面原子更新' --description-file target-a.md --output json
 ```
 
-> 若某 task 显式依赖另一个具体 task,除了 stage,还可在 body 的 **Blocked by** 段写上真实 key
-> (所以要 blocker 先建)。stage 管「批次唤醒」,Blocked-by 管「人读的依赖说明」。
+只有多个独立交付 target 且确有依赖时才使用 barrier。例如：A 发布共享 SDK 的兼容契约，B 在取得该产物后升级消费者。
+需要汇总时可先建 parent（从成功响应取得 `PARENT_KEY`），再建 target issues：
+
+```bash
+# target-a.md / target-b.md 各自包含完整验收、原 task ID 映射及 Working Directory 尾段
+multica --workspace-id "$WS" issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 1 \
+  --title '[Target A] 发布共享 SDK 契约' --description-file target-a.md
+multica --workspace-id "$WS" issue create --project "$PROJECT_ID" --parent "$PARENT_KEY" --stage 2 \
+  --title '[Target B] 消费者采用 SDK 契约' --description-file target-b.md
+```
+
+blocker 先建，B 的 **Blocked by** 引用 A 的真实 key 与产物就绪条件；stage 只管批次唤醒，不能代替发布／消费证据。
+同 target 内的数据层、组件、接线步骤留在计划，不分别变成 stage；没有依赖的 targets 不强制串行。
+汇总 parent 不另派一份重复实现，已有 target issue／写者不重建。
 
 ---
 
@@ -235,11 +236,10 @@ multica --workspace-id "$WS" issue comment add "$NEW_KEY" --content-stdin < body
 回告时分别写接收结论、实际 run 结果与交付证据。匹配的 `completed`/`failed`/`cancelled` 都是已接收，
 失败/取消不是未派发或交付成功；由原执行方跟进，不以未接收为由重派。run completed 本身也不是交付验收。
 
-**后续 pipeline**按目标仓合同及 [workflow 实现职责](../../../workflow/README.md#实现职责与当次输出)：
-Planner 复用／补齐 → AI Reviewer 只读方案关 → TL 派 FS → FS 实现、必要验证及完整自检 →
-AI Reviewer 准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → PRM 接管非 Draft 生命周期。
-Reviewer 不运行／裁定测试、build、lint、CI，不跟踪 PR；缺口回原 FS，发送不等于已接受或已交付。
-这个 skill **只负责起草 + dispatch**，不把 issue done 当作发布/实际消费已完成。
+**后续责任**引用 [workflow 实现职责](../../../workflow/README.md#实现职责与当次输出)及
+[角色源码](../../../workflow/dev-team-roles/README.md)。团队 AI Reviewer 只负责方案与准确 SHA 的 pre-push spec／architecture；
+PR-head defects／standards 沿既有 gate，Reviewer 不运行／裁定测试或跟踪 PR。
+本入口负责桥接及接收对账，不把 issue done 当作发布／实际消费完成，不另增一条代码／style pre-push 审查链。
 
 ---
 

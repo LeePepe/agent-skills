@@ -31,7 +31,8 @@ Do not hunt for optional improvements. A material product or architecture opport
 # Code Review
 
 Review surface: <fixed-point>..<target> (<mode>)
-Context: spec-kit=<full|degraded>, layers=<full|degraded>
+Assignment: <implementer-self-check|independent-full|role-scoped>
+Context: intent=<native|spec-kit|mixed|missing> at <fixed revision>, layers=<full|degraded>
 
 ## Coverage gaps
 - <missing source or unmapped path; omit section when none>
@@ -58,6 +59,8 @@ Spec: <count>, worst=<severity|none>
 ```
 
 Do not turn the two axis summaries into one averaged score. `PASS` requires zero P0/P1 findings in both axes and no unexplained coverage gap; P2 findings remain visible follow-ups.
+
+The full report and verdict mapping apply to a full two-axis review. Label implementer output as self-check, never target acceptance. A role-scoped report names its covered surface and uncovered axes without a full-review verdict. Missing optional Spec Kit files alone do not lower native intent coverage; missing required authority does.
 
 Verdict mapping for the owning agent:
 

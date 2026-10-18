@@ -15,6 +15,8 @@ user-invocable: true
 
 核心纪律贯穿始终:**发现者 ≠ 核查者**,**核查以证伪为目标**,**每个论断都要有可回溯的来源**。
 
+研究由当次明确分配的研究 worker 执行并综合；按[公共合同](../../workflow/execution-contract.md#角色与调用来源)绑定原责任。专业调研不授予协调、生产实现或独立验收身份。只有获准委派且能力可用时才派生发现／核查 helpers；没有 helper 权限时不得用兄弟 CLI 绕过，按下方降级规则串行调查并如实标注未经独立核查。
+
 ---
 
 ## 调用前:够不够具体?
@@ -57,7 +59,7 @@ user-invocable: true
 
 ## Phase 0 — 分解
 
-主 agent 自己做,不派生。
+研究 worker 自己做,不派生。
 
 1. 明确调研范围与深度(quick / standard / deep)。
 2. 生成聚焦子问题(**数量随档位**:quick 2-3 个,standard 4-6 个,deep 6-8 个),覆盖:背景/现状、技术细节、对比/替代方案、趋势/前景。
@@ -77,11 +79,11 @@ user-invocable: true
 
 ## Phase 1 — fan-out 调研
 
-**这是能力抽象点①:并行派生。** 各端如何并行见「能力映射表」。逻辑一致:每个渠道一个调研任务,尽量并行。
+**这是能力抽象点①:并行派生。** 各端如何并行见「能力映射表」。仅在获准委派时按渠道派生；无权限时研究 worker 自行串行调查。
 
 - 渠道搜索手册(每个渠道搜什么、怎么搜、避坑):见 `references/channel-playbooks.md`。GitHub landscape 用结构化搜索(`stars:>100 sort:stars` + 关键词变体),搜索引擎被 bot 拦时切 Wikipedia curl 兜底——这两条是反复验证的高价值套路,务必读。
 - 每个发现的记录格式(claim / 来源 / 日期 / 类型 / 初判置信度):见 `references/verification-protocol.md` 的 finding schema。
-- **派生出去的子任务必须自包含**(子 agent / 子 CLI 无当前对话记忆),且**只返回正文、不写文件**——文件布局由主 agent 统一决定。
+- **派生出去的子任务必须自包含**(子 agent / 子 CLI 无当前对话记忆),且**只返回正文、不写文件**——文件布局由研究 worker 统一决定。
 
 ---
 
@@ -94,7 +96,7 @@ user-invocable: true
 流程:
 1. 把每个待核查发现落盘成 `finding.md`(claim + sources + 初判 confidence)。
 2. 指派**独立核查者**读该文件,尝试证伪,输出 `verdict.md`(`CONFIRMED` / `REFUTED` / `UNCERTAIN` + 反证 + 修正)。
-3. 主 agent 汇总所有 verdict 进 Phase 3。
+3. 研究 worker 汇总所有 verdict 进 Phase 3。
 
 **跨模型核查**(用户要点):让另一个模型当独立第二视角。具体命令模式与三端映射见 `references/cross-model-verification.md`。核查提问清单(证伪 checklist)与 verdict schema 见 `references/verification-protocol.md`。
 
@@ -104,7 +106,7 @@ user-invocable: true
 
 ## Phase 3 — 交叉验证 + 圆桌
 
-所有核查完成后,主 agent 综合:
+所有核查完成后,研究 worker 综合:
 
 1. **交叉验证**
    - 跨渠道一致 → 升 `HIGH`
@@ -117,9 +119,9 @@ user-invocable: true
 
 ## Phase 4 — 报告
 
-主 agent 整合成最终报告。模板(执行摘要 / 分级发现 / 圆桌纪要 / 置信度表 / 引用来源 / 局限性)见 `references/report-template.md`。
+研究 worker 整合成最终报告。模板(执行摘要 / 分级发现 / 圆桌纪要 / 置信度表 / 引用来源 / 局限性)见 `references/report-template.md`。
 
-置信度判据:`HIGH` = ≥2 个独立来源印证**且经核查 verdict=CONFIRMED**;`CONTESTED` = 核查者间或跨渠道分歧未解;`MEDIUM/LOW` = 单源或弱证据。**跳过 Phase 2 核查的发现一律封顶 `MEDIUM`**——没有 verdict 就不能给 HIGH。
+置信度判据:`HIGH` = ≥2 个独立来源印证**且经独立核查 verdict=CONFIRMED**;`CONTESTED` = 核查者间或跨渠道分歧未解;`MEDIUM/LOW` = 单源或弱证据。**未经 Phase 2 独立核查的发现一律封顶 `MEDIUM`**——没有 verdict 就不能给 HIGH。
 
 ---
 
@@ -127,10 +129,10 @@ user-invocable: true
 
 三处机制各端不同,其余逻辑全通用。执行时按当前所在端选对应实现:
 
-| 能力 | Claude Code | Kimi | Codex | 都不可用时(降级) |
+| 能力 | Claude Code | Kimi | Codex | 不可用或未授权时(降级) |
 |------|-------------|------|-------|-------------------|
-| **①并行 fan-out** | `Task` 起多个子 agent,或 `Workflow` 编排 `parallel()`/`pipeline()` | 单会话内顺序做各渠道;或 shell 起多个 `kimi -p` 后台进程 | 单会话内顺序;或 shell 起多个 `codex exec` 后台进程 | 主 agent 单会话**串行**跑各渠道 |
-| **②独立 reviewer** | 另起一个 `Task` 子 agent 做核查(与发现者不同实例) | shell 调**另一个模型** CLI(codex/claude)读 finding 证伪 | shell 调**另一个模型** CLI(kimi/claude)读 finding 证伪 | 主 agent 换视角自查并**标注为"未经独立核查"** |
+| **①并行 fan-out** | `Task` 起多个子 agent,或 `Workflow` 编排 `parallel()`/`pipeline()` | 单会话内顺序做各渠道;或 shell 起多个 `kimi -p` 后台进程 | 单会话内顺序;或 shell 起多个 `codex exec` 后台进程 | 研究 worker 单会话**串行**跑各渠道 |
+| **②独立 reviewer** | 另起一个 `Task` 子 agent 做核查(与发现者不同实例) | shell 调**另一个模型** CLI(codex/claude)读 finding 证伪 | shell 调**另一个模型** CLI(kimi/claude)读 finding 证伪 | 研究 worker 换视角自查并**标注为"未经独立核查"** |
 | **③跨 CLI 调用** | `Bash` 调 `codex exec` / `kimi -p` | `Bash`/shell 调 `codex exec` / `claude -p` | shell 调 `kimi -p` / `claude -p` | 跳过跨模型,单模型核查并标注降级 |
 
 > 判断当前所在端:看可用工具。有 `Task`/`Workflow` 工具 → Claude Code;否则看进程/环境。不确定时按"降级"列执行,永远给出可用结果,只是把降级如实标注在报告局限性里。
@@ -142,7 +144,7 @@ user-invocable: true
 - **深度档位**:`quick`(2-3 子问题,2 渠道 web+github,跳过 Phase 2)/ `standard`(4-6 子问题,四渠道,核查)/ `deep`(6-8 子问题 + 递归深挖 + 补充搜索)。默认 `standard`;用户说"快速"用 quick,"深度"用 deep。
 - **渠道裁剪**:工具/运维类主题跳过 academic(无有意义论文);稳定成熟主题跳过 news;最少保留 web+github。
 - **Phase 2 跳过**:来源以一手权威页为主时跳过核查,直接圆桌。
-- **无子 agent / 无跨模型 CLI**:按能力映射表"降级"列串行执行,并在报告「局限性」里注明哪些发现未经独立/跨模型核查。
+- **无 helper 委派权限 / 无子 agent / 无跨模型 CLI**:按能力映射表"降级"列串行执行,并在报告「局限性」里注明哪些发现未经独立/跨模型核查。
 - **搜索被拦**:所有搜索引擎(Google/Bing/DuckDuckGo)可能同时 bot 拦截——不要反复换引擎重试,直接切 Wikipedia curl 兜底(见 channel-playbooks)。
 
 ---

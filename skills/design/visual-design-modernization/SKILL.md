@@ -10,6 +10,8 @@ A repeatable method for taking a UI a user thinks is "ugly / not modern" and mak
 
 **Announce at start:** "I'm using the visual-design-modernization skill."
 
+Apply the [common contract](../../workflow/execution-contract.md#角色与调用来源) to the current assignment: the planner forms the north-star/proposal, the original implementer builds the isolated prototype and authorized migration, and an independent reviewer supplies visual/acceptance evidence. This method grants no coordinator role, helper delegation or self-acceptance authority. Check visual-direction approval and implementation authorization separately; reuse valid existing decisions without asking for the same approval again.
+
 ## When to use
 
 - User says the UI "looks bad", "not modern", "dated", "单调/拥挤/难看", or wants "visual polish".
@@ -28,7 +30,7 @@ A user without design experience cannot reliably tell *why* something looks bad 
 1. **Externalize judgment** → the `design-reviewer` agent scores screenshots against an objective rubric.
 2. **Write the target down** → a `north-star.md` turns "modern" into concrete, checkable rules.
 3. **See it, don't imagine it** → render real screenshots every iteration (SwiftUI `ImageRenderer`), never trust code-reading for aesthetics.
-4. **De-risk** → prototype in an isolated dir first; migrate to production only after the user approves the look.
+4. **De-risk** → prototype in an isolated dir first; the original implementer migrates after direction approval and applicable execution authorization are both present.
 
 ## The loop
 
@@ -40,8 +42,9 @@ A user without design experience cannot reliably tell *why* something looks bad 
 3. RENDER        ImageRenderer → PNG (references/swiftui-preview-snapshot.md)
 4. REVIEW        design-reviewer agent scores it vs north-star → P0/P1 fixes
 5. ITERATE       fix P0s, re-render, re-review until score clears the bar
-6. USER GATE     show screenshots; user approves the direction
-7. MIGRATE       only now change production code + tests (+ amend any
+6. USER GATE     show screenshots; obtain or reuse valid direction approval
+7. MIGRATE       original implementer uses approved direction + execution
+                 authorization to change production code + tests (+ amend any
                  design "constitution" via its own governance/PR)
 ```
 
@@ -80,17 +83,17 @@ Use `ImageRenderer` in a throwaway executable that links the package. Key gotcha
 
 ### Step 4 — Objective review
 
-Invoke the `design-reviewer` agent with the screenshot path(s) + the north-star path. It returns a 7-dimension score (/35) and prioritized P0/P1 fixes with concrete values. This is the step that substitutes for the user's missing design eye. Fix P0s, re-render, re-review.
+When reviewer delegation is authorized, invoke the `design-reviewer` agent with the screenshot path(s) + the north-star path. It returns a 7-dimension score (/35) and prioritized P0/P1 fixes with concrete values. This is the step that substitutes for the user's missing design eye. Fix P0s, re-render, re-review. If that capability or authorization is missing, retain the rendered evidence and report the review gap; do not invent a score or self-accept the target.
 
-> If a project-local `design-reviewer` file isn't yet registered as an agent in the running session, invoke a `general-purpose` agent and instruct it to follow the `design-reviewer.md` instructions verbatim (Read the file first). Same result.
+> If a project-local `design-reviewer` file isn't registered, an authorized general-purpose helper may follow that file. This fallback does not bypass missing delegation permission.
 
 ### Step 5–6 — Iterate & user gate
 
-Loop until the score clears the bar and P0s are gone. Then show the user the screenshots and get explicit approval on **direction** before any production change. Offer real choices (elevation style, grey palette, brand color) as side-by-side rendered variants, not verbal descriptions.
+Loop until the score clears the bar and P0s are gone. Show rendered choices (elevation style, grey palette, brand color) when direction remains undecided. Reuse an explicit approval that still covers the fixed direction; ask only for the missing or changed choice. A score alone grants neither direction approval nor implementation authorization.
 
 ### Step 7 — Migrate to production
 
-Only after approval:
+Only when the fixed direction is approved and migration is authorized, the original implementer continues; a planner returns its proposal instead of taking over implementation:
 - If a design "constitution" governs the tokens, amend it via its own process (PR + version bump + migration note) — the constitution is usually the real blocker (it may forbid shadows, colored fills, multi-level type, new card types).
 - Port the prototype tokens/components into production views.
 - Update the token-compliance tests to the new values in the same PR.
@@ -120,7 +123,7 @@ Two modes coexist on macOS: follow the system accent color, or pin a brand seed 
 - `Prototype/` — isolated, mock-data prototype (SwiftUI) with `#Preview`s.
 - `design/prototype-shots/` — rendered PNGs (light/dark, variants).
 - Objective reviewer scores guiding each iteration.
-- (On approval) production migration PR + constitution amendment.
+- (With direction approval and execution authorization) production migration PR + any required constitution amendment through its own governance.
 
 ## Anti-patterns
 

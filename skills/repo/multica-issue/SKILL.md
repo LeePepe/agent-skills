@@ -10,7 +10,7 @@ user-invocable: true
 工作输入**,起草质量直接决定 FS 是否返工、Reviewer 是否打回。所以这个 skill 做三件事:
 
 1. **定位** —— 从当前 repo 反查它绑定的 Multica project(不 hardcode)。
-2. **分类 + 打磨** —— 判定 bug / 新功能 / 架构变更,按类型决定是否先用 speckit 把需求写清。
+2. **分类 + 对接内容 owner** —— 判定 bug / 新功能 / 架构变更，复用规划者已定方案；缺口交对应 owner，Spec Kit 仅按仓库实际约定使用。
 3. **落 issue + dispatch/wait** —— 用 repo 的合同与验证事实填充 issue，按依赖顺序建好，核实固定方案可由执行者读取，
    再将已授权且选定 Dev Team 的实现任务派发给 squad，并验证 run；等待与阻塞如实保留。
 
@@ -27,7 +27,7 @@ grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** t
 ## 前提检查
 
 先读 [聊天准入与执行版本](../../workflow/README.md#聊天准入与执行版本)。明确、范围清楚的修复指令无需重复确认；
-设计修改/workflow refine 则先有 Owner 与 CLI 定稿并获准执行的基本方案。复用已有 owner，不因调用本 skill 自动重派。
+设计修改/workflow refine 复用规划 worker 定稿、经适用审查且获准执行的基本方案。按[公共合同](../../workflow/execution-contract.md)绑定当次角色；本入口负责桥接，不自行接管规划或源码写入。复用已有 owner，不因调用本 skill 自动重派。
 仅反馈、诊断、未批准的新需求草稿或明确暂存时，不进入实现 dispatch。维护提出的普通需求也须经过同一准入，
 不能因来源是维护就启动开发。该准入不豁免团队内部 Planner/spec/plan 审查。
 
@@ -53,7 +53,7 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || { echo "不在 git repo 内"; e
 ```bash
 ls .specify/memory/constitution.md 2>/dev/null   # 有宪法 → 任何路径先读它
 ls AGENTS.md 2>/dev/null                          # 读取仓库指南、PR 单元和 layer 约束
-ls -d specs 2>/dev/null                           # 有 specs → 新功能走 speckit;看现有编号定新目录号
+ls -d specs 2>/dev/null                           # 有 specs → 读该仓约定，先找当前有效方案；目录存在不等于必须重跑 speckit
 ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 ADR 流
 ```
 
@@ -70,7 +70,7 @@ ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 
 | 类别 | 触发信号 | 走哪条路 |
 |---|---|---|
 | **bug** | 已确认要修复的报错/崩溃/行为或数据问题 | 路径 A —— 起草 issue,**不走 speckit** |
-| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— speckit 全链,一 task 一 issue |
+| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— 复用受审计划，按 target 映射 issue；缺少内容交 Planner 补齐 |
 | **技术架构 / tech-context** | 「改架构 / 加 layer / 换依赖方向 / 改缓存或并发策略 / 与现宪法冲突」 | 路径 C —— 先定方案及所需授权、完成适用文档审查，再落 issue |
 | **效果验证 / Outcome Check** | 「等 TestFlight / 发版 / 实际使用后再确认是否解决」 | 路径 D —— 建显式等待记录,不派发实现 Agent |
 
@@ -96,45 +96,36 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 2. **检索问题历史**:按 `problem-history.md` 生成稳定 `problem_fingerprint`,搜索 active + closed issue。
    确认 `duplicate_of`、`ineffective_fix_for`、`regression_of` 或 `related_to`,并记录 affected
    version/build 与证据来源。标题相似只用于发现候选,不直接建立关系。
-3. **映射 layer**:从报错文件/路径对照 `AGENTS.md` 的 layer map,定位落在哪个 layer →
-   读该层 `CONTEXT.md` 的 frontmatter,取 `red_lines`(修的时候不能踩)+ `test`(修完跑哪条验证)。
+3. **读取适用约束**：有 layer map 时从报错路径定位真实层，读取其 CONTEXT frontmatter 的 `red_lines`／`test`；
+   否则使用该仓实际 guide／固定合同，不为缺少可选元数据虚构层或跳过已有规则。
 4. **填 body**:用 bug 模板(Category / Current / Desired / Repro-信号 / Problem history / Key interfaces /
    Acceptance / Out-of-scope / 该层 red_lines + test)。
 5. **标题** `[Bug] <area>: <一句话>`;设 `--priority`。按单目标、真实依赖和仓库 PR 单元决定是否拆子 issue，
    不以涉及多个 layer 自动判定过大。
 
-### 路径 B —— 新功能(speckit 全链)
+<a id="路径-b--新功能speckit-全链"></a>
+### 路径 B —— 新功能与 target 桥接
 
-入口已有 spec/plan/tasks 时直接引用，要求接手的 Planner 复用、校验、补齐；只对缺少的产物按 `specs/README.md` 的约定执行
-specify → clarify → plan → tasks → **逐 task 落 Multica issue,
-不跑 `/speckit-implement`**(实现走 Multica pipeline)。完整命令序列见 `references/speckit-bridge.md`。
+已有受审 spec/plan/tasks 或仓库原生 plan／issue 时，引用准确 revision，交接手 Planner 复用、校验、补齐缺项。
+缺少 Spec Kit 本身不等于缺少需求依据；若该仓采用它，仅由获分配的规划者补缺失的 specify → clarify → plan → tasks 产物，
+不在此入口重做已审计划，也不跑 `/speckit-implement`。细节见 `references/speckit-bridge.md`。
 
-1. `/speckit-specify <用户输入>` → `specs/NNN-name/spec.md`。
-2. `/speckit-clarify` 打磨模糊点(grilling 风格:一次一问 + 附推荐 + 能查码就查)。
-3. `/speckit-plan` → `plan.md`;`/speckit-tasks` → `tasks.md`。
-   - plan / tasks **必须 reference constitution 章节**(不重述规则)。
-   - 按目标仓已有 PR 单元、单目标和真实依赖拆分；plan 写本次版本、仓库、任务、完成条件与下一动作，
-     引用版本化 guide/shared 规则。已有计划保留必要 spec/plan 审查，不重写同内容计划。
-4. **逐 task 落 issue**(命令见 `references/multica-cli.md`):
-   - 先建一个 **parent issue**(feature 总述,body 指向 `specs/NNN/spec.md`)。
-   - 每个 task → 一个 sub-issue:`--parent <parent-key> --project $PROJECT_ID`,标题
-     `[T###] [Story] Brief`(spec-kit handoff 约定),body 用 feature-task 模板(What /
-     Acceptance / 该层 red_lines + test / Blocked-by)。
-   - **有依赖顺序的 task 用 `--stage N`**:同一 stage 的 sub-issue 全部完成才唤醒 parent
-     (Multica staged barrier),对应 tasks.md 的依赖组。**blocker 先建**,拿到真实 issue key
-     后再让依赖方引用它。
-5. **dispatch**:把 parent(或第一个 stage 的 issues)assign 给 **"Dev Team" squad** + 状态转 `todo`
-   + 验证 run。TL 根据 plan 推进依赖；未确认接收时先对账，见第 4 步。
+1. 读取固定 Goal／Targets／Tasks、验收、权限、owner 和真实依赖；引用适用的 constitution／repo guide，不复制政策。
+2. **按受审 target／仓库交付单元映射实现 issue**。一个跨层 target 可含多个内部 task；在同一 body 保留原 task ID 与验收映射。
+   单 target 直接一个 issue，不强制 parent＋children；已有对应 issue／执行者则沿原记录继续。
+3. 多个独立交付 target 才分别映射 issue；parent 仅在确需汇总时使用。`--stage N` 只表达真实 target 依赖，
+   不把层次或内部 task 顺序变成平台 barrier。blocker 先建，依赖方引用已核实的真实 key。
+4. 固定方案可读、执行授权和依赖齐备且没有在途写者后，按第 4 步向已选 squad 派发并对账。
 
 ### 路径 C —— 技术架构 / tech-context 变更
 
 详见 `references/speckit-bridge.md` §架构。先判断改动性质:
 
 - **只是技术上下文补充/修正,不违反红线**(如补一层 CONTEXT.md 的说明、修正 test 命令) →
-  直接更新对应层 `Packages/<X>/CONTEXT.md`(含 frontmatter `depends_on`/`red_lines`/`test`)
-  或顶层 `CONTEXT.md` 的 `canonical_roles`,然后落一个「tech-context update」issue 记录变更
-  (frontmatter 防腐 hook / CI 会 gate 一致性)。
-- **改架构方向 / 与现宪法冲突** → 先由 Owner 与 CLI 确定基本方案，涉及政策或权限变更另取明确授权；
+  交规划／技术内容 owner 确定需要修正的事实与约束，纳入当前 target 或适用的文档交付单元；
+  由已分配的原实现者在核实的任务 worktree 更新对应 CONTEXT／guide，并走仓库既有审查与 gates。
+  桥接入口不先改文件再补 issue；规划内容负责人也不因使用本 skill 自动获得实现职责。
+- **改架构方向 / 与现宪法冲突** → 先由规划 worker 提炼基本方案，沿原入口路由必要 Owner 决定；涉及政策或权限变更另取明确授权；
   由内容负责人写 `docs/adr/NNNN-*.md` 或所需宪法变更并通过既有审查，**再** 落本版实现 issue。
   对齐 `specs/README.md`「冲突先改宪法再写 spec」+ constitution「例外须 ADR 记录」。
 
@@ -172,7 +163,7 @@ body 用 tech-context/ADR 模板(Decision / Context / Consequences / 受影响 l
 核实执行者实际使用的 repo/base，检查 issue 引用的 spec/plan/tasks/ADR/guide 在该基线可读，且内容对应已批准版本；
 只有同名路径存在不够。记录 commit/ref，防止最新讨论替换当前实施方案。
 
-缺少文件时保留待派发状态。若已授权补文档，使用允许根目录下的独立任务 worktree、配置的 agent 身份与正常
+缺少文件时保留待派发状态。若已授权补文档，交原文档实现责任人使用允许根目录下的独立任务 worktree、配置的 agent 身份与正常
 commit/push/PR 流程，只提交所需文件；保留他人的 checkout 与未提交内容。所需 CI、独立审查和 Owner 审批继续有效，
 PR 交 PRM 推进，不因“纯文档”跳过 hooks 或自动改宪法。合并后复核实际执行基线与固定版本，再派发。
 多个任务引用同一份方案可共用设计文档 PR；内联完整、固定的方案则不需要不存在的外部路径检查。
@@ -202,18 +193,18 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
      未知状态不触发重建 issue、重复写者或改派。持续不可用报告阻塞，运行恢复另按现有恢复入口处理。
 
 - **回显**:每条新建 issue 打印 `identifier`(MY-XXXX)+ URL + 接收结论及依据 + 实际 run 状态；交付证据不足则明确待验收。
-  提醒用户后续 pipeline 是
-  Planner → AI Reviewer 只读方案关 → TL 按依赖派 FS → FS 实现、必要验证及完整自检 →
-  AI Reviewer 对准确 SHA 作 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR。
-  Reviewer 不运行／裁定测试或盯 PR；成功 PR 输出交 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
-  任一步失败如实保留，角色实际部署另行核验。
+  后续职责引用 [workflow 实现职责](../../workflow/README.md#实现职责与当次输出)与
+  [团队角色源码](../../workflow/dev-team-roles/README.md)，不在本入口另维护一条审查链。
+  团队 AI Reviewer 做方案与 pre-push spec／architecture；PR-head defects／standards 由既有 gate 负责。
+  成功 PR 输出交 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
+  任一步失败如实保留，角色源码不证明实际部署。
 
 ---
 
 ## 按目标与依赖拆分(贯穿 A-C 实现路径)
 
 采用 [plan 与仓库合同](../../workflow/README.md#plan-与依赖推进)，不另建 layer/PR 政策。单 PR 单目标，
-按真实依赖和可验收交付拆任务。既定仓库/范围/方案/验收/权限内的必要适配或测试可补进当前计划；无关遗留、
+按真实依赖和可验收交付划分 target；内部 task 保留原 ID 与验收映射，不自动建 issue／PR／agent。既定仓库/范围/方案/验收/权限内的必要适配或测试可补进当前计划；无关遗留、
 新仓库和方案变更分开记录，不扩大当前任务。TL 按依赖推进，已有 spec/plan gates 保留。
 
 ---
@@ -224,7 +215,7 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
 
 | 缺什么 | 降级 |
 |---|---|
-| 无 `.specify/` | 新功能路径跳过 speckit,退化为「直接起草一个 feature issue + acceptance」,提示用户可先 init speckit |
-| 无 `AGENTS.md` layer map | 跳过 layer 映射与 red_lines 填充,body 里 layer/red_lines 段留 TODO 让 dev team 补 |
-| 无 `constitution.md` | 跳过红线检查,正常落 issue |
+| 无 `.specify/` | 使用固定的仓库原生 spec／plan／issue 与 acceptance，按 target 桥接；不为缺少可选工具重建已有方案 |
+| 无 `AGENTS.md` layer map | 从仓库实际 guide／合同取得范围与约束；不臆造层或依赖，真正缺少必要 authority 时保留缺口待补 |
+| 无 `constitution.md` | 读取实际存在的仓库规则与固定合同，不臆造宪法，也不跳过已有红线 |
 | 无 `docs/adr/` | 架构变更退化为在 issue body 内联记录 Decision,提示用户补建 ADR 目录 |

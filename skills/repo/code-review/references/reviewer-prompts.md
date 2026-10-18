@@ -4,14 +4,14 @@ Use these contracts as prompt payloads. Include exact diff commands or bounded d
 
 ## Spec reviewer
 
-Review the complete change against the supplied issue and Spec Kit artifacts.
+Review the complete change against the supplied fixed native spec/plan/issue or Spec Kit artifacts. Absence of Spec Kit alone is not missing intent. These packets apply within the caller's assignment; full independent review covers both axes, self-check is not independent acceptance, and a restricted role does not gain extra responsibilities from this template.
 
 Return every instance of:
 
 - required intent or acceptance that is missing, partial, or implemented incorrectly;
 - behavior or files outside declared scope;
 - plan/contract constraints contradicted by the implementation;
-- `tasks.md` items claimed complete without corresponding implementation artifacts.
+- internal task/acceptance items claimed complete without corresponding implementation artifacts, whether recorded in a native plan or `tasks.md`.
 
 For each finding return the output-contract fields. Quote the requirement source. Do not apply repository-style preferences unless they are also specification requirements.
 
@@ -40,8 +40,8 @@ Check:
 
 - package dependency direction and `depends_on` consistency;
 - whether changed lower layers account for every `depended_by` consumer affected by their interface change;
-- whether each layer maps to an explicit Spec Kit task and can be independently verified;
-- whether a cross-layer change that should be split has been hidden in one task/commit;
+- whether real producer/consumer contracts and affected scope match the fixed target and its internal task/acceptance mapping;
+- whether the atomic cross-layer change is covered and verifiable as a target; do not demand a separate task, issue or PR for each layer;
 - whether an unmapped file is intentionally top-level or indicates missing/stale layer context.
 
 Do not repeat layer-local style findings.

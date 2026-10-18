@@ -8,11 +8,10 @@
 - Acceptance 勾选框 + 依赖排序 = **to-issues**。
 - bug 的「先有失败信号」= **diagnosing-bugs**。
 
-**三个实现类模板都有两个 VitalStride 专属槽位**,由 repo 的事实源填充:
-- **该层 red_lines** —— 从 `Packages/<layer>/CONTEXT.md` frontmatter 的 `red_lines` 抄,修的时候不能踩。
-- **该层 test** —— 从同 frontmatter 的 `test` 抄,修完跑这条验证。
+**三个实现类模板的约束与验证槽位由目标仓事实源填充**：有 CONTEXT frontmatter 时引用其 `red_lines`／`test`；
+否则引用实际 guide／固定合同，不臆造层、规则或测试命令。
 
-实现类 body 同时引用固定的方案版本、Owner 对本版执行的确认、唯一执行方和所用 guide/shared 版本。
+实现类 body 同时引用固定的方案版本、已有有效执行授权、唯一执行方和所用 guide/shared 版本。按受审 target／仓库交付单元建票，内部 task 保留原 ID 与验收映射。
 涉及多个层时分别列出适用约束，不据层数机械拆 issue；已有 plan/tasks 直接引用并补齐缺项。
 这些表达也可用于普通需求草稿；维护发现或待澄清结论没有实施意图时保持未派发，不能因套用模板自动 assign／转 todo。
 原修复查证无安全下一步时沿 [问题历史](problem-history.md#investigation-without-a-safe-next-step) 等 Owner 决定，不另造 task 类型。
@@ -63,22 +62,29 @@ bug
 
 ## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
 - **layer**: <落在哪层>
-- **red_lines**(修的时候不能踩): <抄该层 frontmatter red_lines>
-- **test**(修完跑这条): `<抄该层 frontmatter test>`
+- **red_lines**(修的时候不能踩): <引用实际 layer frontmatter 或仓库 guide／固定合同>
+- **test**(修完跑这条): `<引用仓库实际验证入口>`
 ```
 
 ---
 
-## 模板 2 —— Feature task(speckit sub-issue)
+<a id="模板-2--feature-taskspeckit-sub-issue"></a>
+## 模板 2 —— Feature target（Spec Kit 或原生方案）
 
-一个 sub-issue = tasks.md 的一个 task。标题 `[T###] [Story] Brief`。
+一个 issue 对应受审 target／仓库交付单元，可包含多个跨层内部 task。标题 `[Target <原 ID>] Brief`；单 target 不要求 parent。
 
 ```markdown
+## Target / baseline
+<原 target ID、固定方案 ref、已有执行授权与唯一实现者；原生 plan／issue 或 Spec Kit spec/plan/tasks 均可。>
+
+## Internal tasks / acceptance mapping
+- <原 task ID>: <本 target 内的实现／验证步骤> → <对应验收项>
+
 ## Parent
-<parent feature issue 的 key,如 MY-1234;指向 specs/NNN-name/spec.md>
+<仅需要汇总时引用 parent key；单 target 可省略本节。>
 
 ## What to build
-<这个 task 在仓库已定义 PR 单元内交付的行为。描述行为,不逐文件写实现。
+<这个 target 在仓库已定义 PR 单元内交付的行为。描述行为,不逐文件写实现。
 若 speckit 的 plan/prototype 产出了精确的决策片段(状态机 / schema / 类型形状),可内联那几行。>
 
 ## Acceptance criteria
@@ -86,19 +92,19 @@ bug
 - [ ] <可 demo / 可测的验收 2>
 
 ## Blocked by
-<依赖的具体 task key(如 MY-1235);无则写 "None — 可立即开始"。与 --stage 配合。>
+<真实前置 target 的 issue key；无则写 None。内部 task 顺序留在 plan，不自动形成 --stage。>
 
 ## Constitution refs
-<reference 宪法章节,如「Constitution §III SPM Package 优先」;不重述规则。>
+<适用时 reference 宪法章节，如「Constitution §III SPM Package 优先」；没有宪法则引用仓库实际规则，不重述或虚构。>
 
 ## Layer 约束(来自 Packages/<layer>/CONTEXT.md)
-- **layer**: <本 task 涉及哪些层;逐层列出下方约束>
-- **depends_on**: <该层允许依赖的 layer,别引入反向依赖>
-- **red_lines**: <抄该层 frontmatter red_lines>
-- **test**(交付前跑): `<抄该层 frontmatter test>`
+- **layer**: <本 target 涉及的真实层／接口；逐项引用适用约束，无 layer map 时引用仓库 guide>
+- **depends_on**: <实际层／接口允许依赖的范围，不引入反向依赖；无 layer map 时引用适用合同>
+- **red_lines**: <引用实际 frontmatter 或仓库 guide／固定合同>
+- **test**(交付前跑): `<引用仓库实际验证入口>`
 ```
 
-**Parent issue** body(feature 总述)简版:
+**可选 Parent issue** body（仅汇总多个交付 target，不代替其实现 issue）简版：
 
 ```markdown
 ## Feature
@@ -107,10 +113,10 @@ bug
 ## Spec
 specs/NNN-name/spec.md(+ plan.md / tasks.md)
 
-## Tasks(按 stage)
-- Stage 1: [T001] ... (MY-xxxx)
-- Stage 2: [T002] ... (MY-xxxx)
-- Stage 3: [T003] ... (MY-xxxx)
+## Targets / real dependencies
+- <target A> (MY-xxxx): <独立验收输出>
+- <target B> (MY-yyyy): <独立验收输出；若依赖 A，写明可读产物及就绪条件>
+<只在真实依赖需要 barrier 时使用 stage；不逐内部 task 或逐层建票。>
 
 ## Constitution refs
 <涉及的宪法章节>
@@ -189,7 +195,7 @@ dispatch,所以不追加 Working Directory 尾段。
 
 ## 强制尾段 —— Working Directory 隔离(每个实现类 issue 都要带,CRITICAL)
 
-**每一个实现类** issue body(bug / feature-task / arch 三类)末尾**必须**追加下面这段,
+**每一个实现类** issue body(bug / feature-target / arch 三类)末尾**必须**追加下面这段,
 放在 body 最后；工作树位置从当前任务运行信息核实，不猜测本机目录。
 
 ```markdown
@@ -209,8 +215,8 @@ dispatch,所以不追加 Working Directory 尾段。
 
 ## 填充清单(落任何 issue 前自检)
 
-- [ ] 标题前缀对(`[Bug]` / `[T###] [Story]` / `[Arch]` / `[Outcome Check]`)
-- [ ] `## Layer 约束` 的 red_lines + test **来自该层 CONTEXT.md frontmatter**,不是编的
+- [ ] 标题前缀对(`[Bug]` / `[Target <原 ID>]` / `[Arch]` / `[Outcome Check]`)
+- [ ] 约束与 test 引用实际 CONTEXT frontmatter／仓库 guide／固定合同；没有相关文件时不臆造
 - [ ] Acceptance 至少一条、且**可测**(能对应一条命令 / 一个可观察结果)
 - [ ] 行为契约段不绑文件路径(基线段可以,标 basis ref)
 - [ ] 按单目标、真实依赖和仓库 PR 单元拆分，各项有验收；没有按 layer 数机械切分

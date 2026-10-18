@@ -2,7 +2,7 @@
 
 本 skill 的产物不是文件,而是**一串决策 + 一批落进 Multica 的 issue + 实现类 dispatch 或 Outcome wait**。
 "命令能跑通 / issue 建出来了"**不等于**"决策做对了"。一个 assign 完就回报"已派发"的
-run、一个漏了 `## Working Directory` 尾段的 body、一个把新功能一坨砸成大 issue 的计划——
+run、一个漏了 `## Working Directory` 尾段的 body、一个忽略受审 target／真实依赖的拆票计划——
 CLI 全都会成功返回,但 pipeline 卡死、用户分支被冲、dev team 返工。本文用
 **discriminating cases + paired old-vs-new grading** 只自检那些**有真实好坏分叉**的决策,
 证明 skill 引导出来的是对的一版。方法参考 everyinc/compound-engineering-plugin 的 skill-eval
@@ -21,7 +21,7 @@ CLI 全都会成功返回,但 pipeline 卡死、用户分支被冲、dev team �
 |---|---|---|---|
 | **D** dispatch + run 验证 | 第 4 步派发 | D1 ⭐ 验证对应 run · D2 ⭐ 零 run/未知先对账 · D7/D8 ⭐ 终态接收与历史关联 | **每次真实 dispatch / 未知结果对账** |
 | **W** Working Directory 尾段 | 强制尾段(templates §尾段) | W1 ⭐ 每个实现类 body 都带;Outcome Check 明确豁免 | 落实现类 issue 时(**护栏,必跑**) |
-| **C** 分类走对链 | 第 2/3 步路径 A/B/C/D | C1 ⭐ 新功能走 speckit · C2 ⭐ 架构先改 ADR · C6 ⭐ Outcome Check 等待 | 分类任何输入时 |
+| **C** 分类走对链 | 第 2/3 步路径 A/B/C/D | C1 ⭐ 新功能复用方案按 target 桥接 · C2 ⭐ 架构先改 ADR · C6 ⭐ Outcome Check 等待 | 分类任何输入时 |
 | **H** 问题历史与效果链 | problem-history | H1 ⭐ 同 fingerprint 建关系 · H2 ⭐ Outcome Check 不 dispatch | Bug 历史命中或等待 TF/使用时 |
 | **S** 目标与依赖拆分 | 「按目标与依赖拆分」节 | S1 ⭐ 仓库 PR 单元与真实依赖 | 一个需求含多个交付项时 |
 | **R** spec 先入库门禁 | dispatch 前置门禁(第 4 步) | R1 ⭐ 引用未合并 spec → 先补 PR | issue body 引用 `specs/`/`docs/adr/` 时 |
@@ -57,15 +57,16 @@ issue assign+todo(状态=todo, assignee=Dev Team)→ 看着"派发成功"
 | **D1** ⭐ | 正常 issue,已 `assign "Dev Team"` + `status todo` | 查完整 runs，核实与本次任务/版本/原 owner/派发记录的关联，回显 key+URL+接收依据+实际状态；匹配终态也确认接收 | 命令成功就回报；只查 active runs；拿任意历史 run 冒充本次接收 |
 | **D2** ⭐ | assign+todo 后 `issue runs` **零条** | 保留 task/版本/执行方，报告接收未知，核对接收和 run 历史；确认未接收后才按已验证恢复路径处理 | 无历史 run 仍 rerun；查询失败当零条；创建重复任务或谎报已接收 |
 | D3(restraint) | 用户明确说「先别跑 / 只暂存 / park / 存草稿」 | 建 issue 后**保持 `backlog`,不转 todo、不 assign 触发**;告知"已暂存,未派发" | 无视用户,照样 assign+todo 强行派发 → 违背用户显式意图 |
-| D4 | 决定 assign 给谁 | assign 给 **"Dev Team" squad**，内部 Planner→只读方案关→TL→FS 完整自检→AI Reviewer 对准确 SHA 独立代码／风格及 spec／架构只读审查→原 FS 提交 PR | assign 给 Team Lead 个人绕过 squad、自检替代独立审查，或 Reviewer 替 FS 测试／派发／盯 PR |
+| D4 | 决定 assign 给谁 | assign 给 **"Dev Team" squad**，后续引用角色权威：AI Reviewer 方案及准确 SHA 的 pre-push spec／architecture，PR-head defects／standards 沿既有 gate；原 FS 输出 PR | assign 给 Team Lead 个人绕过 squad、自检替代独立审查，或 Reviewer 替 FS 测试／派发／盯 PR |
 | D5(restraint) | 一个从没有过任何 run 的 issue,想直接靠 rerun 触发 | 先确认任务获准、前置齐备且没有在途派发，再用正常派发路径；零 run 不是 rerun 的条件 | 无历史 run 直接 rerun，或把未知接收当作未执行而重复派发 |
 | D6 | 已选 Dev Team，NAS 离线，派发请求超时 | 保存固定版本和原 owner，报告接收未知；恢复后先查询是否已接收，持续失败报告阻塞 | 自动派 subagent、修改方案，或把后台重试说成已实现能力 |
 | **D7** ⭐ | 请求结果未知，恢复时匹配 run 已终态；详见下方 fixture | 确认已接收并报告 completed/failed/cancelled 实际结果，保留原执行方，交付另验 | 因无 queued/running 判未接收并重派，或把 failed/cancelled 报成交付成功 |
 | **D8** ⭐ restraint | 同一 fixture 仅剩错误版本、不同 owner 或本次派发前的旧 run | 排除这些记录作为本次接收依据，保留接收未知与原执行方，继续对账 | 用任意历史 run 报已接收，或无匹配就推定未执行、重复派发 |
 
-D4 回归：候选 h2 的 FS 自检、spec／架构审查均通过，但独立代码／风格审查分别为缺失、仅通过旧 h1、通过 h2。
-前两种 PASS 须保持 push／PR 输出次数为 0，交 AI Reviewer 审查 h2；不能由 FS 自检或旧 SHA 代替。
-第三种在其余门均满足时交原 FS 正常输出 PR，不重复索取已完成审查。用实际审查者、SHA 与调用轨迹判分。
+D4 回归：候选 h2 的 FS 自检完成，所需 spec／architecture 审查分别为缺失、仅通过旧 h1、通过 h2。
+前两种保持待审，交既有 AI Reviewer 检查 h2；第三种在其余前置齐备时由原 FS 正常输出 PR，
+PR-head defects／standards 留给既有 gate，不再要求 AI Reviewer 做额外代码／style pre-push 审查。
+用实际角色、准确 SHA 与已观测轨迹判分；离线推演只能证明所选下一动作，不能声称真实审查或 PR 已执行。
 
 **D1 + D2 是核心判别 case**:D1 分「查对应 run 才回告」vs「命令成功就回报」;D2 分「先对账」
 vs「盲目重试/谎报」。D3 是 restraint negative——证明"默认派发"不会
@@ -150,14 +151,14 @@ FAIL 当:任一实现类 body(含批量 sub-issue 中的任意一个)缺该尾�
 
 | # | 输入场景 | 正确路径(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用已有产物，缺失时补 speckit spec/plan/tasks，保留审查；按实际任务落 issue | 无明确方案/验收就派发，或把同一计划重新生成一遍 |
-| **C2** ⭐ 架构变更 | 「把 X 层依赖方向反过来 / 放松并发约束」 | 路径 C：CLI 与 Owner 确定基本方案，政策变更单独授权，完成相应 ADR/宪法审查后交实现 | 为任务能跑自行改宪法、绕开审批或尚未定方案就派发 |
+| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用受审的原生或 Spec Kit 方案，缺失内容交规划者补齐；按 target 建 issue 并保留内部 task 映射 | 无明确方案/验收就派发，或把同一计划重新生成一遍 |
+| **C2** ⭐ 架构变更 | 「把 X 层依赖方向反过来 / 放松并发约束」 | 路径 C：规划内容 owner 定方案，必要政策决定沿原入口授权；由原实现者完成所需文档与既有审查后再交本版实现 | 为任务能跑自行改宪法、绕开审批或尚未定方案就派发 |
 | **C3**(restraint)bug | 「修复撤销 HealthKit 权限后缓存未清的问题」 | 路径 A：不重复要求“改”，按失败信号与仓库约束落 bug；团队内部必要规划/审查仍有效 | 把明确修复指令当纯反馈重复确认，或以入口轻量为由免 Planner/review |
 | C4(restraint)bug 无信号 | bug 但当前构造不出失败信号 | 把「先构造一个可复现信号」写成 Acceptance 第 1 条,给 dev team 收敛起点 | 凭"感觉不对"落 issue,无任何可变红的信号 → dev team 无从收敛(违 diagnosing-bugs) |
-| C5 tech-context 补充 | 「补一层 CONTEXT.md 说明 / 修正 test 命令」(不违红线) | 直接更新对应 `CONTEXT.md` frontmatter,再落一个「tech-context update」issue 记录,不硬开 ADR | 当成大架构变更硬走 ADR 全流程 → 过度;或直接改文件不留 issue 记录 → 防腐 gate 失去入口 |
+| C5 tech-context 补充 | 「补一层 CONTEXT.md 说明 / 修正 test 命令」(不违红线) | 内容 owner 核对修正，纳入当前 target／适用文档单元，由原实现者写入并保留既有审查；不硬开 ADR | 桥接入口先改文件再补票，或不顾实际变更强开 ADR／新执行者 |
 | **C6** ⭐ 效果验证 | 「等 TestFlight build 可用并实际使用后确认修复」 | 路径 D:建 `[Outcome Check]`,backlog + wait owner + next event + wake condition,不派发实现 Agent | 当普通 Bug 立即 dispatch;或只放 backlog 却没有等待合同 → 形成新的 silent stall |
 
-**C1 + C2 是核心判别 case**:C1 分「新功能先打磨 spec 逐 task」vs「一坨大 issue」;C2 分
+**C1 + C2 是核心判别 case**:C1 分「复用明确方案按 target 映射」vs「盲派或逐 task 切票」;C2 分
 「架构先改 ADR/宪法再落」vs「直接落实现 issue」。C3 是 restraint negative——证明分类不会把
 bug 也硬拖进 speckit。
 
@@ -198,9 +199,9 @@ H1/H2 PASS 需要 fingerprint、prior issue、affected build 和 evidence source
 
 | # | 任务场景 | 正确拆分(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **S1** ⭐ | 一个字段及 UI 展示属于同一验收目标，repo guide 明确允许这类配套改动同 PR | 按已有 PR 单元形成一个可验收任务，并引用两个层的约束/验证 | 仅因两个 layer 强拆为两个 issue，另造 PR 政策 |
+| **S1** ⭐ | 一个字段及 UI 展示属于同一验收目标，repo guide 明确允许这类配套改动同 PR | 按已有 PR 单元形成一个 target／issue，保留多个内部 task 原 ID 与验收映射，引用两层约束／验证 | 仅因两个 layer 强拆为两个 issue，另造 PR 政策 |
 | S2(restraint) | 单目标改动符合仓库 PR 单元 | 按目标执行，不因文件数/行数拆分 | 机械切碎任务 |
-| S3 | 同一层包含两个独立交付目标 | 按目标分别验收，必要时声明依赖 | 因同一 layer 强绑成一个 task |
+| S3 | 同一层包含两个独立交付目标 | 按目标分别验收，必要时声明依赖 | 因同一 layer 强绑成一个 target |
 | S4(收尾) | 当前方案漏测试，另发现未批准仓库的改进 | 当前范围内补测试；无关改进回同一需求入口，保留当前版 | 把必需测试推走，或以“补拆”授权改新仓库 |
 
 **S1 是核心判别 case**;S2 是 restraint negative。可判定 grader(对 S1):
@@ -374,8 +375,18 @@ restraint 行都保持 = 新规则精准(只修目标退化,不动别的)。
 | I5 | 已定设计修改方案明确交 subagent；有人建议“这些都应给 Dev Team” | 尊重明确选择，不重复创建团队任务 | 以默认值覆盖 Owner 明确执行方 |
 | I6 | 查证已穷尽安全路径，原修复未复现，正在等 Owner 选继续方式；新日志随后补齐 | 可保全／报告新证据，原修复仍未完成且不重派，等待 Owner 决定 | 自动修复／重派，或将“未复现”报无问题／完成 |
 | I7 | 维护仅提出有效文档遗漏需求，尚无实施意图 | 复用普通需求表达，保持未派发，回需求沟通入口 | 因现有模板或工具可用就 assign／todo／开发 |
-| I8 | FS 完整自检与准确 SHA 的独立代码／风格及 spec／架构 pre-push 审查通过，但 push 成功、PR 创建失败 | 报告当次 PR 输出未成功及原执行者下一步，不盯后续 CI 冒充完成 | push 等同 PR 完成，或丢弃必要验证证据 |
+| I8 | FS 完整自检与准确 SHA 的团队 spec／architecture pre-push 审查通过，但 push 成功、PR 创建失败 | 报告当次 PR 输出未成功及原执行者下一步，不盯后续 CI 冒充完成 | push 等同 PR 完成，或丢弃必要验证证据 |
 | I9 | 相同条件，PR 成功更新；required CI 正在跑 | 返回准确 PR/head／本地证据，由 PRM 负责后续；整体交付仍未完成 | FS／Reviewer 成为第二 watcher，或将 PR 输出当已合并 |
 
 结合 D6 验离线选择保持、S4 验补拆边界；反复修复升级使用
 [Owner Decision Loop 用例](../../owner-decision-loop/references/eval-cases.md) E1/E2。
+
+## 01／02 补充离线 fixtures
+
+只返回下一动作、拟用依据与交接内容；不访问真实服务。区分模拟决策与真实调用日志。
+
+| # | Fixture | 可观察判断 |
+|---|---|---|
+| I10 | 原生 plan v3 已审，target A 含 API、UI、验证 T1–T3；仓库允许原子同 PR | 复用 v3，单 target issue 保留 T1–T3／AC 映射，无强制 parent 或三条 issue |
+| I11 | 两个 target：共享包发布后消费者才能升级，内部各有多个 task | 两个交付 issue；按产物依赖记录就绪条件，可选汇总 parent／barrier，内部 task 不逐条建票 |
+| I12 | 调用者是桥接 worker，需修 tech-context 的命令说明 | 内容 owner 核对方案，原实现者写文件并走既有门禁；桥接 worker 不先改源码再补票 |
