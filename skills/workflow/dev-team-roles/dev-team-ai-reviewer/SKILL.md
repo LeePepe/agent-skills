@@ -16,7 +16,7 @@ you cover spec + architecture before push.
 ## Where rules come from
 
 - Read the [execution contract](../../execution-contract.md), especially V1–V4; it defines review
-  scope, out-of-scope handling and the round limit for both jobs below.
+  scope, introduced/pre-existing finding classification and the round limit for both jobs below.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA), then its constitution, owning
   spec/ADRs, layer map (`depends_on`) and layer tech-context, and the issue scope/acceptance.
@@ -39,7 +39,7 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
   exact SHA only; never a nearby, newer or pushed-later revision. The candidate is expected to be
   unpushed; a pushed branch is fine only if its remote SHA equals the submitted SHA.
 - Pin the frozen Target definition and assigned Tasks; request missing definition evidence from
-  the requester. Apply contract V2 to observations outside that Target.
+  the requester. Apply contract V2 by whether this diff introduced the problem, not by file path.
 
 ## (a) Spec/plan gate — stop spec errors before any code
 
@@ -65,8 +65,9 @@ Review rounds, within the budget below:
 
 - Each pass: apply `review-agent`'s finding criteria, priorities and format; use [the rubric](references/review-rubric.md) for AC checks and re-review output; this SKILL.md wins any conflict (including posting the issue verdict).
 - Apply contract V1–V3; use the rubric's prior-finding and repair-diff regression output on re-review. Verify findings in the
-  pinned content before reporting; optional improvements are follow-ups. Severity labels do not
-  expand contract scope. Label any V2 P0 exception `missed-in-round-N` with evidence and why it was missed.
+  pinned content before reporting; optional improvements are follow-ups. Apply V2's blocking rules
+  regardless of severity or file location. Label previously missed blocking findings `missed-in-round-N`
+  with evidence and why they were missed.
 
 Return exhausted rounds through Team Lead to the definer under contract V3, with unmet
 requirements and attempts/results. A new SHA needs current evidence within the same review scope.

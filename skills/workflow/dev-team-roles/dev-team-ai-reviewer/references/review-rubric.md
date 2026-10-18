@@ -25,10 +25,12 @@ do not rescan unchanged code:
 
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.
-2. **Repair-diff regressions**: list new acceptance or mandatory-rule violations introduced by the
-   repair, with the cited source, trigger and file:line evidence. These still block; otherwise write `None`.
-3. **P0 exceptions / follow-ups**: apply contract V2; cite any exception with pinned evidence and
-   trigger, labeled `missed-in-round-N`. Other observations outside this re-review scope go to backlog and do not block.
+2. **Repair-diff regressions**: list problems introduced by the repair under contract V2, with the
+   cited source, trigger and file:line evidence regardless of which file is affected. These block;
+   otherwise write `None`.
+3. **Other findings / backlog**: apply contract V2; cite any remaining blocking findings with pinned
+   evidence and trigger. Label previously missed blockers `missed-in-round-N`. Pre-existing problems
+   that meet none of V2's blocking conditions go to backlog and do not block.
 4. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
    naming any remaining blockers or coverage gaps.
    End the comment with the same machine-readable review line immediately before the requester mention,
@@ -38,8 +40,8 @@ Follow SKILL.md's round budget and escalation rules; this output grants no addit
 
 ## Verdict mapping
 
-Apply contract V1–V3 before assigning a verdict; priority alone does not make an out-of-scope
-observation blocking. `PASS` requires a pinned revision and sufficient evidence for the Target's
+Apply contract V1–V3 before assigning a verdict; use V2's introduced/pre-existing classification
+and blocking conditions regardless of file path. `PASS` requires a pinned revision and sufficient evidence for the Target's
 checks (or prior findings and repair-diff regression checks on re-review); route exhausted rounds through TL to the definer.
 
 ## Sources
