@@ -150,7 +150,7 @@ FAIL 当:任一实现类 body(含批量 sub-issue 中的任意一个)缺该尾�
 
 | # | 输入场景 | 正确路径(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用已有产物，缺失时补 speckit spec/plan/tasks，保留审查；每 Target 一 issue，Tasks 内部映射 | 无明确方案/验收就派发，或逐 Task 建 issue |
+| **C1** ⭐ 新功能 | 「加一个训练页自定义数字键盘」，已定交互方案 | 路径 B：复用已有产物，缺失时补 speckit spec/plan/tasks，保留审查；每 Target 一 issue，Tasks 内部映射 | 无明确方案/验收就派发，或逐 Task 建 issue，或把同一计划重新生成一遍 |
 | **C2** ⭐ 架构变更 | 「把 X 层依赖方向反过来 / 放松并发约束」 | 路径 C：CLI 与 Owner 确定基本方案，政策变更单独授权，完成相应 ADR/宪法审查后交实现 | 为任务能跑自行改宪法、绕开审批或尚未定方案就派发 |
 | **C3**(restraint)bug | 「修复撤销 HealthKit 权限后缓存未清的问题」 | 路径 A：不重复要求“改”，按失败信号与仓库约束落 bug；团队内部必要规划/审查仍有效 | 把明确修复指令当纯反馈重复确认，或以入口轻量为由免 Planner/review |
 | C4(restraint)bug 无信号 | bug 但当前构造不出失败信号 | 把「先构造一个可复现信号」写成 Acceptance 第 1 条,给 dev team 收敛起点 | 凭"感觉不对"落 issue,无任何可变红的信号 → dev team 无从收敛(违 diagnosing-bugs) |

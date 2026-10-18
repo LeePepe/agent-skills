@@ -26,8 +26,8 @@ do not rescan unchanged code:
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.
 2. **Repair-diff regressions**: list problems introduced by the repair under contract V2, with the
-   cited source, trigger and file:line evidence regardless of which file is affected. These block;
-   otherwise write `None`.
+   severity, cited source, trigger and file:line evidence regardless of which file is affected.
+   These block; otherwise write `None`.
 3. **Other findings / backlog**: apply contract V2; cite any remaining blocking findings with pinned
    evidence and trigger. Label previously missed blockers `missed-in-round-N`. Pre-existing problems
    that meet none of V2's blocking conditions go to backlog and do not block.

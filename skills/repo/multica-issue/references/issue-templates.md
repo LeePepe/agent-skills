@@ -235,6 +235,7 @@ dispatch,所以不追加 Working Directory 尾段。
 - [ ] Acceptance 至少一条、且**可测**(能对应一条命令 / 一个可观察结果)
 - [ ] 行为契约段不绑文件路径(基线段可以,标 basis ref)
 - [ ] 每个实现 issue 一个冻结 Target，内部 Tasks 映射输出／AC／命令／依赖，共同定义段齐全
+- [ ] 按单目标、真实依赖和仓库 PR 单元拆分，各项有验收；没有按 layer 数机械切分
 - [ ] 与宪法冲突 → 已获相应政策授权并完成所需 ADR/宪法审查，没有自行放松规则
 - [ ] **每个实现类 body 末尾都带了 `## Working Directory` 强制尾段**(见上,防主 checkout 污染)
 - [ ] Bug 已生成 `problem_fingerprint` 并搜索 active + closed 历史;关系与 affected build 有证据

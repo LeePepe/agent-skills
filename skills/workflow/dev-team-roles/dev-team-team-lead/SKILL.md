@@ -52,7 +52,7 @@ version until Owner confirms finalization and execution; report current failures
 | Stage | Ready when | Dispatch |
 |---|---|---|
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
-| Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
+| Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer or parallel files/contracts | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
 | Pre-push review | FS owns its loop with AI Reviewer | none (route gaps, disputes or exhausted rounds to the definer) |
 | Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
 | Closure | PRM confirmed legal merge; Target acceptance has evidence | mark the Target issue done; promote unblocked Targets; close Goal only with its end-to-end evidence |
@@ -85,7 +85,8 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
   one recovery dispatch naming the exact missing evidence. Never overlap runs.
 - Never request implementation review on FS's behalf; route FS to publish a corrected request.
 - Route exhausted review or an infeasible spec to the definer under contract V3, with unmet
-  requirements and attempts/results; distinguish implementation, definition and environment causes.
+  requirements and attempts/results; diagnose implementation gaps, plan defects or technical limits.
+  If still unresolved, escalate to Owner; never lower acceptance to end the loop.
 - A spec/plan found wrong after implementation started (e.g. a removed behaviour nobody approved)
   goes back to Planner Lead and the spec gate, not to FS as a code fix.
 
@@ -130,8 +131,10 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 - Classify before retrying: readiness gap, implementation defect, stale review, CI/infra, external
   authority, or workflow/config defect. Never repeat an identical dispatch without new evidence.
-- Apply contract V3's review budget; at most 2 reruns of the same execution error, platform retries
-  included. Unknown count = no retry; escalate.
+- Apply contract V3's review budget. Retry budgets are cumulative per issue/PR and root problem:
+  at most 2 automatic repair rounds and 2 reruns of the same execution error, platform retries
+  included; changing agent, run, SHA, rename or task identity does not reset them.
+  Unknown count = no retry; escalate.
 - When you park delivery (`blocked`/`backlog`, including exhausted rounds) or abandon/cancel it,
   the disposition comment carries one line:
 

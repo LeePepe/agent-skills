@@ -28,8 +28,11 @@ labels in existing artifacts do not change an already dispatched version.
   basic implementation approach before handing work to Dev Team or subagents. Unselected design
   exploration is not default team implementation input. An explicit choice of the current CLI as
   executor still follows repo rules.
-- Bind execution to the contract's frozen Target revision. TL schedules Target dependencies;
-  subagent ordering stays with the original main-session dispatch relationship.
+- Bind execution and acceptance to the contract's frozen Target revision. Record later design
+  changes for the next version, dispatched only after Owner confirms finalization and execution;
+  one confirmed design opinion is insufficient. Report current failures and safety blockers now,
+  never defer them to claim completion. TL schedules Target dependencies; subagent ordering stays
+  with the original main-session dispatch relationship.
 - Work needs a spec or docs before implementation; Spec Kit is not required. Small changes: the
   issue description (current, desired, scope, acceptance) is the spec. Larger features: a spec or
   design doc in the repo, using Spec Kit only where the repo already does. See Planner's "What
@@ -59,19 +62,22 @@ Planner ⇄ AI Reviewer (spec gate) → Team Lead → FS implement
 
 Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
-1. **Spec gate** — AI Reviewer checks the Target definition and AC/Task mapping under contract V1.
-2. **Pre-push review** — AI Reviewer applies contract V1–V3 to the exact candidate and command
-   evidence; spec + architecture findings cite accepted ACs or repository red lines.
+1. **Spec gate** — AI Reviewer applies its [spec-gate checklist](../dev-team-ai-reviewer/SKILL.md#a-specplan-gate--stop-spec-errors-before-any-code)
+   to the Target definition under contract V1. Spec errors stop here.
+2. **Pre-push review** — AI Reviewer applies its [spec + architecture checklist](../dev-team-ai-reviewer/SKILL.md#b-pre-push-review--spec-conformance--architecture)
+   under contract V1–V3 to the exact candidate; findings cite accepted ACs or repository red lines.
    `PASS` / `NEEDS_WORK` is bound to the SHA; not a merge gate.
 3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft (Owner waits use
    `owner-review`); the PR template carries *Existing behaviour*,
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
-4. **CI + ship** — Target completion follows the contract's acceptance and legal-merge boundary. The
+4. **CI + ship** — handing off a PR is not done; required checks must be green on that head.
+   Target completion also follows the contract's acceptance and legal-merge boundary. The
    author may stay to watch required checks and fix failures, or hand off and leave; PRM is the
    backstop either way and ships on the server-required checks (below).
 
-Any new SHA needs current review evidence under contract V3. AI Reviewer covers spec + architecture
-pre-push; `codex-review-target` covers defects/standards at the PR head. Neither repeats the other's job.
+Any new SHA invalidates the review; FS gets a new one before pushing it, scoped under contract V3.
+AI Reviewer covers spec + architecture pre-push; `codex-review-target` covers defects/standards at
+the PR head. Neither repeats the other's job.
 
 ## Handoffs
 
@@ -92,6 +98,8 @@ pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
   subagent. Persistent failure goes to TL as a blocker; this adds no background recovery service.
 - Gap and exhausted-review handoffs go through TL to the definer under contract R3–R5/V3;
   include unmet requirements, attempts/results, known causes, unknowns and a recommendation.
+  TL diagnoses unresolved cases and escalates to Owner if still unresolved, including technical
+  failures; preserve acceptance and cumulative history.
 - Follow the workspace `Delivery workspace protocol`; every role reuses the one issue-scoped
   checkout through delivery and cleanup.
 

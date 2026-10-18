@@ -44,8 +44,9 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
 
 1. **Diagnose** when needed: reproduce with a tight check, find the root cause, keep temporary
    instrumentation identifiable and remove it before commit. Protect secrets and personal data.
-2. **Implement** the frozen Tasks in this Target; send dependency, adaptation or test gaps to TL
-   under contract R3 instead of adding them. Do not change existing behaviour or delete/weaken
+2. **Implement** the frozen Tasks inside this Target's owned paths/layers, with behaviour tests
+   for the spec/issue acceptance; send dependency, adaptation or test gaps to TL under contract R3
+   instead of adding them. Do not change existing behaviour or delete/weaken
    an existing test unless the spec's *removed behaviour* section authorizes it.
 3. **Verify** through the repo's single verify entry and its normal hooks. Never `--no-verify`,
    disable hooks, force-push or weaken a gate. A gate you cannot pass is exception evidence.
@@ -61,7 +62,8 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    reconcile receipt/run state and deduplicate before a retry after recovery. Persistent failure
    goes to TL; do not substitute another executor or review path. Stop.
 6. **Process the verdict** under contract V2–V3: `NEEDS_WORK` → repair prior in-scope findings,
-   new commit and evidence; gaps or exhausted rounds → TL for the definer. `PASS` for current HEAD → step 7.
+   new commit and review request with evidence; unsupported findings, gaps or exhausted rounds
+   → TL for the definer. `PASS` for current HEAD → step 7.
    **Repair by class**: for each finding, state the invariant it violates, find all instances of
    that class in the candidate and fix them all within authorized scope. Add a regression test
    that would fail on that class only within the frozen Tasks; missing test scope follows R3.
@@ -71,7 +73,8 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    evidence*. The PR is **never Draft**; a needed Owner wait is expressed by the `owner-review` label
    and CODEOWNERS approval, not Draft. Confirm local HEAD = remote branch = PR `headRefOid` =
    reviewed SHA, then hand off to PR Manager. Never merge or enable auto-merge — that is PRM's.
-   Distinguish your implementation output from Target delivery under the contract. You may watch
+   Handing off a PR is not done: required checks must pass on that head. Distinguish your
+   implementation output from Target delivery under the contract. You may watch
    required checks and repair frozen Tasks (repeat steps 3–7), or hand off and stop; PRM is the
    backstop either way. Say which one you chose; dependency/CI gaps follow R3.
 8. **Any later push** (repair, base merge, conflict fix) invalidates the review: repeat steps 3–7 for
@@ -88,9 +91,12 @@ by PRM return the same way with the new SHA and its fresh pre-push verdict.
 
 ## Retry budgets and exceptions
 
-- Use contract V3's review budget and at most 2 reruns of the same execution error, platform
-  retries included. Give TL unmet requirements, attempts/results, known causes, unknowns and a
-  recommendation when returning a gap or exhausted review; preserve the worktree and acceptance.
+- Use contract V3's review budget. Cumulative per PR and root problem: at most 2 automatic repair
+  rounds and 2 reruns of the same execution error, platform retries included; changing agent, run,
+  SHA, rename or task identity does not reset them. Then stop. Give TL unmet requirements,
+  attempts/results, known causes, unknowns and a recommendation for diagnosis and, if still
+  unresolved, Owner escalation; preserve the worktree and acceptance. Technical inability is an
+  exception too, not grounds to retry indefinitely.
 - A push or PR call whose result is unknown: reconcile read-only (remote ref, PR head) before any
   retry; never blind-retry.
 - When work cannot continue: leave status unchanged, preserve the worktree, and post one exception

@@ -40,20 +40,50 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
   unpushed; a pushed branch is fine only if its remote SHA equals the submitted SHA.
 - Pin the frozen Target definition and assigned Tasks; request missing definition evidence from
   the requester. Apply contract V2 by whether this diff introduced the problem, not by file path.
+- Judge against the handed-off version's approach, scope and acceptance. Later design suggestions
+  are next-version candidates until Owner explicitly confirms finalization and execution. Still
+  report real current-version failures and safety blockers; they cannot be deferred to earn `PASS`.
 
 ## (a) Spec/plan gate — stop spec errors before any code
 
-Apply contract V1 to the assigned definition: scope (including existing behaviour, compatibility
-and authorized removals), Goal/Target/Task mapping, owned paths/layers, dependencies, stable AC IDs
-and their verification commands. Retain explicit evidence forms for manual ACs. Check cited
-constitution/privacy/layer red lines; no additional design requirements or wider Goal review.
+Apply contract V1 to the assigned Goal/Target/Task definition and these spec-gate checks:
+
+1. **Requirement completeness**: outcome, actors, acceptance, non-goals; every AC has a stable ID
+   (`FR-003`, `US1/AC2`) and is testable or explicitly `manual` with the evidence form named.
+2. **Behaviour contract sections are filled**: *existing behaviour*, *compatibility*, *removed
+   behaviour*. Empty or "n/a" without a reason is a finding. Every removed behaviour or test to be
+   removed cites a Decision ID or an Owner decision; otherwise it is a finding for Team Lead.
+3. **Constitution**: the plan does not contradict the repo constitution, privacy/testing rules or
+   layer red lines.
+4. **Decomposition**: every AC maps to a Target/internal Task with explicit owned paths/layers,
+   contracts and dependency edges consistent with `depends_on`; do not require one task/PR per
+   layer. Check existing plans against current code, dependencies and verification. Handed-off
+   definitions stay frozen; adaptation/test gaps follow contract R3–R5. General policy stays in the
+   repo guide or versioned shared docs referenced by the plan.
+5. **Feasibility and proportionality**: every hard invariant (must-not-log, must-prove, fail-closed,
+   permission boundary, etc.) states how the actual tools/steps enforce it and which test proves it.
+   Flag unsupported absolute guarantees or infeasible requirements as plan-stage findings; also
+   flag requirements disproportionate to the change size. Report only gaps where the builder would
+   have to guess and a wrong guess would matter; items the plan explicitly leaves to the builder are
+   not findings.
 
 ## (b) Pre-push review — spec conformance + architecture
 
-Apply contract V1 to the pinned Target diff and command evidence. For scope, cite unauthorized
-behaviour changes or test removals against the frozen definition. For architecture red lines,
-resolve changed paths with the repo's resolver and check declared layers/`depends_on` and pinned
-shared-library rules. Findings cite the AC or repository red line and file:line evidence.
+Apply contract V1–V3 within the frozen Target:
+
+1. **Spec-implementation check**: read the spec/issue acceptance and the diff + tests directly and
+   judge whether the implementation completes each AC; cite every gap (AC ID, missing or wrong
+   behaviour, missing test). Flag any behaviour change the spec did not request, and any existing
+   test removed or weakened or existing behaviour changed that the spec's *removed behaviour* section
+   does not approve — name these explicitly so PR Manager can route them to the Owner.
+2. **Architecture**: resolve each changed path with the repo resolver (`scripts/context resolve
+   <path>` or the repo's declared equivalent) and confirm it lands in the task's declared layer(s);
+   no new upward or cross-layer imports against `depends_on`; no edits outside owned paths; use of a
+   shared library follows that library's `ai/` guide at the pinned version.
+3. Validate each finding: it exists in the pinned content, violates a cited source, and blocks the
+   AC or the architecture rule. Report all blocking findings, not just the first. Non-blocking,
+   cited follow-ups may accompany a `PASS`. Optional improvements are not findings; an opportunity
+   without current authority is a decision candidate for Team Lead.
 
 ## Verdict
 
@@ -68,9 +98,15 @@ Review rounds, within the budget below:
   pinned content before reporting; optional improvements are follow-ups. Apply V2's blocking rules
   regardless of severity or file location. Label previously missed blocking findings `missed-in-round-N`
   with evidence and why they were missed.
+- **Finding evidence**: an issue traces to an AC, a cited mandatory rule or a real defect, with a
+  concrete trigger scenario. Speculative breakage must name the provably affected code. Do not
+  demand rigor beyond the repository's existing standard or add requirements beyond the accepted
+  ACs; those are follow-ups. Verify each blocking finding against the pinned content before
+  reporting; if you are not certain it is real, do not block on it.
 
 Return exhausted rounds through Team Lead to the definer under contract V3, with unmet
-requirements and attempts/results. A new SHA needs current evidence within the same review scope.
+requirements and attempts/results. A new revision/SHA (any plan update, fix, rebase or amend)
+needs a new review within the same scope; a verdict never carries forward.
 
 ## Handoff (one final comment in the Multica thread)
 

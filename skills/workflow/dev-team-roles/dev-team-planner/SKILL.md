@@ -63,8 +63,10 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    the mechanism (which actual tool/step enforces it) and the test that proves it. Prefer the
    simplest design that meets the ACs; keep requirements proportional to the change.
 3. **Map** the assigned Goal/Targets/Tasks under contract R1–R5: keep one implementation issue
-   per Target and its Tasks internal, with AC IDs, owned paths/layers, dependencies and commands.
-   Submit new-Target proposals to TL; use a pinned delta for handed-off definitions.
+   per Target and its Tasks internal, with AC IDs, owned paths/layers, exclusions, contract impact,
+   dependencies, verification commands and context pointers. Submit new-Target proposals to TL;
+   use a pinned delta for handed-off definitions. Unresolved feasibility goes to TL with evidence,
+   not an unrequested exploration task or a silently changed implementation approach.
 4. **Validate** with the repo's spec checks (Spec Kit checks only where the repo uses Spec Kit) and
    the completion-verification skill: every
    acceptance criterion maps to a slice/task, every task is schedulable by dependency or explicitly
@@ -75,10 +77,11 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    (spec/plan/tasks blob SHAs, or issue description revision + Planner comment ID and SHA-256),
    artifact set, slices, task graph, validation evidence, open risks and
    `[@AI Reviewer](mention://agent/<AI Reviewer agent ID>)`. Stop.
-7. **Process the verdict** under contract V3: on `NEEDS_WORK`, pin the repair revision and prior
-   findings; on exhaustion, return unmet requirements and attempts/results through TL to the
-   definer. On `PASS`, reconcile Target issues and their internal Task mappings (no role assignment),
-   then hand off and stop.
+7. **Process the verdict** under contract V3: on `NEEDS_WORK`, fix within scope, pin the repair
+   revision and prior findings, then request again. A stale-revision verdict does not decide a
+   newer revision. On exhaustion, return unmet requirements, attempts/results and known/unknown
+   causes through TL to the definer for diagnosis. On `PASS`, reconcile Target issues and their
+   internal Task mappings (no role assignment), then hand off and stop.
 
 ## Handoff to Team Lead
 
