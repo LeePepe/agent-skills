@@ -1,10 +1,10 @@
 # Speckit bridge —— 功能 / 架构路径的完整流程
 
 本入口把已定方案**桥接**到 Multica issue，不兼任规划内容 owner。目标仓采用 Spec Kit 时，
-由获分配的 Planner 使用已装好的 speckit 能力补缺项；仓库原生 plan／issue 也可作为固定依据。
+由负责该项的规划者或获相应宽范围的原实现者使用 speckit 能力补未定项；仓库原生 plan／issue 也可作为固定依据。
 
 参照 `specs/README.md` 的既有约定。先复用、校验、补齐已有 spec/plan/tasks；以下生成步骤只用于缺失产物，
-已有计划继续走必要 spec/plan 审查。规划 worker 形成设计修改/workflow refine 的方案，原入口路由必要决定，再交原实现者；沿用 [公共合同](../../../workflow/execution-contract.md) 的责任与授权。
+已有计划继续走必要 spec/plan 审查，不要求规划者署名。部分讨论已定的内容先固定，只补未定部分，缺 artifact／审查不等于没有决定；讨论本身不新增执行授权。原入口路由必要决定，再交原实现者；沿用 [公共合同](../../../workflow/execution-contract.md) 的 assignment 责任与授权，桥接调用不自行扩权，团队必要校验保留。
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### 1. specify
 
-仅当仓库采用 Spec Kit 且缺少当前 spec 时，由规划者执行；已有原生或 Spec Kit 基线则直接进入 target 映射。
+仅当仓库采用 Spec Kit 且缺少当前 spec 时，由 assignment 允许的内容责任人执行；已有原生或 Spec Kit 基线则直接进入 target 映射。
 
 ```
 /speckit-specify <用户的功能描述>
@@ -79,7 +79,7 @@
 
 例:加 layer、换依赖方向、放松并发或隐私约束。
 
-先确认规划者已定基本方案、必要 Owner 决定与执行授权；政策/权限变化另需明确授权，不能为了实现自行放松红线。
+先确认 assignment 内形成的基本方案、必要 Owner 决定与执行授权；政策/权限变化另需明确授权，不能为了实现自行放松红线。
 超出当前约定的新方案回到同一需求沟通入口，Owner 确认该版可以执行后才交接；当前执行版不被讨论自动改写。
 
 1. **先**由对应内容 owner 准备所需宪法／ADR 变更，再由获授权的实现者按仓库流程提交与接受审查：
@@ -96,5 +96,5 @@
 
 目标 repo 无 `.specify/` 时:
 - 功能路径使用固定的仓库原生 spec／plan／issue，明确 target、内部 task 与验收映射；
-  单 target 直接使用模板 2，无需初始化 Spec Kit 或重做已有规划。必要依据确实缺失才交 Planner 补齐。
+  单 target 直接使用模板 2，无需初始化 Spec Kit 或重做已有规划。必要依据确实缺失才交 assignment 允许的责任人补齐，团队必要 Planner 校验保留。
 - 架构路径退化为「在 issue body 内联记录 Decision/Consequences」,提示补建 `docs/adr/`。

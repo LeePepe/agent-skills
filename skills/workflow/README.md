@@ -13,15 +13,15 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
-| 01 需求沟通与规划 | 输入原始请求、已有决定和当前事实／artifact；规划 worker 负责判断与框架，协调者负责分配、路由决定 | 输出调查判断，或固定版本的 Goal／Targets／Tasks、验收、权限、依赖、唯一实现者与验证方案；跨仓协调入口为 [`orchestrate`](orchestrate/SKILL.md) |
-| 02 实现 | 输入已受审且获准执行的固定基线及已满足的依赖；原实现 worker／FS 连续实现、验证、自检和修复 | 普通 CLI／subagent、显式 [`teamwork`](../repo/teamwork/SKILL.md) 或已选 Multica 的 [`multica-issue`](../repo/multica-issue/SKILL.md)；输出适用 PR、准确 head、验证／审查证据、限制与下一责任；后续交 03 |
+| 01 需求沟通与规划 | 输入原始请求、已有决定和当前事实／artifact；负责该项的规划者或获相应宽范围的原实现者补齐未定框架，协调者负责分配、路由决定 | 输出调查判断，或固定版本的 Goal／Targets／Tasks、验收、权限、依赖、唯一实现者与验证方案；保留已有讨论决定；跨仓协调入口为 [`orchestrate`](orchestrate/SKILL.md) |
+| 02 实现 | 输入已受审且获准执行的固定基线、已满足依赖及 assignment；Task-only FS 只连续执行所分配 Task 集，父 Goal／Target 是约束及上下文 | 普通 CLI／subagent、显式 [`teamwork`](../repo/teamwork/SKILL.md) 或已选 Multica 的 [`multica-issue`](../repo/multica-issue/SKILL.md)；输出适用 PR、准确 head、验证／审查证据、限制与下一责任；后续交 03 |
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
 | 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
 
 需求→实现→非 Draft PR 交付→适用发布；遥测／维护发现回到同一个需求入口，不要求每次任务走遍六个节点。
-拆分属于 01，repo-local 开发与所选执行方式属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
+框架拆分属于 01，可由 assignment 允许的原实现者补缺；repo-local 开发与所选执行方式属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
 分别复用 [`runtime-recovery`](runtime-recovery/SKILL.md)、[`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md)
 和目标仓合同；它们不是额外节点。AIDash 是 repo 和预留展示平台，展示／采集 UI 不由本索引实现。
 
@@ -30,13 +30,15 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 ## 聊天准入与执行版本
 
-01 接收原始请求、已有决定、事实与现有方案，由规划 worker 判断需要补什么；协调者不代写方案。
+01 接收原始请求、已有决定、事实与现有方案，由负责该项的规划者或获相应宽范围的原实现者判断并补缺；协调者不代写方案。
+Task-only 调用只细化所分配 Tasks 的实现／验证步骤，不重新定义父 Goal／Target。
 研究、数仓蓝图或视觉设计按下方地图解决具体内容缺口，不因调用专业 skill 改变流程角色。
 
 | 输入情况 | 当次下一动作与输出 |
 |---|---|
 | 反馈、诊断或方案讨论 | 相应 worker 查证并返回判断、证据与剩余未知；不自动实施或派发 |
 | 明确且范围清楚的修复／实现 | 复用已有实施意图与仓库规则，形成必要的范围、验收与验证依据；不重复询问同一授权 |
+| 定义真正尚缺，或只有部分讨论结论 | 宽范围实现者可在 assignment 内补缺；固定已定部分，不因 artifact／审查未完成重选。Task-only 遇到父级缺口回原调用者；讨论本身不新增执行授权 |
 | 已有受审方案／在途实现 | 校验准确版本和适用范围，复用原 owner；只补缺口，不重做同内容规划或启动第二写者 |
 | 新目标、实质方案或权限变化 | 交原决定入口处理受影响部分；单项设计意见、skill 可用或 agent 已绑定不等于整版获准实施 |
 
@@ -50,8 +52,8 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 ## Plan 与依赖推进
 
-规划输出固定 Goal／Targets／Tasks、验收映射、责任、真实依赖、权限与验证方案；仓库原生 plan／issue 或
-Spec Kit 产物均可承载，遵守该仓实际要求。跨仓框架由规划 worker 明确，团队 Planner 复用并补齐仓内缺口。
+负责定义的规划者或获相应宽范围的原实现者输出固定 Goal／Targets／Tasks、验收映射、责任、真实依赖、权限与验证方案；仓库原生 plan／issue 或
+Spec Kit 产物均可承载，遵守该仓实际要求。跨仓框架保留已有决定，团队 Planner 复用、校验并补齐实际缺口，不要求重做已定内容。
 按[公共合同](execution-contract.md#plan-与执行基线)区分受审基线与执行台账；长期政策引用 repo guide／固定 shared 版本。
 一个跨层 target 可含多个内部 task；issue 按受审 target／仓库交付单元映射，task 不自动建票、拆 PR 或增加审查轮次。
 
@@ -94,12 +96,14 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 ### 实现职责与当次输出
 
-02 的原实现 worker／FS 接收固定基线和验收映射，连续实现、验证、自检与修复；调用设计、研究、工程能力只解决当前缺口。
-内容规划由规划者负责，构建整合由实现者负责，独立验收由既有 reviewer 负责，依[角色／来源绑定](execution-contract.md#角色与调用来源)执行。
+02 的原实现 worker 接收固定基线和验收映射；宽范围 assignment 可补齐未定定义，Task-only FS 仅细化并连续完成已派 Tasks 的实现、验证与修复。
+父 Goal／Target 保留为约束及上下文，不授予重选目标、调度同级或承接未派工作的权限。部分 Tasks 完成须记录剩余覆盖，不宣称完整 Target 就绪。
+同一 FS 保持唯一写者，不逐 Task 换人、回协调者或启动完整审查；既定审查请求、修复返回及 PRM 交接继续有效。
+调用专业能力只解决当前缺口，独立验收仍由既有 reviewer 负责，依[角色／来源绑定](execution-contract.md#角色与调用来源)执行。
 
 | 所选方式 | 参与与交接 |
 |---|---|
-| 普通 CLI／subagent | 按公共合同，由原实现者完成 target 并交适用独立验收；不额外套团队角色关口 |
+| 普通 CLI／subagent | 按公共合同完成 assignment 内的工作；Task-only 仅返回已派 Tasks 及剩余覆盖，完整 target 按既定就绪条件交独立验收；不额外套团队角色关口 |
 | 显式同步团队 | 使用 [`teamwork`](../repo/teamwork/SKILL.md) 的团队适配器及其角色来源，不替代仓库合同 |
 | 明确选定 Multica | [`multica-issue`](../repo/multica-issue/SKILL.md) 桥接固定 target 与授权；团队按[角色索引](dev-team-roles/README.md)推进，接收、run 结果和交付分别取证 |
 
@@ -168,6 +172,8 @@ task/run/SHA 变化不清零，单纯等待不计一轮；明确安全／权限�
 ## 交接最小字段
 
 复用 issue、PR 模板或 subagent prompt：target（repo/base）、intent（目标／验收／不做项）、baseline（固定方案及执行授权）、
-scope（仓 PR 单元／任务）、owner（唯一执行者与来源）、evidence（PR/head、验证／审查／批准）、next（下一责任／唤醒条件或 HOLD）。
-同时显式带角色／调用来源绑定、协调者及 helper 权限；规划输入保留原始需求和已有决定，未有 Goal 时不预设结果。
+scope（仓 PR 单元／获分配 Task 集）、owner（唯一执行者与来源）、evidence（PR/head、验证／审查／批准）、next（下一责任／唤醒条件或 HOLD）。
+父 Goal／Target 约束放在现有 intent／baseline，执行边界放在 scope；显式带角色／调用来源及父级绑定、允许操作、返回对象和 helper 权限。
+宽范围输入保留原始需求与已有决定，只补未定定义；Task-only 父级信息不授予管理权限，helper 权限不含同级派发。
+绑定或执行边界缺失／冲突时回原调用者指出具体缺口，暂停依赖动作，不自行升级角色。
 这不是新 schema。发送≠接受，run completed≠交付，merge≠发布／消费；整体验收按原目标逐项取证。

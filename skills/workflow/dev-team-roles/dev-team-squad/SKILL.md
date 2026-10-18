@@ -16,6 +16,9 @@ the reviewed baseline versus execution ledger, and target-level acceptance. It a
 this file retains the team's transport, role boundaries, exact-SHA gates and round budgets.
 Loading shared instructions does not assign a role. Bind each run to its trusted invocation source,
 explicit role/coordinator, scope and return; workers and helpers remain bounded, never self-promote.
+Goal/Target/Task describes assigned work, not role authority. FS receives Tasks only; parent
+Goal/Target is constraint/context. Helper permission grants no sibling or Goal dispatch authority.
+Use soft behavioral isolation with tools available; no technical permission change is implied.
 
 ## Workflow boundary and accepted version
 
@@ -56,7 +59,7 @@ labels in existing artifacts do not change an already dispatched version.
 | Team Lead | scheduling/supervision, re-scope routing, blocked-work/recovery routing, Owner escalation, evidence-backed closure |
 | Planner Lead | Goal/Targets/Tasks, acceptance/dependencies and spec/plan with stable AC IDs and existing behaviour / compatibility / removed behaviour |
 | AI Reviewer | (a) spec/plan gate; (b) pre-push spec + architecture review of FS's local HEAD |
-| Fullstack Engineer | implement, verify, self-review, push the reviewed SHA + PR |
+| Fullstack Engineer | continuously implement, verify and repair the assigned Task set within one Target; self-review, request exact-SHA review, push the reviewed SHA + PR; no parent Goal/Target definition or scheduling |
 | PR Manager | Discover → Adopt → CI/review → repair routing → Ship → delivery confirmation; the backstop for PRs nobody is driving |
 | Flow Supervisor | wake the original owner when a Dev Team flow is truly interrupted; nothing else |
 
@@ -104,6 +107,11 @@ pre-push; `codex-review-target` covers defects/standards at the PR head. Neither
 - Every request and handoff carries the six fields of the workflow index (target, intent, scope,
   owner, evidence, next) plus the accepted plan version and exact revision/SHA: see
   the workflow index `skills/workflow/README.md` §交接最小字段 in this skill's source repository.
+  For FS, scope is the assigned Task set; intent/baseline carries read-only parent constraints.
+  Include role/parent binding, allowed operations and return owner through existing fields. Missing
+  or conflicting assignment information returns to the original caller before dependent actions.
+  The same FS continues its Tasks and repairs without per-Task agent/review handoffs; partial
+  completion records remaining coverage and does not make the complete Target ready for acceptance.
 - AI Reviewer answers the role that requested it. Planner hands a passing plan to Team Lead; FS
   hands a pushed, reviewed PR directly to PRM. Team Lead intervenes between them only for scope,
   content, authority, recovery or Owner-decision conflicts.

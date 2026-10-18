@@ -19,10 +19,13 @@ the [common CLI/subagent execution contract](<{contract}>).
 Load it before substantive work unless this session already has the current version.
 Use its Goal/Target/Task, reviewed-baseline, delegation and independent-acceptance rules.
 Loading it grants no role: bind the role to invocation provenance and explicit assignment.
-A planning worker defines or validates Goal/Targets; the coordinator only allocates,
-supervises, routes decisions and reports evidence. Workers never self-promote.
+A planner or broadly assigned original implementer may fill undefined Goal/Targets;
+preserve settled decisions. Task-only workers execute assigned Tasks; parent goals
+are constraints/context, not authority. The coordinator allocates, supervises, routes
+decisions and reports evidence. Workers never self-promote; helper permission grants
+no sibling dispatch authority. Use soft behavioral isolation and keep tools available.
 When delegating, pass this contract, role/source binding, original intent, accepted
-baseline, scope, ownership and expected evidence; do not assume skill inheritance.
+baseline, scope, allowed operations, ownership and expected evidence; do not assume skill inheritance.
 Repository instructions, authorization boundaries and required checks remain in force.
 {END}"""
 

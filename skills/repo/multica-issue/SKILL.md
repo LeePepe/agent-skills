@@ -10,7 +10,7 @@ user-invocable: true
 工作输入**,起草质量直接决定 FS 是否返工、Reviewer 是否打回。所以这个 skill 做三件事:
 
 1. **定位** —— 从当前 repo 反查它绑定的 Multica project(不 hardcode)。
-2. **分类 + 对接内容 owner** —— 判定 bug / 新功能 / 架构变更，复用规划者已定方案；缺口交对应 owner，Spec Kit 仅按仓库实际约定使用。
+2. **分类 + 对接内容 owner** —— 判定 bug / 新功能 / 架构变更，复用已有决定与方案；缺口交 assignment 允许的内容 owner，Spec Kit 仅按仓库实际约定使用。
 3. **落 issue + dispatch/wait** —— 用 repo 的合同与验证事实填充 issue，按依赖顺序建好，核实固定方案可由执行者读取，
    再将已授权且选定 Dev Team 的实现任务派发给 squad，并验证 run；等待与阻塞如实保留。
 
@@ -27,7 +27,7 @@ grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** t
 ## 前提检查
 
 先读 [聊天准入与执行版本](../../workflow/README.md#聊天准入与执行版本)。明确、范围清楚的修复指令无需重复确认；
-设计修改/workflow refine 复用规划 worker 定稿、经适用审查且获准执行的基本方案。按[公共合同](../../workflow/execution-contract.md)绑定当次角色；本入口负责桥接，不自行接管规划或源码写入。复用已有 owner，不因调用本 skill 自动重派。
+设计修改/workflow refine 复用 assignment 内形成、经适用审查且获准执行的基本方案，不要求必须由规划 worker 署名；已有讨论决定不因缺 artifact／审查而重选。按[公共合同](../../workflow/execution-contract.md)绑定当次角色；本入口负责桥接，不自行接管规划或源码写入。复用已有 owner，不因调用本 skill 自动重派。
 仅反馈、诊断、未批准的新需求草稿或明确暂存时，不进入实现 dispatch。维护提出的普通需求也须经过同一准入，
 不能因来源是维护就启动开发。该准入不豁免团队内部 Planner/spec/plan 审查。
 
@@ -70,7 +70,7 @@ ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 
 | 类别 | 触发信号 | 走哪条路 |
 |---|---|---|
 | **bug** | 已确认要修复的报错/崩溃/行为或数据问题 | 路径 A —— 起草 issue,**不走 speckit** |
-| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— 复用受审计划，按 target 映射 issue；缺少内容交 Planner 补齐 |
+| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— 复用受审计划，按 target 映射 issue；未定内容交 assignment 允许的责任人补齐 |
 | **技术架构 / tech-context** | 「改架构 / 加 layer / 换依赖方向 / 改缓存或并发策略 / 与现宪法冲突」 | 路径 C —— 先定方案及所需授权、完成适用文档审查，再落 issue |
 | **效果验证 / Outcome Check** | 「等 TestFlight / 发版 / 实际使用后再确认是否解决」 | 路径 D —— 建显式等待记录,不派发实现 Agent |
 
@@ -106,8 +106,8 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 <a id="路径-b--新功能speckit-全链"></a>
 ### 路径 B —— 新功能与 target 桥接
 
-已有受审 spec/plan/tasks 或仓库原生 plan／issue 时，引用准确 revision，交接手 Planner 复用、校验、补齐缺项。
-缺少 Spec Kit 本身不等于缺少需求依据；若该仓采用它，仅由获分配的规划者补缺失的 specify → clarify → plan → tasks 产物，
+已有受审 spec/plan/tasks 或仓库原生 plan／issue 时，引用准确 revision，团队 Planner 复用、校验并只补实际缺项，不重做已定内容。
+缺少 Spec Kit 本身不等于缺少需求依据；若该仓采用它，由负责该项的规划者或获相应宽范围的原实现者补缺失的 specify → clarify → plan → tasks 产物，
 不在此入口重做已审计划，也不跑 `/speckit-implement`。细节见 `references/speckit-bridge.md`。
 
 1. 读取固定 Goal／Targets／Tasks、验收、权限、owner 和真实依赖；引用适用的 constitution／repo guide，不复制政策。
@@ -125,7 +125,7 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
   交规划／技术内容 owner 确定需要修正的事实与约束，纳入当前 target 或适用的文档交付单元；
   由已分配的原实现者在核实的任务 worktree 更新对应 CONTEXT／guide，并走仓库既有审查与 gates。
   桥接入口不先改文件再补 issue；规划内容负责人也不因使用本 skill 自动获得实现职责。
-- **改架构方向 / 与现宪法冲突** → 先由规划 worker 提炼基本方案，沿原入口路由必要 Owner 决定；涉及政策或权限变更另取明确授权；
+- **改架构方向 / 与现宪法冲突** → 先由 assignment 允许的内容责任人补齐未定方案、保留已定部分，沿原入口路由必要 Owner 决定；涉及政策或权限变更另取明确授权；
   由内容负责人写 `docs/adr/NNNN-*.md` 或所需宪法变更并通过既有审查，**再** 落本版实现 issue。
   对齐 `specs/README.md`「冲突先改宪法再写 spec」+ constitution「例外须 ADR 记录」。
 

@@ -387,6 +387,11 @@ restraint 行都保持 = 新规则精准(只修目标退化,不动别的)。
 
 | # | Fixture | 可观察判断 |
 |---|---|---|
-| I10 | 原生 plan v3 已审，target A 含 API、UI、验证 T1–T3；仓库允许原子同 PR | 复用 v3，单 target issue 保留 T1–T3／AC 映射，无强制 parent 或三条 issue |
+| I10 | 原生 plan v3 已审且获准执行，target A 含 API、UI、验证 T1–T3；仓库允许原子同 PR；FS 按 Task 集接收 | 复用 v3 与原 FS，单 target issue 保留 T1–T3／AC 映射；候选就绪后沿 FS 审查请求→准确 SHA verdict→原 FS 发布→PRM，修复返回同一 FS；无强制 parent、三条 issue 或重复规划 |
 | I11 | 两个 target：共享包发布后消费者才能升级，内部各有多个 task | 两个交付 issue；按产物依赖记录就绪条件，可选汇总 parent／barrier，内部 task 不逐条建票 |
 | I12 | 调用者是桥接 worker，需修 tech-context 的命令说明 | 内容 owner 核对方案，原实现者写文件并走既有门禁；桥接 worker 不先改源码再补票 |
+| I13 | 原实现者获较宽实现 assignment，范围与允许操作明确，Goal／Targets 尚未定义 | 在 assignment 内补缺及验收映射，完成适用审查，不默认另设规划者；桥接者不因引用该方案扩权 |
+| I14 | Owner 已讨论确定目标、方向及部分验收，但完整 artifact／审查未完成 | 固定已定部分，只补未定项；缺 artifact 不等于未决定，讨论不新增执行授权，真实冲突回原入口 |
+| I15 | Task-only FS 收到父 Goal／Target、T1–T3、owned paths、允许操作及 helper 权限 | 父级为约束／上下文；只细化并执行 Task 集，不重选／拆父目标，不承接未派工作或调度同级；既定审查／修复／PRM 请求保留 |
+| I16 | 同一 FS 已完成 T1/T2，仍需 T3 及完整 Target 验收证据 | 同一身份连续实现、验证、修复；记录已完成与剩余覆盖，不逐 Task 换人、回协调者或全量审查，不宣称 Target 完成 |
+| I17 | Task-only 调用缺父级绑定或允许操作；或 scope 与固定基线冲突 | 向原调用者指出具体缺口，暂停依赖动作、保留工作；不自行补协调者身份或扩 assignment，工具保持可用 |

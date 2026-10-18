@@ -55,14 +55,18 @@ version until Owner confirms finalization and execution; report current failures
 | Stage | Ready when | Dispatch |
 |---|---|---|
 | Planning | original request and available decisions/artifacts received; Goal/Targets, intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to determine/validate Goal and Targets, reuse artifacts and fill concrete gaps |
-| Implementation | spec-gate PASS on the baseline and breakdown; target dependencies done; no conflicting parallel files/contracts | Fullstack Engineer for one target and its internal tasks with explicit owned paths; do not split solely by layer count |
+| Implementation | spec-gate PASS on the baseline and breakdown; target dependencies done; no conflicting parallel files/contracts | Original Fullstack Engineer for the assigned Task set within one Target, with AC mapping, owned paths, allowed operations and return owner; parent Goal/Target is constraint/context, not FS management authority; do not split solely by layer count |
 | Pre-push review | FS owns its loop with AI Reviewer | none (intervene only on re-scope, dispute, 2-round exhaustion/final-round check) |
 | Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
 | Closure | PRM confirmed delivery and independent evidence covers required Target/Goal ACs | mark the implementation child done (PRM closes pure PR-tracking issues itself); promote unblocked tasks; close parent when all required children are terminal and AC evidence is current; do not substitute your technical verdict |
 
 - On an FS gap signal: necessary omitted adaptation/tests within the existing repos, scope,
   approach, acceptance and authority stay in the current version, recorded and returned to the
-  original FS with dependencies made explicit in the execution ledger. Progress/metadata and mechanical
+  original FS with dependencies made explicit in the execution ledger. Keep the same FS continuously
+  completing its assigned Task set, verification and repairs, without per-Task redispatch or full review.
+  Parent Goal/Target changes or added work require the authorized caller's scope decision; FS does not
+  acquire them merely from context. Missing/conflicting role, parent, Task scope or allowed operations
+  must be resolved with the original caller before dependent actions. Progress/metadata and mechanical
   internal task additions do not restart planning. Use Planner and the applicable spec/plan gate when
   the reviewed baseline changes; changes to a repository-required reviewed artifact still refresh exact-revision
   evidence over the delta/impact. Add no repo, permission or writer under this allowance. A new design
@@ -112,6 +116,10 @@ Every dispatch carries the six fields from the [workflow index](../../README.md#
 evidence, next): repo + base, goal/acceptance/prohibitions, owned layer/paths, unique executor,
 PR/SHA/check evidence, next owner + wake condition. Dispatch comments contain only the new task,
 accepted plan version, required evidence and expected handoff; do not restate history.
+For FS, put the parent Goal/Target constraints in intent/baseline and the executable Task set in
+scope; carry trusted role/parent binding, allowed operations and return owner in these existing fields.
+Helper permission grants no sibling dispatch authority. Preserve FS's normal review requests, repair
+returns and PRM handoff; partial Task completion records remaining Target coverage, not full readiness.
 
 Mention links:
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`

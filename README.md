@@ -28,7 +28,7 @@
 | Skill | 作用 |
 |---|---|
 | [`multica-delivery-supervisor`](./skills/workflow/multica-delivery-supervisor/) | Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority. |
-| [`orchestrate`](./skills/workflow/orchestrate/) | 跨仓编排——把原始需求和已有决定交规划 worker 确定或校验 Goal/Targets，按受审依赖分配 Dev Team 或 subagent、监督原责任并报告独立验收证据；主 agent 不做规划、实现或技术验收。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。 |
+| [`orchestrate`](./skills/workflow/orchestrate/) | 跨仓编排——将原始需求和已有决定交相应规划者或获对应范围的原实现者补齐未定 Goal/Targets，保留已讨论决定；按受审依赖分配 Dev Team 或 subagent、监督原责任并报告独立验收证据。主 agent 只协调，不替代 PRM；用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付。 |
 | [`periodic-maintenance`](./skills/workflow/periodic-maintenance/) | 06 周期维护的未启用源码入口：按有效决定核对公开仓当前文档与相关实现，准备有证据的普通 backlog 或待澄清草稿。用于维护规则审查和离线演练；真实运行仍受启用 HOLD 约束。 |
 | [`runtime-recovery`](./skills/workflow/runtime-recovery/) | 运行恢复辅助——控制面、daemon、runner 不可用或执行者中断时，定位故障层并按已有授权恢复，由原责任方接回。用于 Multica 连不上、runner offline、review pending 或任务中断；不接管 PR 交付，不授权主机配置或凭据变更。 |
 | [`shared-release`](./skills/workflow/shared-release/) | 04 自动化发布——合并至默认分支且前置检查通过后触发的自动化发布工作流，引用 shared-ci v0.5.0 发布模板与规范。用于指导 shared-* 库及各 repo 的自动化发布接线、版本决策与发布边界。 |
@@ -106,9 +106,10 @@ python3 scripts/install-cli-workflow.py --client codex --client claude --check
 
 安装器在当前配置目录的全局 `AGENTS.md`／`CLAUDE.md` 中维护一个引用源码的薄入口，保留其他指令；
 Codex 已有非空 `AGENTS.override.md` 时使用该生效文件。源码 checkout 需要保留，迁移后重跑安装器。
-新会话加载入口；已启动会话需显式读取规范。全局入口不授予主 agent 身份：规划 worker 确定／校验 Goal 与 Targets，
-主 agent 只分配监督、路由和报告；委派时须传角色／来源绑定、原始需求及受审基线，不能假设子会话继承。
-这是共享工具权限下的行为规范，不是技术隔离；worker 不因读取全局指令或使用 helper 升为协调者。
+新会话加载入口；已启动会话需显式读取规范。全局入口不授予主 agent 身份：规划者或获相应宽范围的原实现者可补齐未定 Goal／Targets，
+已讨论决定保持不变；Task-only FS 只执行所分配 Tasks，父级目标是约束及上下文。主 agent 只分配监督、路由和报告。
+委派时传角色／来源绑定、原始需求、已有决定、受审基线、执行范围及允许操作，不能假设子会话继承。
+这是保持工具可用的软行为隔离；worker 不因读取全局指令或使用 helper 升为协调者，不新增技术权限限制或必做隔离待办。
 其他 CLI 在其受支持的全局指令入口引用同一文件；本安装器只配置这两种客户端，不部署远端 Dev Team runtime。
 
 ## 校验

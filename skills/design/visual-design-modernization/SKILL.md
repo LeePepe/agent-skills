@@ -10,7 +10,7 @@ A repeatable method for taking a UI a user thinks is "ugly / not modern" and mak
 
 **Announce at start:** "I'm using the visual-design-modernization skill."
 
-Apply the [common contract](../../workflow/execution-contract.md#角色与调用来源) to the current assignment: the planner forms the north-star/proposal, the original implementer builds the isolated prototype and authorized migration, and an independent reviewer supplies visual/acceptance evidence. This method grants no coordinator role, helper delegation or self-acceptance authority. Check visual-direction approval and implementation authorization separately; reuse valid existing decisions without asking for the same approval again.
+Apply the [common contract](../../workflow/execution-contract.md#角色与调用来源) to the current assignment: the assigned planner or broadly assigned original implementer may fill undefined goals and north-star/proposal within scope, preserving already-discussed decisions even without a complete artifact/review. A Task-only implementer refines assigned steps, never parent Goals/Targets or settled direction. The original implementer builds the isolated prototype and authorized migration; an independent reviewer supplies visual/acceptance evidence. This method grants no coordinator role, helper delegation or self-acceptance authority. Check visual-direction approval and implementation authorization separately; discussion alone grants no new execution approval, and valid decisions need no repeated approval.
 
 ## When to use
 

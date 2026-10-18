@@ -14,7 +14,7 @@ First resolve the current project or target repository. Continue only for
 For every other project, leave ownership with its project-specific skill or
 engineering workflow, even when the request mentions UI, charts, or a dashboard.
 
-**Design lead describes responsibility for visual direction within the current assignment.** Use the [common contract](../../workflow/execution-contract.md#角色与调用来源): the planning worker forms the design proposal, the original implementation worker builds and integrates the authorized scope, and an independent reviewer provides acceptance evidence. Keep one design language across those outputs; this skill grants no coordinator role or self-acceptance authority. Delegate bounded slices only when helper delegation is authorized; a specialist never takes over the original owner's responsibility.
+**Design lead describes responsibility for visual direction within the current assignment.** Use the [common contract](../../workflow/execution-contract.md#角色与调用来源): the assigned planner or broadly assigned original implementer may fill undefined goals, contracts and design direction, preserving already-discussed decisions even before a complete artifact/review exists. A Task-only implementer refines only assigned implementation steps; parent Goals/Targets and settled direction remain constraints. The original implementer builds/integrates the authorized scope; an independent reviewer provides acceptance evidence. This skill grants no coordinator role or self-acceptance authority. Authorized helpers take bounded slices, not sibling or Goal dispatch authority.
 
 **Announce at start:** “I'm using the my-designer skill (as design lead).”
 Announce each delegation in one line: who, why, and what returned.
@@ -53,7 +53,7 @@ This default does not authorize unrelated migrations.
    errors must render an error/retry state, never silently substitute fixtures.
    State missing skills, Figma access, screenshots or reviewer capability and
    use an honest fallback; never claim a tool or gate ran when it did not.
-4. **Plan and integrate within assignment.** The planner defines page/feature contracts; the original implementer owns navigation, shared components, cross-page state and integration. Authorized helpers may take non-overlapping slices under repository worktree/session rules. Without that authorization, keep implementation with its owner rather than spawning a team. Integration self-check does not replace independent acceptance.
+4. **Plan and integrate within assignment.** The assigned content owner fills only undefined page/feature contracts within scope; the original implementer owns navigation, shared components, cross-page state and integration. Task-only work does not redefine parent contracts or adopt unassigned slices. Authorized helpers may take non-overlapping slices under repository worktree/session rules. Without that authorization, keep implementation with its owner rather than spawning a team. Integration self-check does not replace independent acceptance.
 5. **Objective screenshot gate.** Before visual delivery, use `design-reviewer`
    on rendered target-view screenshots plus the north-star (desktop/mobile for
    Web; the applicable device/window classes for native). Require a /35
@@ -69,7 +69,7 @@ provenance. Backend contract gaps are separate tasks, not invented UI facts.
 
 1. **Intake:** establish platform, app scope, current workflows, and reference
    screens. Keep project constraints; distinguish a prototype from production.
-2. **Plan:** the assigned planner chooses the platform default and migration slices, including shell/shared-state contracts. Reuse an existing valid plan and visual-direction approval rather than reopening them.
+2. **Plan:** the assigned planner or broadly assigned original implementer fills missing migration slices and shell/shared-state contracts within scope. Preserve partially settled decisions; reuse an existing valid plan and visual-direction approval rather than reopening them. Discussion alone is not new execution approval.
 3. **Build:** the original implementer integrates real library components first, then product views and charts within the authorized scope. Visual-direction approval and execution authorization are distinct; reuse each when already valid. Use specialists only for real gaps and with delegation permission.
 4. **Integrate:** reconcile tokens, navigation and states across slices. Test
    complete user journeys, not just isolated attractive screens.
