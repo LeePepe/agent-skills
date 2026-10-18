@@ -1,5 +1,8 @@
 # Workflow：六个工作流
 
+快速导航：[公共执行契约](execution-contract.md) · [Dev Team 角色索引](dev-team-roles/README.md) ·
+[显式团队入口 teamwork](../repo/teamwork/SKILL.md) · [全部技能与安装](../../README.md)。
+
 本索引定义编排入口和交接边界。W0 是六个 workflow 的总图，不是主 agent、主管会话或第七个 workflow。
 repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 shared 合同，遵守原 hooks、review 和 required CI。
 本索引不覆盖已采用的固定合同，不证明角色、定时触发或消费者已经部署。
@@ -11,7 +14,7 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
 | 01 需求沟通与规划 | 主 agent 将原始需求／证据交规划 worker，由其确定或校验 Goal、Targets、Tasks、验收和依赖 | 可交接的方案及实施要求；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
-| 02 实现 | Dev Team 或 subagent 按已确认版本完成开发、验证和适用内部审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM |
+| 02 实现 | Dev Team 或 subagent 按已确认版本完成开发、验证和适用内部审查 | 显式团队入口为 [`teamwork`](../repo/teamwork/SKILL.md)，普通 CLI／subagent 不自动启用它；成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM |
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
@@ -125,6 +128,7 @@ task/run/SHA 变化不清零，单纯等待不计一轮；明确安全／权限�
   只输出对应 Multica project 的未指派 backlog。首版仅规则、离线适配器、隔离测试与模板；真实采集／语义运行／出口尚未接线，
   runner 新用途、真实 Multica、凭据／settings、调度与准确 head 审查须分别满足，启用 HOLD 不解除。
   提出需求不等于派发开发或修复完成，反复未修复的展示留 AIDash 后续。
+- **Skill 管理后续**：按名称选择安装、弃用 skill 处理与同步内容治理保留为后续能力；本轮仅补导航与对齐既有安装指针，不实施这些能力。
 
 ## 合并规则（按目标仓实际保护）
 

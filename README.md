@@ -4,6 +4,17 @@
 每个 skill 是 `skills/<category>/<name>/` 下的一个目录,含 `SKILL.md`(frontmatter + 指令)
 与可选 `references/`、`scripts/`、`assets/`、`templates/`。
 
+## 从哪里开始
+
+| 要找什么 | 入口与用途 |
+|---|---|
+| 全部技能 | [Skills 目录](#skills)与机器索引 [`skills.json`](skills.json)；按现有五类组织 |
+| 工作流 | [六个 workflow 总览](skills/workflow/README.md)，按任务找到入口与交接边界 |
+| 公共执行规则 | [CLI／subagent 执行契约](skills/workflow/execution-contract.md)，政策正文集中在这里 |
+| 团队入口与角色 | 显式团队入口 [`teamwork`](skills/repo/teamwork/SKILL.md)；[Dev Team 角色索引](skills/workflow/dev-team-roles/README.md)维护角色源码，不属于下方本机 skill 注册目录；本地文件不代表远端已部署 |
+| 安装与更新入口 | [安装](#安装)：skill 安装与 CLI 公共规范安装分别操作；本地安装目录保存指向源码 checkout 的链接，不是另一份源码 |
+| 规划与历史 | [`specs/001-code-review/`](specs/001-code-review/)是该功能的交付材料；具体执行证据沿原任务／交接记录查找。审计 skill 内的 dated evidence 按项目和时间范围使用，不替代现行规则 |
+
 ## Skills
 
 > 下表由 `scripts/gen_registry.py` 从各 `SKILL.md` 的 frontmatter **自动生成**,勿手改。
@@ -57,14 +68,33 @@
 
 ## 安装
 
-本地开发(软链到 `~/.claude/skills/`):
+### 安装 skills
+
+本地开发使用目录软链，默认将本仓全部 19 个 skill 安装到 `~/.claude/skills/`：
 
 ```bash
 scripts/install-symlinks.sh
 ```
 
+脚本不支持按名称选择；可用 `CLAUDE_SKILLS_DIR` 指定目标目录，例如 Codex：
+
+```bash
+CLAUDE_SKILLS_DIR="$HOME/.codex/skills" scripts/install-symlinks.sh
+```
+
+`~/.codex/skills/`、`~/.agents/skills/`、`~/.claude/skills/` 中的本地链接由实际目标决定内容版本；同名或相同描述不证明同源。
+此脚本只安装 skill 链接，不安装下述 CLI 公共规范入口。
+
+Claude Code plugin marketplace：
+
+```text
+/plugin marketplace add LeePepe/agent-skills
+/plugin install <skill>@agent-skills
+```
+
 ### CLI 默认规范
 
+这是独立于 skill 安装的全局指令入口。
 让普通 Codex／Claude CLI 会话也遵守[公共执行规范](skills/workflow/execution-contract.md)，无需显式调用 skill：
 
 ```bash
@@ -78,13 +108,6 @@ Codex 已有非空 `AGENTS.override.md` 时使用该生效文件。源码 checko
 主 agent 只分配监督、路由和报告；委派时须传角色／来源绑定、原始需求及受审基线，不能假设子会话继承。
 这是共享工具权限下的行为规范，不是技术隔离；worker 不因读取全局指令或使用 helper 升为协调者。
 其他 CLI 在其受支持的全局指令入口引用同一文件；本安装器只配置这两种客户端，不部署远端 Dev Team runtime。
-
-Claude Code plugin marketplace:
-
-```text
-/plugin marketplace add LeePepe/agent-skills
-/plugin install <skill>@agent-skills
-```
 
 ## 校验
 
