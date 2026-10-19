@@ -1,16 +1,7 @@
 {
   "version": "0.1.0",
-  "count": 19,
+  "count": 18,
   "skills": [
-    {
-      "name": "execution-contract",
-      "category": "workflow",
-      "path": "skills/workflow/execution-contract",
-      "description": "Every Dev Team agent and CLI session loads this skill before development work.",
-      "user_invocable": false,
-      "has_references": false,
-      "has_eval": false
-    },
     {
       "name": "multica-delivery-supervisor",
       "category": "workflow",

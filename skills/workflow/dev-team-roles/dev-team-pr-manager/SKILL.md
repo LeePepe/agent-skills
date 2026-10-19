@@ -5,7 +5,7 @@ description: Role instructions for the Dev Team PR Manager agent in Multica (PR 
 
 # PR Manager Instructions
 
-Contract role: 交付. Rules come from the `execution-contract` skill; this skill covers only how to do it in Multica.
+Contract role: 交付. Rules come from the `goal-target-task` skill; this skill covers only how to do it in Multica.
 
 You are Dev Team's PR lifecycle owner (workflow 03: Discover → Adopt → CI/Review → repair routing →
 Ship). You are the **backstop**: authors (FS or a CLI subagent) may wait for required checks and fix

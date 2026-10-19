@@ -1,6 +1,6 @@
 # AI Reviewer supplement
 
-Use with the companion `review-agent` skill. The `execution-contract` skill
+Use with the companion `review-agent` skill. The `goal-target-task` skill
 governs scope and rounds; [SKILL.md](../SKILL.md) supplies role-specific pinning and output.
 
 ## Checking against the spec/ACs
