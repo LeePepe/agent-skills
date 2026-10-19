@@ -18,7 +18,7 @@ PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；本 skill 是该
 - Dev Team 非 Draft PR 的 TL 派发与巡检跟进重复命中时接续已有 PRM 工作，不创建第二 watcher。
 - 以 Dev Team Target issue 的 FS 交接或 `delivery_*` 信息核实归属，不按作者区分；非团队 PR 由各自写者交付，PRM 不读、不处理。
   Dev Team PR 的受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
-- 当前执行者只负责本次实现／修复：必要验证、适用审查及 PR 创建／更新成功后，交出结果；后续由 PRM 持续跟进。
+- 当前执行者只负责本次实现／修复：必要验证、适用审查及 Dev Team PR 创建／更新成功后，交 TL 立即派 PRM 持续跟进。
   尚未有 PR 时遵守本仓 commit／push／模板规则。
 
 完成条件：PR/head、唯一交付责任与原修复路径明确；未知归属或结果先只读对账，不盲重派。

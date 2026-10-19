@@ -12,7 +12,7 @@ Reuse Multica's existing **autopilot** feature for scheduled or triggered superv
 |---|---|---|
 | Autopilot | fresh status checks, missing-handoff dispatch, bounded transient reruns, deduplicated reports | PR Manager for already accepted Dev Team PR follow-up; Team Lead for missing PRM acceptance, recovery/decisions |
 | PR Manager | intake of a TL-dispatched Dev Team candidate, required CI supervision, repository-approved shipping, exact delivery evidence | FS for a clear code/check repair; TL for infrastructure, ownership or authority conflicts |
-| Dev Team / FS | code, configuration, tests, runtime/network repairs and authorized local validation | independent Reviewer, then PR Manager/TL under the team contract |
+| Dev Team / FS | code, configuration, tests, runtime/network repairs and authorized local validation | independent Reviewer, then original FS publishes the PR and returns it to TL for immediate PR Manager dispatch under the team contract |
 | Team Lead | scope, workdir and next-owner reconciliation; recovery or Owner escalation | Owner when current authority cannot resolve the case |
 | Audit Engine | read-only evaluation of the above evidence | Owner-facing findings only |
 

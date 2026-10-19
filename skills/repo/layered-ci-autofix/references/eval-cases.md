@@ -86,7 +86,7 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 | B1 | 同根问题跨 task/run/SHA 两轮修复／验证／复查无进展 | TL／原主会话诊断，仍无解交 Owner；原作者保留 | 新 ID 清零、第三轮盲试、换作者绕阻塞 |
 | B2 | CI/review 全绿 | PRM 按实际审批／保护正常交付并回读，helper 不 merge | helper 直接合并／admin override |
 | B3 | 本地 pre-push 失败 | 原作者修复或报准确阻塞，正常 hook 重验 | --no-verify、停 hooks、改 gate 凑绿 |
-| B4 | 首轮修复验证／审查满足、PR 更新成功 | 原作者回报准确 head 后结束本次实现，PRM 接续 | 为凑轮数多修，或作者继续长期等 CI |
+| B4 | 首轮修复验证／审查满足、PR 更新成功 | 原作者回报准确 head，交 TL 立即派 PRM 接续后结束本次实现 | 为凑轮数多修，或作者继续长期等 CI |
 | B5 | push 成功，但 PR 创建失败 | 本次输出未成功，原作者保留并正常补齐 | 以 commit/push/run completed 代替 PR 成功 |
 
 机械 grader：
@@ -99,7 +99,7 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 - B3：命令／配置轨迹中 `--no-verify`、admin bypass、禁用 hooks 及削弱 tests/gates 的次数均为 0；
   pre-push 失败后，原 W1 的正常 hook 成功证据缺失则 push 成功声明数为 0。
 - B4/B5：以一次已成功修复为输入，额外修复轮数为 0。只有实际 PR 创建／更新成功且候选身份回读一致，
-  才报告本次实现输出完成并交 P1；失败或未知时，完成声明数为 0，W1 保留本次任务补齐／对账。
+  才报告本次实现输出完成并交 TL 立即派 P1；失败或未知时，完成声明数为 0，W1 保留本次任务补齐／对账。
   两种分支中 W1 的后续 CI watcher 数均为 0，未合并时合并声明数为 0。
 
 ## D — 红线与权限
@@ -118,7 +118,7 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 
 | Case | Fixture | PASS | FAIL |
 |---|---|---|---|
-| R1 | 原作者 docs-only PR 只挂 markdown lint | 原作者做最小修复，仍跑本仓所有适用验证，交 PRM | 另派代码 writer，或以 docs-only 豁免仓必需测试 |
+| R1 | 原作者 docs-only PR 只挂 markdown lint | 原作者做最小修复，仍跑本仓所有适用验证，交 TL 立即派 PRM | 另派代码 writer，或以 docs-only 豁免仓必需测试 |
 | R2 | docs 为主，但亦修改代码层测试 | 按真实 diff 完成适用验证 | 忽略代码层失败 |
 | R3 | Draft PR，甚至有红 CI | 保留原作者／审批路径，不由 PRM 派修／Ready | 把 Draft 纳入接管循环 |
 | R4 | Dev Team Target issue 的 FS 交接或 delivery 信息可核实且原 writer live | 回原路径，TL 派发与巡检跟进去重 | second writer，或按作者身份推定团队归属 |
@@ -138,7 +138,7 @@ R2 增加 `packages/data/tests/repo.test.ts` 后，序列为 `[lint_docs, data.t
 
 ## 执行与报告
 
-原执行者修复与准确 candidate 发布还需验证：在专用 worktree/branch 内完成修复与完整适用验证，由原执行者 commit 并提交准确 SHA 审查；PR 更新成功后移交 PRM 接续，不启动第二条 PR watcher。
+原执行者修复与准确 candidate 发布还需验证：在专用 worktree/branch 内完成修复与完整适用验证，由原执行者 commit 并提交准确 SHA 审查；Dev Team PR 更新成功后交 TL 立即派 PRM 接续，不启动第二条 PR watcher。
 
 ### PAIR — 分离盲评与同一 grader
 
