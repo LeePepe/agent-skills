@@ -439,6 +439,29 @@ class PRManagerPolicyTests(unittest.TestCase):
 class SkillDocumentValidationTests(unittest.TestCase):
     """Validates that role SKILL.md documents contain required contract clauses."""
 
+    def test_all_role_skills_contain_contract_role_binding(self):
+        bindings = {
+            "dev-team-team-lead": "Contract role: 协调者.",
+            "dev-team-planner": "Contract role: Target 定义方.",
+            "dev-team-fullstack-engineer": "Contract role: Target 写者.",
+            "dev-team-ai-reviewer": "Contract role: 独立验收.",
+            "dev-team-pr-manager": "Contract role: 交付.",
+            "dev-team-flow-supervisor": "Contract role: none (supervision only).",
+            "dev-team-squad": "Contract role mapping:",
+        }
+        for skill, binding in bindings.items():
+            with self.subTest(skill=skill):
+                text = (ROLES_DIR / skill / "SKILL.md").read_text(encoding="utf-8")
+                binding_lines = [line for line in text.splitlines() if line.startswith(binding)]
+                self.assertEqual(len(binding_lines), 1)
+                self.assertIn("`execution-contract` skill", binding_lines[0])
+
+    def test_writer_and_reviewer_skills_reference_r6(self):
+        for skill in ("dev-team-fullstack-engineer", "dev-team-ai-reviewer"):
+            with self.subTest(skill=skill):
+                text = (ROLES_DIR / skill / "SKILL.md").read_text(encoding="utf-8")
+                self.assertIn("R6", text)
+
     def test_pr_manager_skill_contains_cancellation_safeguard_before_branches(self):
         text = PR_MANAGER_SKILL.read_text(encoding="utf-8")
         self.assertIn("cancelled/won't-do", text)
