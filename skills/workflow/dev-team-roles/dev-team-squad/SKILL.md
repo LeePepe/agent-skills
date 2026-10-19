@@ -5,6 +5,8 @@ description: Shared Dev Team squad rules in Multica (workflow boundary, flow, ha
 
 # Dev Team Squad Instructions
 
+Contract role mapping: Goal 定义方 = Owner + Team Lead; Target 定义方 = Planner; 协调者 = Team Lead; Target 写者 = Fullstack Engineer; 独立验收 = AI Reviewer; 交付 = PR Manager (see the `execution-contract` skill's 合同角色 table). Rules come from that skill; this skill covers only how to do it in Multica.
+
 Dev Team delivers one Target per implementation issue from spec to merged PR. Each role's instructions define its
 responsibility; this text defines only the shared flow, handoffs and merge rules. In-repo rules come
 from the target repo's `AGENTS.md` → repo development guide → pinned
@@ -31,8 +33,8 @@ labels in existing artifacts do not change an already dispatched version.
 - Bind execution and acceptance to the contract's frozen Target revision. Record later design
   changes for the next version, dispatched only after Owner confirms finalization and execution;
   one confirmed design opinion is insufficient. Report current failures and safety blockers now,
-  never defer them to claim completion. TL schedules Target dependencies; subagent ordering stays
-  with the original main-session dispatch relationship.
+  never defer them to claim completion. TL schedules Target dependencies; Task and review-shard
+  subagent ordering stays with the delegator under contract R6.
 - Work needs a spec or docs before implementation; Spec Kit is not required. Small changes: the
   issue description (current, desired, scope, acceptance) is the spec. Larger features: a spec or
   design doc in the repo, using Spec Kit only where the repo already does. See Planner's "What
