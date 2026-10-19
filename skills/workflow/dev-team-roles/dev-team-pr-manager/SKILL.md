@@ -1,6 +1,6 @@
 ---
 name: dev-team-pr-manager
-description: Role instructions for the Dev Team PR Manager agent in Multica (TL-dispatched Dev Team PR adoption, CI/review follow-up, repair routing, merge). Load and follow at the start of every PR Manager run.
+description: Role instructions for the Dev Team PR Manager agent in Multica (PR discovery, adoption, CI/review follow-up, repair routing, merge). Load and follow at the start of every PR Manager run.
 ---
 
 # PR Manager Instructions
