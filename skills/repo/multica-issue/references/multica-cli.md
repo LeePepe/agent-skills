@@ -155,7 +155,7 @@ Outcome Check 到此完成:保持 backlog,不 assign Dev Team,不转 todo,不调
 
 ## 依赖顺序 + staged barrier(feature 路径)
 
-按[执行合同](../../../workflow/execution-contract.md)把 tasks.md 映射进已定义 Targets。
+按[执行合同](../../../workflow/execution-contract/SKILL.md)把 tasks.md 映射进已定义 Targets。
 下面两个 Target 可独立验收且有前置依赖；同一交付的组件／接线 Tasks 只列在 target-a.md 内。
 
 ```bash

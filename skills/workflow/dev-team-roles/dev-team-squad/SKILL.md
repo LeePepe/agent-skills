@@ -11,7 +11,7 @@ from the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
 documented rules and gates. Project exceptions never belong in squad or role text.
 
-Read the [execution contract](../../execution-contract.md) for Goal/Target/Task definitions,
+Read the `execution-contract` skill for Goal/Target/Task definitions,
 assignment authority, frozen revisions, gap routing and scoped review. Role files add only their operational duties.
 
 ## Workflow boundary and accepted version
@@ -62,9 +62,9 @@ Planner ⇄ AI Reviewer (spec gate) → Team Lead → FS implement
 
 Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
 
-1. **Spec gate** — AI Reviewer applies its [spec-gate checklist](../dev-team-ai-reviewer/SKILL.md#a-specplan-gate--stop-spec-errors-before-any-code)
+1. **Spec gate** — AI Reviewer applies its spec-gate checklist (`dev-team-ai-reviewer` skill, section A)
    to the Target definition under contract V1. Spec errors stop here.
-2. **Pre-push review** — AI Reviewer applies its [spec + architecture checklist](../dev-team-ai-reviewer/SKILL.md#b-pre-push-review--spec-conformance--architecture)
+2. **Pre-push review** — AI Reviewer applies its spec + architecture checklist (`dev-team-ai-reviewer` skill, section B)
    under contract V1–V3 to the exact candidate; findings cite accepted ACs or repository red lines.
    `PASS` / `NEEDS_WORK` is bound to the SHA; not a merge gate.
 3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft (Owner waits use

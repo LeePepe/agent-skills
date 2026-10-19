@@ -1,6 +1,6 @@
 # AI Reviewer supplement
 
-Use with the companion `review-agent` skill. The [execution contract](../../../execution-contract.md)
+Use with the companion `review-agent` skill. The `execution-contract` skill
 governs scope and rounds; [SKILL.md](../SKILL.md) supplies role-specific pinning and output.
 
 ## Checking against the spec/ACs

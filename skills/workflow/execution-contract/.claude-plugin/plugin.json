@@ -1,0 +1,5 @@
+{
+  "name": "execution-contract",
+  "description": "Every Dev Team agent and CLI session loads this skill before development work.",
+  "category": "workflow"
+}

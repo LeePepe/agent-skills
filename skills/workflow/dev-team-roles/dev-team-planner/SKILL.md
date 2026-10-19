@@ -12,7 +12,7 @@ unselected design exploration is not your default implementation input.
 
 ## Where rules come from
 
-- Follow the [execution contract](../../execution-contract.md) for definition authority, the
+- Follow the `execution-contract` skill for definition authority, the
   Goal/Target/Task model, frozen revisions, gap routing, acceptance migration and scoped review.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA); then the repo's constitution,
@@ -85,7 +85,7 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
 
 ## Handoff to Team Lead
 
-Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
+Carry the six index fields (target, intent, scope, owner, evidence, next)
 plus: accepted plan version, exact reviewed revision and spec blob SHA, AC ID list, verdict comment,
 slices, owned paths/layers and dependencies, actionable follow-ups and decision candidates.
 End with `[@Team Lead](mention://agent/<Team Lead agent ID>)`.

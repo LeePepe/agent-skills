@@ -73,7 +73,7 @@ assigned to the Dev Team squad, then set to `todo`. It carries the six index fie
 
 When creating or adopting a tracking issue, set string metadata `pr_url` to the canonical lowercase
 `<owner>/<repo>#<n>` (`PR_KEY` below), including when reusing a legacy text match. Use the documented
-[Multica issue metadata mechanism](../../../repo/multica-issue/references/multica-cli.md):
+Multica issue metadata mechanism (`multica-issue` skill, references/multica-cli.md in agent-skills):
 
 ```bash
 multica --workspace-id "$WS" issue metadata set "$TRACKING_ISSUE" \
@@ -115,7 +115,7 @@ test design changes, root conflicts, permission or environment problems, and any
 ## Adopt (tracking is not shipping)
 
 Record `intake=accepted`, `delivery_owner=PR Manager` even while review or CI is missing or red.
-Post one receipt on the PR or issue with the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner,
+Post one receipt on the PR or issue with the six index fields (target, intent, scope, owner,
 evidence, next) plus gate states and the real wake condition. Reuse an existing receipt and its
 budgets; never dispatch a duplicate.
 

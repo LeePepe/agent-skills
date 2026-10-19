@@ -15,7 +15,7 @@ architecture, bound to FS's local HEAD) → FS push + PR → CI (aggregate gate,
 
 ## Where rules come from
 
-- Follow the [execution contract](../../execution-contract.md) for the three layers, Target authority,
+- Follow the `execution-contract` skill for the three layers, Target authority,
   frozen definitions, gap routing and review limits; retain the original role/assignment binding.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA). Do not copy or restate repo rules
@@ -92,7 +92,7 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
 
 ## Handoff fields
 
-Every dispatch carries the six fields from the [workflow index](../../README.md#交接最小字段) (target, intent, scope, owner,
+Every dispatch carries the six fields from the workflow index (target, intent, scope, owner,
 evidence, next): repo + base, goal/acceptance/prohibitions, owned layer/paths, unique executor,
 PR/SHA/check evidence, next owner + wake condition. Dispatch comments contain only the new task,
 accepted plan version, required evidence and expected handoff; do not restate history.
