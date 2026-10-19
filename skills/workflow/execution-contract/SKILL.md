@@ -22,6 +22,21 @@ description: Every Dev Team agent and CLI session loads this skill before develo
 小改动可在现有 issue／会话中定义一个 Target 和一个 Task，不另建规划目录或主管层。
 需要计划的工作先形成可审定义，按目标仓规则完成独立计划审查和执行确认；有效受审基线直接复用，不先实施再补审。
 
+## 合同角色
+
+以下为常见角色绑定；定义权仍按 R1，含获宽范围 assignment 的原实现者。
+
+| 合同角色 | 职责 | Dev Team | CLI |
+|---|---|---|---|
+| Goal 定义方 | 定义 Goal 和不做项；Goal 变更回 Owner | Owner + TL | Owner + lead 主会话 |
+| Target 定义方 | 定义 Targets、Tasks、验收命令及修订（R1／R2／R5） | Planner | lead 主会话 |
+| 协调者 | 分配、依赖、新增 Targets（R4）及决定路由 | TL | lead 主会话 |
+| Target 写者 | 每个 Target 唯一写者：实现、验证、commit、PR | Fullstack Engineer | 实现 subagent |
+| 独立验收 | 按 V1–V3 限定审查 | AI Reviewer | 审查 subagent（独立会话） |
+| 交付 | 推进 PR 合法合并 | PR Manager | PR Manager |
+
+Flow Supervisor 只监督，不承担合同角色。
+
 ## 定义、冻结与缺口
 
 - **R1 定义权**：拿到定义 assignment 的人或 agent 可以编制三层定义，包括 01 的 lead／CLI、02 的 Planner 或获宽范围 assignment 的原实现者；不按 workflow 编号划分定义权，新增 Target 仍遵守 R4。
@@ -33,15 +48,21 @@ description: Every Dev Team agent and CLI session loads this skill before develo
 - **R4 新增 Target 权**：只有 TL、人或作为 lead 的主 agent（Claude 或 Codex）可以新增 Target；新 Target 不能改变 Goal，执行方只能附证据提议。
 - **R5 验收迁移**：验收项在 Targets 之间移动时，由定义方重映射 Goal／Target／Task 与验收命令并出新 revision，独立审查只看改动部分。
   台账保留迁出／迁入位置、原因及未交付状态；迁移不等于 Goal 验收完成。
+- **R6 subagent 委派**：Target 写者和独立验收可将自己的 Tasks 或审查分片交给 subagent，自行决定是否委派、数量及是否并行，无须另请批准。
+  subagent 接收冻结 Task、所属 owned paths 子集及验证命令，只执行该 Task，缺口回报委派者。
+  Target 写者仍是唯一写者；仅写者整合、commit、push、开 PR 并对验收负责；subagent 不碰 Multica，不联系其他角色。
+  并行 subagent 使用不重叠路径，或各用独立 worktree。
+  委派仅一层，subagent 不再委派。
+  subagent 检查计入委派者自检，不算独立审查，结论仍由委派者负责。
 
 ## 角色绑定与交接
 
 角色来自可信调用来源和显式 assignment；独立 CLI 会话、可用工具或父级 Goal 上下文都不授予主 agent 权限。
 协调者分配、监督、路由决定和汇报证据；原执行者实现、验证、修复，独立 reviewer 验收，不自签自己的产物。
-采用软行为隔离，保持工具可用；helper 权限不包含同级调度权，未知执行结果先对账，不派第二写者。
+采用软行为隔离，保持工具可用；helper 权限不包含同级调度权，R6 委派自己的 Tasks 不属于同级调度；未知执行结果先对账，不派第二写者。
 
 交接携带本合同与目标仓指南、角色／来源／父级绑定、原始意图及已有决定、准确受审 revision 和授权来源、
-Goal／Target／Tasks、owned paths、允许操作、唯一写者、验收命令、独立验收责任及预期回报；不假定 skill 自动继承。
+Goal／Target／Tasks、owned paths、允许操作、唯一写者、验收命令、独立验收责任及预期回报；交给 subagent 的 Task 同样适用，不假定 skill 自动继承。
 缺失或冲突沿原调用者回报，暂停依赖该缺口的动作；执行者不可用时保留角色和现场，不自行接管。
 
 ## 限定审查
