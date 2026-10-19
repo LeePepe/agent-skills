@@ -454,7 +454,27 @@ class SkillDocumentValidationTests(unittest.TestCase):
                 text = (ROLES_DIR / skill / "SKILL.md").read_text(encoding="utf-8")
                 binding_lines = [line for line in text.splitlines() if line.startswith(binding)]
                 self.assertEqual(len(binding_lines), 1)
-                self.assertIn("`execution-contract` skill", binding_lines[0])
+                self.assertIn("`goal-target-task` skill", binding_lines[0])
+
+    def test_squad_contains_dev_team_core_bindings_section(self):
+        text = (ROLES_DIR / "dev-team-squad" / "SKILL.md").read_text(encoding="utf-8")
+        heading = "## How Dev Team uses goal-target-task\n"
+        self.assertEqual(text.count(heading), 1)
+        section = text.split(heading, 1)[1].split("\n## ", 1)[0]
+        self.assertLessEqual(len(section.splitlines()) + 1, 30)
+        for binding in (
+            "| Goal definer | Owner + Team Lead |",
+            "| Target definer | Planner |",
+            "| Coordinator | Team Lead |",
+            "| Target writer | Fullstack Engineer |",
+            "| Independent acceptance | AI Reviewer |",
+            "| Delivery | PR Manager |",
+            "Flow Supervisor supervises only and holds no contract role.",
+            "The core's 负责人 is the Owner.",
+            "**R1 (01/02)**", "**R4**", "**R6**", "**V4**",
+        ):
+            with self.subTest(binding=binding):
+                self.assertIn(binding, section)
 
     def test_writer_and_reviewer_skills_reference_r6(self):
         for skill in ("dev-team-fullstack-engineer", "dev-team-ai-reviewer"):

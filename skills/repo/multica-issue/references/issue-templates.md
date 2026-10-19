@@ -13,7 +13,7 @@
 - **该层 test** —— 从同 frontmatter 的 `test` 抄,修完跑这条验证。
 
 实现类 body 同时引用固定的方案版本、Owner 对本版执行的确认、唯一执行方和所用 guide/shared 版本。
-涉及多个层时分别列出适用约束；三层定义与 revision 遵守[执行合同](../../../workflow/execution-contract/SKILL.md)。
+涉及多个层时分别列出适用约束；三层定义与 revision 遵守[goal-target-task](https://github.com/LeePepe/user-skills/blob/main/skills/goal-target-task/SKILL.md)。
 这些表达也可用于普通需求草稿；维护发现或待澄清结论没有实施意图时保持未派发，不能因套用模板自动 assign／转 todo。
 原修复查证无安全下一步时沿 [问题历史](problem-history.md#investigation-without-a-safe-next-step) 等 Owner 决定，不另造 task 类型。
 

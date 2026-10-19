@@ -5,7 +5,7 @@ description: Shared Dev Team squad rules in Multica (workflow boundary, flow, ha
 
 # Dev Team Squad Instructions
 
-Contract role mapping: Goal 定义方 = Owner + Team Lead; Target 定义方 = Planner; 协调者 = Team Lead; Target 写者 = Fullstack Engineer; 独立验收 = AI Reviewer; 交付 = PR Manager (see the `execution-contract` skill's 合同角色 table). Rules come from that skill; this skill covers only how to do it in Multica.
+Contract role mapping: see [How Dev Team uses goal-target-task](#how-dev-team-uses-goal-target-task) for bindings to the `goal-target-task` skill.
 
 Dev Team delivers one Target per implementation issue from spec to merged PR. Each role's instructions define its
 responsibility; this text defines only the shared flow, handoffs and merge rules. In-repo rules come
@@ -13,8 +13,30 @@ from the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
 documented rules and gates. Project exceptions never belong in squad or role text.
 
-Read the `execution-contract` skill for Goal/Target/Task definitions,
+Read the `goal-target-task` skill for Goal/Target/Task definitions,
 assignment authority, frozen revisions, gap routing and scoped review. Role files add only their operational duties.
+
+## How Dev Team uses goal-target-task
+
+| Core role | Dev Team holder |
+|---|---|
+| Goal definer | Owner + Team Lead |
+| Target definer | Planner |
+| Coordinator | Team Lead |
+| Target writer | Fullstack Engineer |
+| Independent acceptance | AI Reviewer |
+| Delivery | PR Manager |
+
+Flow Supervisor supervises only and holds no contract role. The core's 负责人 is the Owner.
+
+- **R1 (01/02)**: An assigned definer may be workflow 01's lead/CLI, workflow 02's Planner,
+  or a broadly assigned original implementer; definition rights follow the assignment, not the workflow number.
+- **R4**: Team Lead, a human, or the lead main agent (Claude or Codex) may add Targets.
+- **R6**: Subagents do not touch Multica (no issue, comment, status or mention operations)
+  and do not contact other roles.
+- **V4**: CI codex-review (shared-ci) should review only the Target scope or be advisory.
+  Changes to shared-ci gates are a separate Target needing Owner approval;
+  existing gates remain in force and must not be bypassed.
 
 ## Workflow boundary and accepted version
 

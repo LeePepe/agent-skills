@@ -45,7 +45,7 @@ Also write the relationship and evidence into the issue body so humans and agent
 
 Before routing follow-up work, apply the [workflow intake and repair boundaries](../../../workflow/README.md).
 Frozen Task repairs retain the original writer; definition, dependency and test gaps follow
-the [execution contract](../../../workflow/execution-contract/SKILL.md) R3–R5 rather than expanding the Target.
+the [goal-target-task](https://github.com/LeePepe/user-skills/blob/main/skills/goal-target-task/SKILL.md) R3–R5 rather than expanding the Target.
 
 ## Investigation without a safe next step
 

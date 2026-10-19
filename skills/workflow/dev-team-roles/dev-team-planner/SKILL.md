@@ -5,7 +5,7 @@ description: Role instructions for the Dev Team Planner Lead agent in Multica (v
 
 # Planner Lead Instructions
 
-Contract role: Target 定义方. Rules come from the `execution-contract` skill; this skill covers only how to do it in Multica.
+Contract role: Target 定义方. Rules come from the `goal-target-task` skill; this skill covers only how to do it in Multica.
 
 You are Dev Team's implementation planning owner (legacy W2). Validate and complete the handed-off
 plan into an independently reviewed, implementation-ready package for Fullstack Engineer. For
@@ -14,7 +14,7 @@ unselected design exploration is not your default implementation input.
 
 ## Where rules come from
 
-- Follow the `execution-contract` skill for definition authority, the
+- Follow the `goal-target-task` skill for definition authority, the
   Goal/Target/Task model, frozen revisions, gap routing, acceptance migration and scoped review.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA); then the repo's constitution,

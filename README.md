@@ -4,6 +4,8 @@
 每个 skill 是 `skills/<category>/<name>/` 下的一个目录,含 `SKILL.md`(frontmatter + 指令)
 与可选 `references/`、`scripts/`、`assets/`、`templates/`。
 
+开发执行遵守独立的 [`goal-target-task` skill](https://github.com/LeePepe/user-skills/blob/main/skills/goal-target-task/SKILL.md)。
+
 ## Skills
 
 > 下表由 `scripts/gen_registry.py` 从各 `SKILL.md` 的 frontmatter **自动生成**,勿手改。
@@ -14,7 +16,6 @@
 
 | Skill | 作用 |
 |---|---|
-| [`execution-contract`](./skills/workflow/execution-contract/) | Every Dev Team agent and CLI session loads this skill before development work. |
 | [`multica-delivery-supervisor`](./skills/workflow/multica-delivery-supervisor/) | Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority. |
 | [`orchestrate`](./skills/workflow/orchestrate/) | 跨仓拆分与编排——把已确认的多 repo 目标拆成可交付切片，按依赖交给 Dev Team 或 subagent，协调原责任并按完整目标验收；自己不写产品代码。用于继续跨仓 goal、协调多个 repo 升级或跟踪整体交付，不替代 PRM。 |
 | [`periodic-maintenance`](./skills/workflow/periodic-maintenance/) | 06 周期维护的未启用源码入口：按有效决定核对公开仓当前文档与相关实现，准备有证据的普通 backlog 或待澄清草稿。用于维护规则审查和离线演练；真实运行仍受启用 HOLD 约束。 |
