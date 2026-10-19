@@ -20,7 +20,7 @@ For AIDash, VoxPocket and VitalStride, apply the [2026-09-18/19 settled decision
 - Fullstack Engineer/Executor works only in the task workdir, produces implementation/test evidence, and reports impediments to Team Lead. It does not own the terminal blocked decision.
 - Reviewers decide their gates and return actionable findings to Team Lead.
 - PR/CI actors preserve SHA identity and gate order.
-- Multica Autopilot observes, dispatches, performs authorized bounded reruns and reports; Dev Team owns code/config/runtime repair. PR Manager may adopt an external-origin PR through an authoritative exact-SHA handoff. Apply [autopilot-contract.md](autopilot-contract.md) when auditing supervision, runtime placement or external PR intake.
+- Multica Autopilot observes, dispatches, performs authorized bounded reruns and reports; Dev Team owns code/config/runtime repair. PR Manager only adopts Dev Team PRs immediately dispatched by TL from the Target issue's FS handoff or delivery information; other PRs remain with their own writers. Apply [autopilot-contract.md](autopilot-contract.md) when auditing supervision, runtime placement or external PR intake.
 - Audit Engine observes and reports only.
 - AIDash displays audit snapshots and approval events only.
 - Owner or an authoritative feedback source confirms post-release effectiveness; merge success alone does not.

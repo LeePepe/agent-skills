@@ -189,8 +189,8 @@ git show "$APPROVED_REF:$REF_PATH"
 ```
 
 这些变量由当前任务的已核实配置填入，逐文件比较方案内容。缺失或不匹配则保持待派发，按 `SKILL.md` 的
-固定方案可读取门禁处理；不要 stash 他人内容、跳过 hooks 或自行合并。授权的文档 PR 经正常 gates/审批、PRM
-推进后重新核验，才继续派发。多个 issue 可共用同一个必要文档 PR。
+固定方案可读取门禁处理；不要 stash 他人内容、跳过 hooks 或自行合并。授权的文档 PR 经正常 gates/审批，由原写者交付（Dev Team PR 交 TL 立即派 PRM）
+后重新核验，才继续派发。多个 issue 可共用同一个必要文档 PR。
 
 ---
 

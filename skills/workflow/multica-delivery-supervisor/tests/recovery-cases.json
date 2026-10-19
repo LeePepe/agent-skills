@@ -5,11 +5,11 @@
     "scope": ["VoxPocket", "VitalStride"],
     "incident": "NET-7",
     "owner_issue": "OPS-7",
-    "authorization": "Existing control-plane authority permits the assigned recovery coordinator to persist OPS-7 recovery records and hand off to PRM or the original issue-stage owner. It does not permit code/config changes, VPN/service operations, releases, schedule creation, arbitrary reassignment, or budget expansion.",
+    "authorization": "Existing control-plane authority permits the assigned recovery coordinator to persist OPS-7 recovery records and hand off already TL-dispatched Dev Team PRs to PRM or use the original issue-stage owner; PRs outside Dev Team remain with their own writers. It does not permit code/config changes, VPN/service operations, releases, schedule creation, arbitrary reassignment, or budget expansion.",
     "coordination": "Coordinator C1 assigned to NET-7; native coordination record confirms C1 is the sole active coordinator. Shared record OPS-7 is readable and writable.",
     "roles": {"PRM": "P1", "TL": "T1", "FS": "F1"},
     "health": "Fresh approved read-only probe succeeded on runner R1, runtime codex-review, provider raven, endpoint E1.",
-    "default_case_state": "No human pause; ready PR; nonterminal issue; no equivalent queued/running work; actual role entry authorized; one same-error rerun consumed, zero repairs; current SHA verified. Each case overrides these defaults."
+    "default_case_state": "No human pause; ready Dev Team PR already dispatched by TL and accepted by P1 on its Target issue; nonterminal issue; no equivalent queued/running work; actual role entry authorized; one same-error rerun consumed, zero repairs; current SHA verified. Each case overrides these defaults, including the external-PR cases which have no PRM authority."
   },
   "cases": [
     {
@@ -83,16 +83,16 @@
     },
     {
       "id": "external_conflict_terminal",
-      "evidence": ["PR49/a1 is open and non-Draft, from an external author with no Owner development, Dev Team / Owner-subagent provenance or Owner mark; its review failed during NET-7.", "P1 subsequently verified a fundamental conflict with the accepted offline-only design, commented explaining the conflict and the author adjustment required by that design, and applied the label 冲突保留. Live readback confirms both the comment and label; the existing handoff records PR49/a1 and those evidence IDs.", "No author update has occurred since that disposition. A periodic observer sees an open PR and no running actor.", "Linked product goal V49 still requires its independently specified implementation and acceptance evidence; the preserved PR has not delivered them."]
+      "evidence": ["PR49/a1 is open and non-Draft, from an external author with no Owner development, Dev Team / Owner-subagent provenance or Owner mark; its review failed during NET-7.", "Under the superseded policy, P1 subsequently verified a fundamental conflict with the accepted offline-only design, commented explaining the conflict and the author adjustment required by that design, and applied the label 冲突保留. Live readback confirms both the comment and label; the existing handoff records PR49/a1 and those evidence IDs.", "No author update has occurred since that disposition. A periodic observer sees an open PR and no running actor.", "Linked product goal V49 still requires its independently specified implementation and acceptance evidence; the preserved PR has not delivered them."]
     },
     {
       "id": "external_conflict_author_update",
-      "evidence": ["PR49/a1 previously received P1's verified conflict explanation and 冲突保留 label for violating the accepted offline-only design.", "After that disposition, the external author pushed a2 and updated the PR description to remove the conflicting cloud-sync proposal. The PR remains non-Draft, ordinary external, and still carries the old label.", "Current a2 review check C91 failed on R1/codex-review/raven/E1 during NET-7; one cumulative same-error rerun remains and no equivalent check or actor is active.", "No judgment of a2 correctness or exact-head approval exists yet; P1's authorized entry is available."],
-      "mutation_results": ["P1 accepts PR49/a2 with the current evidence and starts C92. No result is available yet."]
+      "evidence": ["Under the superseded policy, PR49/a1 previously received P1's verified conflict explanation and 冲突保留 label for violating the accepted offline-only design.", "After that disposition, the external author pushed a2 and updated the PR description to remove the conflicting cloud-sync proposal. The PR remains non-Draft, ordinary external, and still carries the old label.", "Current a2 review check C91 failed on R1/codex-review/raven/E1 during NET-7; one cumulative same-error rerun remains and no equivalent check or actor is active.", "No judgment of a2 correctness or exact-head approval exists yet; P1 is available but has no authority to read or process this external PR."],
+      "mutation_results": ["No PRM invocation or check retry occurs; the external writer retains delivery."]
     },
     {
       "id": "external_conflict_unknown_disposition",
-      "evidence": ["PR49/a1 is ordinary external, open and non-Draft; P1 has confirmed a fundamental conflict with the accepted design.", "P1's explanatory comment to the author is confirmed, but the request to apply 冲突保留 timed out. Its result is unknown and current label readback is unavailable.", "The external author has not updated the PR; another recovery invocation proposes repeating the comment and label request because the provider is now healthy."]
+      "evidence": ["PR49/a1 is ordinary external, open and non-Draft; under the superseded policy P1 confirmed a fundamental conflict with the accepted design.", "P1's explanatory comment to the author is confirmed, but the request to apply 冲突保留 timed out. Its result is unknown and current label readback is unavailable.", "The external author has not updated the PR; another recovery invocation proposes repeating the comment and label request because the provider is now healthy."]
     },
     {
       "id": "receipt_write_failure",

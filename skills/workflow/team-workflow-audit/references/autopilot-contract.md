@@ -2,7 +2,7 @@
 
 Owner decision recorded 2026-09-10. This reference defines the supervision boundary to audit; it does not authorize this audit skill to execute any operation. Resolve project-specific authority before applying the contract.
 
-For AIDash, VoxPocket and VitalStride, the [2026-09-18/19 settled decisions](settled-workflow-state.md) take precedence over this older intake contract: tracking adoption does not require a TL handoff, pre-created issue or prior internal review; shipping still requires the applicable Actions review and CI. The dated reference also preserves the current pause and cumulative retry boundaries; a new SHA alone does not reset a same-problem budget.
+For AIDash, VoxPocket and VitalStride, the [2026-09-18/19 settled decisions](settled-workflow-state.md) take precedence over this older intake contract: PRM adoption now requires TL dispatch of a Dev Team PR recorded in its Target issue's FS handoff or delivery information, without waiting for a sweep or silence; shipping still requires the applicable Actions review and CI. The dated reference also preserves the current pause and cumulative retry boundaries; a new SHA alone does not reset a same-problem budget.
 
 ## Responsibility
 
@@ -10,8 +10,8 @@ Reuse Multica's existing **autopilot** feature for scheduled or triggered superv
 
 | Actor | Owns | Returns to |
 |---|---|---|
-| Autopilot | fresh status checks, missing-handoff dispatch, bounded transient reruns, deduplicated reports | PR Manager for shipping; Team Lead for recovery/decisions |
-| PR Manager | intake of an independently reviewed candidate, required CI supervision, repository-approved shipping, exact delivery evidence | FS for a clear code/check repair; TL for infrastructure, ownership or authority conflicts |
+| Autopilot | fresh status checks, missing-handoff dispatch, bounded transient reruns, deduplicated reports | PR Manager for already accepted Dev Team PR follow-up; Team Lead for missing PRM acceptance, recovery/decisions |
+| PR Manager | intake of a TL-dispatched Dev Team candidate, required CI supervision, repository-approved shipping, exact delivery evidence | FS for a clear code/check repair; TL for infrastructure, ownership or authority conflicts |
 | Dev Team / FS | code, configuration, tests, runtime/network repairs and authorized local validation | independent Reviewer, then PR Manager/TL under the team contract |
 | Team Lead | scope, workdir and next-owner reconciliation; recovery or Owner escalation | Owner when current authority cannot resolve the case |
 | Audit Engine | read-only evaluation of the above evidence | Owner-facing findings only |
@@ -28,11 +28,11 @@ The observer may run separately on an Owner-approved, always-on host such as a N
 
 Readiness has distinct evidence: daemon heartbeat, runtime/provider identity, supported model/auth configuration, backend connectivity, and a successfully executed probe. `active` configuration or a `running` dispatch record alone does not prove an operational supervisor. Offline or incompatible runtimes get one deduplicated recovery handoff; repeated empty dispatches do not count as progress.
 
-## Intake of PRs created outside Dev Team
+## PRM intake boundary
 
-PR authorship is not an exclusion. For an in-scope repository, Team Lead supplies a recovery/adoption handoff containing the authoritative issue, PR, exact HEAD/base, requested scope, delivery workdir and current evidence. Preserve an existing valid candidate instead of recreating its implementation.
+PRM only handles Dev Team PRs identified by the Target issue's FS handoff or `delivery_*` information (PR URL, branch, head SHA), not author identity. FS returns a created or updated non-Draft PR to TL; TL immediately dispatches PRM unless an equivalent PRM run is active. No sweep or silence wait applies. PRM does not read or act on PRs from CLI sessions, the Owner or external sources; their writers retain delivery.
 
-Obtain the independent review required by the project for that exact candidate before PR Manager accepts shipping ownership. Existing CI or an advisory review does not substitute for a required review. Untrusted/fork content retains all repository execution and secret-access restrictions. No automatic intake outside the Owner-approved project/repository scope.
+PRM sweeps only follow already handed-off Dev Team PRs when checks/reviews change and no PRM/FS run is active. A team issue with a PR handoff but no PRM acceptance record gets only a TL reminder on that issue. Never create tracking issues or discover unlinked PRs. Independent reviews and repository gates still apply to shipping; untrusted/fork content retains all execution and secret-access restrictions.
 
 ## Bounded rerun and escalation
 

@@ -173,7 +173,7 @@ body 用 tech-context/ADR 模板(Decision / Context / Consequences / 受影响 l
 
 缺少文件时保留待派发状态。若已授权补文档，使用允许根目录下的独立任务 worktree、配置的 agent 身份与正常
 commit/push/PR 流程，只提交所需文件；保留他人的 checkout 与未提交内容。所需 CI、独立审查和 Owner 审批继续有效，
-PR 交 PRM 推进，不因“纯文档”跳过 hooks 或自动改宪法。合并后复核实际执行基线与固定版本，再派发。
+Dev Team PR 交 TL 立即派 PRM，其他 PR 由原写者交付，不因“纯文档”跳过 hooks 或自动改宪法。合并后复核实际执行基线与固定版本，再派发。
 多个任务引用同一份方案可共用设计文档 PR；内联完整、固定的方案则不需要不存在的外部路径检查。
 
 命令核验见 `references/multica-cli.md` §「spec 先入库门禁」。
@@ -204,7 +204,7 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
   提醒用户后续 pipeline 是
   Planner → AI Reviewer 只读方案关 → TL 按依赖派 FS → FS 实现、必要验证及完整自检 →
   AI Reviewer 对准确 SHA 作 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR。
-  Reviewer 不运行／裁定测试或盯 PR；成功 PR 输出交 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
+  Reviewer 不运行／裁定测试或盯 PR；成功 Dev Team PR 输出交 TL 立即派 PRM 按[非 Draft 边界](../../workflow/README.md#prm-唯一交付责任)接管。
   任一步失败如实保留，角色实际部署另行核验。
 
 ---
