@@ -21,6 +21,7 @@ grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** t
 
 **先读**:`references/multica-cli.md`(命令配方)、`references/issue-templates.md`(body 模板)、
 `references/speckit-bridge.md`(speckit / 架构流程)。这三个是执行细节,本文件是主流程。
+三层定义、冻结、缺口及审查以[执行合同](../../workflow/execution-contract.md)为准；一个实现 issue 对应一个 Target，Tasks 留在内部映射。
 
 ---
 
@@ -70,7 +71,7 @@ ls -d docs/adr 2>/dev/null                        # 有 ADR → 架构变更走 
 | 类别 | 触发信号 | 走哪条路 |
 |---|---|---|
 | **bug** | 已确认要修复的报错/崩溃/行为或数据问题 | 路径 A —— 起草 issue,**不走 speckit** |
-| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— speckit 全链,一 task 一 issue |
+| **新功能** | 「加 / 支持 / 新页面 / 新能力 / 新交互」 | 路径 B —— speckit 全链，一 Target 一实现 issue |
 | **技术架构 / tech-context** | 「改架构 / 加 layer / 换依赖方向 / 改缓存或并发策略 / 与现宪法冲突」 | 路径 C —— 先定方案及所需授权、完成适用文档审查，再落 issue |
 | **效果验证 / Outcome Check** | 「等 TestFlight / 发版 / 实际使用后再确认是否解决」 | 路径 D —— 建显式等待记录,不派发实现 Agent |
 
@@ -106,7 +107,7 @@ distill:diagnosing-bugs +  AGENT-BRIEF。详见 `references/issue-templates.md` 
 ### 路径 B —— 新功能(speckit 全链)
 
 入口已有 spec/plan/tasks 时直接引用，要求接手的 Planner 复用、校验、补齐；只对缺少的产物按 `specs/README.md` 的约定执行
-specify → clarify → plan → tasks → **逐 task 落 Multica issue,
+specify → clarify → plan → tasks → **按 Target 落 Multica issue,
 不跑 `/speckit-implement`**(实现走 Multica pipeline)。完整命令序列见 `references/speckit-bridge.md`。
 
 1. `/speckit-specify <用户输入>` → `specs/NNN-name/spec.md`。
@@ -115,15 +116,13 @@ specify → clarify → plan → tasks → **逐 task 落 Multica issue,
    - plan / tasks **必须 reference constitution 章节**(不重述规则)。
    - 按目标仓已有 PR 单元、单目标和真实依赖拆分；plan 写本次版本、仓库、任务、完成条件与下一动作，
      引用版本化 guide/shared 规则。已有计划保留必要 spec/plan 审查，不重写同内容计划。
-4. **逐 task 落 issue**(命令见 `references/multica-cli.md`):
-   - 先建一个 **parent issue**(feature 总述,body 指向 `specs/NNN/spec.md`)。
-   - 每个 task → 一个 sub-issue:`--parent <parent-key> --project $PROJECT_ID`,标题
-     `[T###] [Story] Brief`(spec-kit handoff 约定),body 用 feature-task 模板(What /
-     Acceptance / 该层 red_lines + test / Blocked-by)。
-   - **有依赖顺序的 task 用 `--stage N`**:同一 stage 的 sub-issue 全部完成才唤醒 parent
-     (Multica staged barrier),对应 tasks.md 的依赖组。**blocker 先建**,拿到真实 issue key
-     后再让依赖方引用它。
-5. **dispatch**:把 parent(或第一个 stage 的 issues)assign 给 **"Dev Team" squad** + 状态转 `todo`
+4. **每 Target 一个实现 issue**(命令见 `references/multica-cli.md`):
+   - 复用获授权定义方的 Target 划分；尚未定义时按合同 R1/R4 补齐，不从 tasks.md 自动生成同数量 issue。
+   - 多个 Targets 可用 Goal parent 汇总；每个 Target sub-issue 用 feature-target 模板，
+     保留内部 Task ID → 输出／AC／命令／依赖映射。单 Target 不强制建 parent。
+   - **Target 间依赖用 `--stage N`**；内部 Tasks 只写清单，不各派一次。**blocker 先建**，
+     拿到真实 issue key 后再让依赖方引用；stage 不替代真实依赖。
+5. **dispatch**:把已就绪的 Target issues assign 给 **"Dev Team" squad** + 状态转 `todo`
    + 验证 run。TL 根据 plan 推进依赖；未确认接收时先对账，见第 4 步。
 
 ### 路径 C —— 技术架构 / tech-context 变更
@@ -212,9 +211,8 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
 
 ## 按目标与依赖拆分(贯穿 A-C 实现路径)
 
-采用 [plan 与仓库合同](../../workflow/README.md#plan-与依赖推进)，不另建 layer/PR 政策。单 PR 单目标，
-按真实依赖和可验收交付拆任务。既定仓库/范围/方案/验收/权限内的必要适配或测试可补进当前计划；无关遗留、
-新仓库和方案变更分开记录，不扩大当前任务。TL 按依赖推进，已有 spec/plan gates 保留。
+采用[执行合同](../../workflow/execution-contract.md)：实现 issue 承载冻结 Target 与内部 Tasks，
+body 固定范围／层级／依赖／验收命令及 revision。缺口和验收迁移走 R3–R5，TL 按 Target 依赖推进，已有 gates 保留。
 
 ---
 

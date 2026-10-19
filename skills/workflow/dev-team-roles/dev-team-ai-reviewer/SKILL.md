@@ -15,6 +15,8 @@ you cover spec + architecture before push.
 
 ## Where rules come from
 
+- Read the [execution contract](../../execution-contract.md), especially V1–V4; it defines review
+  scope, introduced/pre-existing finding classification and the round limit for both jobs below.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA), then its constitution, owning
   spec/ADRs, layer map (`depends_on`) and layer tech-context, and the issue scope/acceptance.
@@ -36,11 +38,15 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
   must be clean; otherwise → `NEEDS_WORK` with reason `unpinned`. Review `git diff <merge-base>..<SHA>` of that
   exact SHA only; never a nearby, newer or pushed-later revision. The candidate is expected to be
   unpushed; a pushed branch is fine only if its remote SHA equals the submitted SHA.
+- Pin the frozen Target definition and assigned Tasks; request missing definition evidence from
+  the requester. Apply contract V2 by whether this diff introduced the problem, not by file path.
 - Judge against the handed-off version's approach, scope and acceptance. Later design suggestions
   are next-version candidates until Owner explicitly confirms finalization and execution. Still
   report real current-version failures and safety blockers; they cannot be deferred to earn `PASS`.
 
 ## (a) Spec/plan gate — stop spec errors before any code
+
+Apply contract V1 to the assigned Goal/Target/Task definition and these spec-gate checks:
 
 1. **Requirement completeness**: outcome, actors, acceptance, non-goals; every AC has a stable ID
    (`FR-003`, `US1/AC2`) and is testable or explicitly `manual` with the evidence form named.
@@ -49,12 +55,11 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
    removed cites a Decision ID or an Owner decision; otherwise it is a finding for Team Lead.
 3. **Constitution**: the plan does not contradict the repo constitution, privacy/testing rules or
    layer red lines.
-4. **Decomposition**: every AC maps to a goal-scoped slice/task with explicit owned paths/layers,
+4. **Decomposition**: every AC maps to a Target/internal Task with explicit owned paths/layers,
    contracts and dependency edges consistent with `depends_on`; do not require one task/PR per
-   layer. Check existing plans against current code, dependencies and verification. Recorded
-   adaptation/test additions are valid within existing repos, scope, approach, acceptance and
-   authority, with no new repo, permission or writer. General policy stays in the repo guide or
-   versioned shared docs referenced by the plan.
+   layer. Check existing plans against current code, dependencies and verification. Handed-off
+   definitions stay frozen; adaptation/test gaps follow contract R3–R5. General policy stays in the
+   repo guide or versioned shared docs referenced by the plan.
 5. **Feasibility and proportionality**: every hard invariant (must-not-log, must-prove, fail-closed,
    permission boundary, etc.) states how the actual tools/steps enforce it and which test proves it.
    Flag unsupported absolute guarantees or infeasible requirements as plan-stage findings; also
@@ -63,6 +68,8 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
    not findings.
 
 ## (b) Pre-push review — spec conformance + architecture
+
+Apply contract V1–V3 within the frozen Target:
 
 1. **Spec-implementation check**: read the spec/issue acceptance and the diff + tests directly and
    judge whether the implementation completes each AC; cite every gap (AC ID, missing or wrong
@@ -87,28 +94,19 @@ A structured review request comment from Planner Lead or Fullstack Engineer.
 Review rounds, within the budget below:
 
 - Each pass: apply `review-agent`'s finding criteria, priorities and format; use [the rubric](references/review-rubric.md) for AC checks and re-review output; this SKILL.md wins any conflict (including posting the issue verdict).
-- **Round 1 is exhaustive**: review the full diff (or full plan) against every accepted AC and keep
-  going until every qualifying finding is listed; do not stop at the first, and do not pad.
-- **Rounds >=2 are scoped re-reviews, not fresh reviews**: mark each prior finding ADDRESSED or NOT
-  ADDRESSED and inspect the repair diff for regressions. A concrete defect found outside the repair
-  diff still blocks when it is P0/P1 (security, data loss, wrong behaviour against an AC) or violates
-  a mandatory repository rule; label it `missed-in-round-N` with why it was missed. Lower-severity
-  observations outside the repair diff are non-blocking follow-ups and do not extend the loop.
-- **What blocks**: an issue introduced by this change that traces to an AC, a cited mandatory rule or
-  a real defect, with a concrete trigger scenario. Speculative breakage must name the provably
-  affected code. Pre-existing issues are follow-ups. Do not demand rigor beyond the repository's
-  existing standard or add requirements beyond the accepted ACs; those are follow-ups.
-- **Severity**: P0/P1 block; P2/P3 are follow-ups. Verify each blocking finding against the pinned
-  content before reporting; if you are not certain it is real, do not block on it.
+- Apply contract V1–V3; use the rubric's prior-finding and repair-diff regression output on re-review. Verify findings in the
+  pinned content before reporting; optional improvements are follow-ups. Apply V2's blocking rules
+  regardless of severity or file location. Label previously missed blocking findings `missed-in-round-N`
+  with evidence and why they were missed.
+- **Finding evidence**: an issue traces to an AC, a cited mandatory rule or a real defect, with a
+  concrete trigger scenario. Speculative breakage must name the provably affected code. Do not
+  demand rigor beyond the repository's existing standard or add requirements beyond the accepted
+  ACs; those are follow-ups. Verify each blocking finding against the pinned content before
+  reporting; if you are not certain it is real, do not block on it.
 
-A new revision/SHA (any plan update, fix, rebase or amend) needs a new review; a verdict never carries
-forward. Spec-gate review and pre-push review each default to at most 2 rounds per root problem; after
-round 2, perform a third round only when Team Lead explicitly authorizes a final targeted review, reviewing
-only the cited round-2 findings on the exact new planning revision (spec gate) or exact new tree (pre-push).
-Once round limits are exhausted or any blocking finding remains after the authorized final round, return
-unmet requirements and attempts/results to Team Lead for diagnosis instead of another round. Changing
-agent, run, SHA, rename or task identity does not reset this history; technically unresolved problems
-still require escalation, not reduced acceptance.
+Return exhausted rounds through Team Lead to the definer under contract V3, with unmet
+requirements and attempts/results. A new revision/SHA (any plan update, fix, rebase or amend)
+needs a new review within the same scope; a verdict never carries forward.
 
 ## Handoff (one final comment in the Multica thread)
 
@@ -128,8 +126,7 @@ All values must match the comment body: `gate=spec` for job (a), `gate=impl` for
 `round` and `verdict` are the stated round and verdict; `p0`/`p1` count blocking findings by priority;
 `missed` counts findings labeled `missed-in-round-N`; `sha` is the short form of the stated reviewed SHA, or `none` when the reviewed revision has no Git SHA (e.g. issue-only planning inputs).
 
-Requester missing, conflicting or neither role, round budget exhausted on `NEEDS_WORK` (including
-any remaining blocking finding after an authorized final targeted round), or a request beyond
+Requester missing, conflicting or neither role, round budget exhausted on `NEEDS_WORK`, or a request beyond
 the allowed budget → return it to `[@Team Lead](mention://agent/<Team Lead agent ID>)`. No operation
 after the comment.
 

@@ -1,7 +1,7 @@
 # AI Reviewer supplement
 
-Use with the companion `review-agent` skill. [SKILL.md](../SKILL.md) governs scope,
-round budgets, coverage and blocking exceptions, and wins any conflict.
+Use with the companion `review-agent` skill. The [execution contract](../../../execution-contract.md)
+governs scope and rounds; [SKILL.md](../SKILL.md) supplies role-specific pinning and output.
 
 ## Checking against the spec/ACs
 
@@ -20,18 +20,18 @@ missing proof explicitly required by an AC or mandatory rule is assessed against
 
 ## Re-review (rounds >=2) output
 
-Use these entries in order; a re-review checks prior findings and the repair diff:
+Use these entries in order; contract V3 limits re-review to prior findings and the repair diff;
+do not rescan unchanged code:
 
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.
-2. **New breakage in the repair diff**: list concrete regressions with severity, source and
-   file:line evidence, or `None`.
-3. **Missed blockers**: a late P0/P1 or mandatory-rule violation outside the repair diff still
-   blocks under SKILL.md. Label it `missed-in-round-N`, where N is the round that missed it,
-   explain the miss, and cite pinned evidence and the trigger.
-4. **Out-of-scope observations**: other observations outside the repair diff are non-blocking
-   follow-ups; list them separately or write `None`. They do not extend the review loop.
-5. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
+2. **Repair-diff regressions**: list problems introduced by the repair under contract V2, with the
+   severity, cited source, trigger and file:line evidence regardless of which file is affected.
+   These block; otherwise write `None`.
+3. **Other findings / backlog**: apply contract V2; cite any remaining blocking findings with pinned
+   evidence and trigger. Label previously missed blockers `missed-in-round-N`. Pre-existing problems
+   that meet none of V2's blocking conditions go to backlog and do not block.
+4. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
    naming any remaining blockers or coverage gaps.
    End the comment with the same machine-readable review line immediately before the requester mention,
    as defined in [SKILL.md Handoff](../SKILL.md#handoff-one-final-comment-in-the-multica-thread).
@@ -40,11 +40,9 @@ Follow SKILL.md's round budget and escalation rules; this output grants no addit
 
 ## Verdict mapping
 
-- **P0/P1** → `NEEDS_WORK` (blocking).
-- **P2/P3** → non-blocking follow-ups; they do not prevent `PASS`.
-
-Mandatory-rule violations still block where SKILL.md requires it. `PASS` also requires a pinned
-revision and sufficient coverage; follow SKILL.md's escalation rules when the budget is exhausted.
+Apply contract V1–V3 before assigning a verdict; use V2's introduced/pre-existing classification
+and blocking conditions regardless of file path. `PASS` requires a pinned revision and sufficient evidence for the Target's
+checks (or prior findings and repair-diff regression checks on re-review); route exhausted rounds through TL to the definer.
 
 ## Sources
 

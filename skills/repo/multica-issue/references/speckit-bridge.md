@@ -8,7 +8,7 @@
 
 ---
 
-## 功能路径:specify → clarify → plan → tasks → 逐 task 落 issue
+## 功能路径:specify → clarify → plan → tasks → 按 Target 落 issue
 
 ### 1. specify
 
@@ -39,24 +39,22 @@
 - **按目标、真实依赖和目标仓 PR 单元拆**，不以 layer 数机械切任务。plan 记录本次方案版本、任务、依赖、
   完成条件与下一动作，引用适用版本的 repo guide/shared 文档；通用政策留在这些来源。
 
-### 4. 逐 task 落 Multica issue(不跑 speckit-implement)
+### 4. 每 Target 一个 Multica 实现 issue(不跑 speckit-implement)
 
 **关键:不执行 `/speckit-implement`。** 实现交给 Multica pipeline。用 `references/multica-cli.md`
 的命令把 tasks.md 桥接成 issue:
 
-1. 建 **parent issue**(feature 总述,body 见 `issue-templates.md` 模板 2 的 parent 版,
-   指向 `specs/NNN/spec.md`)。
-2. tasks.md 每个 task → 一个 sub-issue:
-   - `--parent <parent-key>` `--project $PROJECT_ID`
-   - 标题原样用 tasks.md 的 `[T###] [Story] Brief`
-   - body 用 feature-task 模板，Layer 约束段引用该 task 涉及层的 CONTEXT.md frontmatter
-     (red_lines + depends_on + test)
-   - tasks.md 的依赖组 → `--stage N`(同 stage 全完成才唤醒 parent)
+1. 复用或由获授权定义方补齐 Goal／Target 划分，遵守[执行合同](../../../workflow/execution-contract.md) R1/R4。
+   多个 Targets 可建只汇总的 Goal parent，指向 `specs/NNN/spec.md`；单 Target 不强制建 parent。
+2. 每个 Target → 一个实现 issue（有 parent 时用 `--parent <parent-key>`）：
+   - 标题 `[Target <ID>] Brief`，body 用 feature-target 模板。
+   - tasks.md 的 Tasks 留在该 issue 内，映射 Task ID、输出、AC、验证命令及依赖；适用层约束引用 CONTEXT.md。
+   - Target 间依赖 → `--stage N`；不把内部 Task 依赖组变成 issue 或重复派发。
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
 4. **spec 先入库门禁**：核实引用的 spec/plan/tasks/ADR 在实际执行基线可读且匹配批准版本。
    缺失时保持待派发，只在授权内补文档 PR，通过既有 gates 和审批后复核；详见 `SKILL.md` 第 4 步与
    `multica-cli.md` §「spec 先入库门禁」。
-5. dispatch:parent(或第一个 stage 的 issues)assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)。
+5. dispatch:已就绪的 Target issues assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)；Goal parent 不派实现。
 
 > 若 repo 装了 speckit 的 `/speckit-taskstoissues`,它是用 **GitHub MCP** 建 GitHub issue 的
 > —— 与本 workflow(Multica issue)**不同**,**不要**用它。本 skill 走 Multica CLI。

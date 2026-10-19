@@ -6,15 +6,15 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
-| 01 需求沟通与规划 | Owner 需求或有证据反馈；澄清目标、范围和必要基本方案，内部按需拆分任务与依赖 | 可交接的方案及实施要求；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
-| 02 实现 | Dev Team 或 subagent 按已确认版本完成开发、验证和适用内部审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM |
+| 01 需求沟通与规划 | 获定义 assignment 的人或 agent 按[执行合同](execution-contract.md)定义 Goal／Targets／Tasks、依赖和验收命令 | 冻结的可执行 revision；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
+| 02 实现 | Dev Team 或 subagent 只执行冻结 Target 内获分配的 Tasks，按合同限定审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM 合法合并 |
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
 | 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
 
 需求→实现→非 Draft PR 交付→适用发布；遥测／维护发现回到同一个需求入口，不要求每次任务走遍六个节点。
-拆分属于 01，repo-local 开发与两种执行路径属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
+三层定义权取决于 assignment，不按 01／02 划分；repo-local 开发与两种执行路径属于 02。恢复、必要 Owner 沟通和仓规则内嵌各 workflow，
 分别复用 [`runtime-recovery`](runtime-recovery/SKILL.md)、[`owner-decision-loop`](../repo/owner-decision-loop/SKILL.md)
 和目标仓合同；它们不是额外节点。AIDash 是 repo 和预留展示平台，展示／采集 UI 不由本索引实现。
 
@@ -33,18 +33,17 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
   不自动改写在途方案与验收。单条设计意见获同意不等于整版获准执行。
 - 重复反馈与回流：先查已有需求、修复和决定的证据，不凭相似标题重派或覆盖旧结论。
   仅在范围、假设、版本、验收目标与证据实质未变时判定为重复，复用已有任务／决定及原 owner；
-  证明既有修复未满足原验收目标的，按修复无效回流原任务；证明此前已满足行为重新失效的，按回归仅重开受影响的需求／任务；
+  证明既有修复未满足原验收目标的，按修复无效关联原 Target；证明此前已满足行为重新失效的，按回归关联受影响的 Target；
   证据不足时保持待补事实，不予归类或派发。旧任务／决定只在上述范围、假设、适用版本、验收目标与证据匹配时复用。
   新证据推翻必要前提时，仅重开受影响的决定，保留原结论、来源、变更理由与未受影响部分。
-- 已批准仓库、范围、基本方案、验收和权限内的必要适配／测试补拆及当前缺陷归当前任务，写入 plan；
-  不借补拆增加仓库、权限或写者，也不把当前缺陷移走后声称完成。
+- 定义交出即冻结；发现缺口、验收迁移和新增 Target 按[执行合同 R2–R5](execution-contract.md#定义冻结与缺口)，不由执行者补进当前 Target。
 - 已选执行方不可用或接收未知时，保留固定版本、任务标识、原执行方与真实状态；先对账、去重，
   再沿已验证入口补派确认未接收的任务。不自动改派，不把后台重试／唤醒描述当已实现能力。
 
 ## Plan 与依赖推进
 
-本次 plan 记录版本、仓库／任务、依赖与可并行关系、验收和下一动作。长期升级／验证／回滚规则在 repo guide
-或版本化 shared 文档；plan 引用实际采用版本，不复制政策。跨仓目标、先后依赖与整体验收由沟通侧明确，团队细化仓内任务。
+本次 plan 按[执行合同](execution-contract.md)记录三层范围、父级／代码层、依赖、验收命令和冻结 revision。
+长期升级／验证／回滚规则在 repo guide 或版本化 shared 文档；plan 引用实际采用版本，不复制政策。
 
 Dev Team 由 TL 按 plan 推进；subagent 由既有主会话按 plan 接续。独立且已授权工作可继续，局部阻塞不能隐藏整体未完成。
 provider source、发布、消费者升级／真实消费分别取证；04 不负责消费者升级，不取消原任务的消费／回滚义务。
@@ -57,10 +56,10 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 
 ### 实现职责与当次输出
 
-- **Dev Team**：Planner 复用、校验、补齐既有 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
-  TL 按已审任务及依赖派 FS。独立且路径不冲突的 FS 可并行，同一路径保持唯一写者。
+- **Dev Team**：Planner 按定义 assignment 复用、校验、补齐 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
+  TL 按冻结 Tasks 及依赖派 FS；每 Target 一个写者，Tasks 留在其内部清单。
 - **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
-  通过由原 FS 推送／创建更新 PR，发现当前缺口仍回原 FS，不默认换作者。
+  通过由原 FS 推送／创建更新 PR；缺口按合同回定义方，不默认换作者。
 - **Dev Team AI Reviewer**：承担只读 spec/plan（spec gate），以及发布前准确 SHA 的独立 spec 与 architecture 审查；
   不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整 code-review 自检保留，不能替代独立审查。
 - **subagent**：原执行者负责开发、验证、修复；既有主会话管理依赖与结果，适用审查按仓合同安排。
@@ -94,9 +93,8 @@ PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查�
 
 ## 实现修复与升级
 
-同一根问题两轮完整修复／验证／复查无实质进展：团队由 TL、subagent 由既有主会话组织诊断；原执行者仍负责修复。
-仍无解通过 [Owner 决策入口](../repo/owner-decision-loop/SKILL.md) 报告任务／版本、未满足要求、尝试及结果、已知／未知与建议。
-task/run/SHA 变化不清零，单纯等待不计一轮；明确安全／权限硬阻塞立即报告，不凑次数。
+审查范围、范围外发现及两轮上限统一按[执行合同 V1–V4](execution-contract.md#限定审查)，交回定义方处理。
+需要 Owner 决定时通过 [Owner 决策入口](../repo/owner-decision-loop/SKILL.md) 报告版本、未满足要求、尝试及结果、已知／未知与建议；单纯等待不计一轮，明确安全／权限硬阻塞立即报告。
 
 查证后无法复现或补齐必要事实，且无安全有效下一步时，可交付查证结论，但原修复仍未完成，交 Owner 判断怎么继续。
 **进入该等待后，新证据到达或条件补齐也不能自动续行**；Owner 选定后沿原任务、责任和权限推进。未复现不等于无问题／已修复。
