@@ -139,8 +139,6 @@ R2 增加 `packages/data/tests/repo.test.ts` 后，序列为 `[lint_docs, data.t
 ## 执行与报告
 
 原执行者修复与准确 candidate 发布还需验证：在专用 worktree/branch 内完成修复与完整适用验证，由原执行者 commit 并提交准确 SHA 审查；PR 更新成功后移交 PRM 接续，不启动第二条 PR watcher。
-可执行的路径／契约回归位于 `skills/repo/teamwork/scripts/test_contract_handoff.py`，
-它们不替代冲突指令判断及模型行为评估。
 
 ### PAIR — 分离盲评与同一 grader
 
