@@ -15,7 +15,7 @@ you cover spec + architecture before push.
 
 ## Where rules come from
 
-- Read the [execution contract](../../execution-contract.md), especially V1–V4; it defines review
+- Read the `execution-contract` skill, especially V1–V4; it defines review
   scope, introduced/pre-existing finding classification and the round limit for both jobs below.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA), then its constitution, owning
@@ -110,7 +110,7 @@ needs a new review within the same scope; a verdict never carries forward.
 
 ## Handoff (one final comment in the Multica thread)
 
-Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next)
+Carry the six index fields (target, intent, scope, owner, evidence, next)
 plus: requester, job (a/b), exact revision/SHA, layers resolved, coverage gaps, findings with
 citations, follow-ups, decision candidates, round number, verdict. End with the requester:
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`

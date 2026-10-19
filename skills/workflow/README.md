@@ -6,7 +6,7 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 
 | Workflow | 开始与工作 | 输出与现有入口 |
 |---|---|---|
-| 01 需求沟通与规划 | 获定义 assignment 的人或 agent 按[执行合同](execution-contract.md)定义 Goal／Targets／Tasks、依赖和验收命令 | 冻结的可执行 revision；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
+| 01 需求沟通与规划 | 获定义 assignment 的人或 agent 按[执行合同](execution-contract/SKILL.md)定义 Goal／Targets／Tasks、依赖和验收命令 | 冻结的可执行 revision；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
 | 02 实现 | Dev Team 或 subagent 只执行冻结 Target 内获分配的 Tasks，按合同限定审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；后续交 PRM 合法合并 |
 | 03 PR 接管与交付 | PRM 发现或收到负责 repo 内任意来源的非 Draft PR | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
@@ -36,13 +36,13 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
   证明既有修复未满足原验收目标的，按修复无效关联原 Target；证明此前已满足行为重新失效的，按回归关联受影响的 Target；
   证据不足时保持待补事实，不予归类或派发。旧任务／决定只在上述范围、假设、适用版本、验收目标与证据匹配时复用。
   新证据推翻必要前提时，仅重开受影响的决定，保留原结论、来源、变更理由与未受影响部分。
-- 定义交出即冻结；发现缺口、验收迁移和新增 Target 按[执行合同 R2–R5](execution-contract.md#定义冻结与缺口)，不由执行者补进当前 Target。
+- 定义交出即冻结；发现缺口、验收迁移和新增 Target 按[执行合同 R2–R5](execution-contract/SKILL.md#定义冻结与缺口)，不由执行者补进当前 Target。
 - 已选执行方不可用或接收未知时，保留固定版本、任务标识、原执行方与真实状态；先对账、去重，
   再沿已验证入口补派确认未接收的任务。不自动改派，不把后台重试／唤醒描述当已实现能力。
 
 ## Plan 与依赖推进
 
-本次 plan 按[执行合同](execution-contract.md)记录三层范围、父级／代码层、依赖、验收命令和冻结 revision。
+本次 plan 按[执行合同](execution-contract/SKILL.md)记录三层范围、父级／代码层、依赖、验收命令和冻结 revision。
 长期升级／验证／回滚规则在 repo guide 或版本化 shared 文档；plan 引用实际采用版本，不复制政策。
 
 Dev Team 由 TL 按 plan 推进；subagent 由既有主会话按 plan 接续。独立且已授权工作可继续，局部阻塞不能隐藏整体未完成。
@@ -93,7 +93,7 @@ PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查�
 
 ## 实现修复与升级
 
-审查范围、范围外发现及两轮上限统一按[执行合同 V1–V4](execution-contract.md#限定审查)，交回定义方处理。
+审查范围、范围外发现及两轮上限统一按[执行合同 V1–V4](execution-contract/SKILL.md#限定审查)，交回定义方处理。
 需要 Owner 决定时通过 [Owner 决策入口](../repo/owner-decision-loop/SKILL.md) 报告版本、未满足要求、尝试及结果、已知／未知与建议；单纯等待不计一轮，明确安全／权限硬阻塞立即报告。
 
 查证后无法复现或补齐必要事实，且无安全有效下一步时，可交付查证结论，但原修复仍未完成，交 Owner 判断怎么继续。

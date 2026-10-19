@@ -12,7 +12,7 @@ also diagnose failures whose fix you own.
 
 ## Where rules come from
 
-- Follow the [execution contract](../../execution-contract.md) for frozen Task execution, gap
+- Follow the `execution-contract` skill for frozen Task execution, gap
   proposals and review limits. Parent Goal/Target context does not grant definition authority.
 - Read the target repo's `AGENTS.md` → repo development guide → the
   `shared-ci@<SHA>/ai/agent-protocol.md` it pins (full 40-char SHA): worktree/branch rules, verify
@@ -82,7 +82,7 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
 
 ## Handoff to PR Manager
 
-Carry the six [index fields](../../README.md#交接最小字段) (target, intent, scope, owner, evidence, next): repo + base, PR URL,
+Carry the six index fields (target, intent, scope, owner, evidence, next): repo + base, PR URL,
 exact reviewed head SHA, AI Reviewer verdict link, target branch, verification performed, any
 removed/weakened tests or changed existing behaviour (with the spec entry approving it), follow-ups.
 Include the frozen revision and any definer-issued delta.

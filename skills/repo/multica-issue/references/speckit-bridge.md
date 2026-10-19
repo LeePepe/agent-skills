@@ -44,7 +44,7 @@
 **关键:不执行 `/speckit-implement`。** 实现交给 Multica pipeline。用 `references/multica-cli.md`
 的命令把 tasks.md 桥接成 issue:
 
-1. 复用或由获授权定义方补齐 Goal／Target 划分，遵守[执行合同](../../../workflow/execution-contract.md) R1/R4。
+1. 复用或由获授权定义方补齐 Goal／Target 划分，遵守[执行合同](../../../workflow/execution-contract/SKILL.md) R1/R4。
    多个 Targets 可建只汇总的 Goal parent，指向 `specs/NNN/spec.md`；单 Target 不强制建 parent。
 2. 每个 Target → 一个实现 issue（有 parent 时用 `--parent <parent-key>`）：
    - 标题 `[Target <ID>] Brief`，body 用 feature-target 模板。

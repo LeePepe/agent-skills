@@ -21,7 +21,7 @@ grilling「一次一问 + 附推荐答案 + 能查码就查」。**不照搬** t
 
 **先读**:`references/multica-cli.md`(命令配方)、`references/issue-templates.md`(body 模板)、
 `references/speckit-bridge.md`(speckit / 架构流程)。这三个是执行细节,本文件是主流程。
-三层定义、冻结、缺口及审查以[执行合同](../../workflow/execution-contract.md)为准；一个实现 issue 对应一个 Target，Tasks 留在内部映射。
+三层定义、冻结、缺口及审查以[执行合同](../../workflow/execution-contract/SKILL.md)为准；一个实现 issue 对应一个 Target，Tasks 留在内部映射。
 
 ---
 
@@ -211,7 +211,7 @@ Outcome Check 是非实现型等待记录:按路径 D 保持 backlog + 明确 wa
 
 ## 按目标与依赖拆分(贯穿 A-C 实现路径)
 
-采用[执行合同](../../workflow/execution-contract.md)：实现 issue 承载冻结 Target 与内部 Tasks，
+采用[执行合同](../../workflow/execution-contract/SKILL.md)：实现 issue 承载冻结 Target 与内部 Tasks，
 body 固定范围／层级／依赖／验收命令及 revision。缺口和验收迁移走 R3–R5，TL 按 Target 依赖推进，已有 gates 保留。
 
 ---
