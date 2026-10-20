@@ -18,7 +18,7 @@ Load the [goal-target-task contract](https://github.com/LeePepe/user-skills/blob
 role/source binding, handoffs and V1–V4. Load [dev-team-squad](../dev-team-squad/SKILL.md) for the
 Dev Team bindings and shared repository context, accepted-version rules, dispatch/recovery,
 seven handoff fields, retry budgets, merge rules, Owner decisions and GitHub App identity.
-Also read the repo's ruleset, CODEOWNERS, PR template and merge method. Server-required
+Also read the repo's ruleset, PR template and merge method. Server-required
 checks win over documentation.
 
 ## Trigger and inputs
