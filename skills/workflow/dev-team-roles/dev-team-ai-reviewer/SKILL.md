@@ -139,15 +139,15 @@ needs a new review within the same scope; a verdict never carries forward.
 Carry the six index fields (target, intent, scope, owner, evidence, next)
 plus: requester, job (a/b/c), exact revision/SHA, PR purpose/last-PR status or Target snapshot,
 acceptance items and command evidence, layers resolved, coverage gaps, findings with
-citations, follow-ups, decision candidates, round number, verdict. End with the requester:
-- `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
-- `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
-- `[@Team Lead](mention://agent/<Team Lead agent ID>)`
+citations, follow-ups, decision candidates, round number, verdict.
+End with exactly one mention: the actual requester only — Planner Lead for job (a), Fullstack
+Engineer for job (b), or Team Lead for job (c). Do not mention any non-requester role in a verdict comment.
 
 Every verdict comment carries exactly one machine-readable line immediately before the requester mention:
 
 ```text
 <!-- review: gate=<spec|impl|target> round=<n> verdict=<PASS|NEEDS_WORK> p0=<n> p1=<n> missed=<n> sha=<short sha> -->
+[@<requester role>](mention://agent/<requester agent ID>)
 ```
 
 All values must match the comment body: `gate=spec` for job (a), `gate=impl` for job (b),

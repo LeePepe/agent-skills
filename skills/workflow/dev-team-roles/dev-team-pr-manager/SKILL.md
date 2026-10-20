@@ -154,10 +154,10 @@ not a merge gate once the ruleset is in place.
   `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)` with repo/PR, exact
   SHA, failing check + evidence, unchanged scope. Never force external-author work onto FS. An FS
   repair returns only with a pre-push `PASS` for its new SHA.
-- Current-version implementation gaps return to the original FS with unchanged acceptance.
-  Necessary omitted adaptation/tests stay in that version only within its existing repos, scope,
-  approach, acceptance and authority, with no added repo, permission or writer; send planning or
-  dependency gaps to TL. Do not demand separate PRs solely for separate layers.
+- Current-version repairs within the frozen Task return to the original FS with unchanged acceptance.
+  For omitted adaptation/tests or planning/dependency gaps, attach the failing command, affected
+  acceptance and proposal, then return them through TL to the definer under contract R3/R5;
+  do not authorize adding them to the frozen Task. Do not demand separate PRs solely for separate layers.
 - Before any automatic repair or rerun: prove no human pause, no queued/running related Action,
   no active implementer run or orphan process, one unique implementer. Unknown → observe and
   record the next check condition.
