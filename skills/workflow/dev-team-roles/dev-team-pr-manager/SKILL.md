@@ -199,7 +199,8 @@ not a merge gate once the ruleset is in place.
    mapping and merge evidence; confirm TL received the handoff. Reconcile existing reports and
    receipt/run state before retrying so the handoff remains idempotent. If no automatic wake
    exists, say `automatic_wakeup=not_installed` and use the existing TL mention route.
-   Never change Task, Target or Goal status; TL owns Task/Target closure and Owner confirms Goal closure.
+   Never change Task, Target or Goal status; TL owns Task/Target closure. TL closes the Goal
+   and notifies Owner with the verdict, evidence and remaining limits.
 
 ## Red lines
 

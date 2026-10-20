@@ -61,7 +61,7 @@ version until Owner confirms finalization and execution; report current failures
 | Task closure | all specified outputs exist; every acceptance command passes; all included PRs legally merged; AI Reviewer's last-PR cumulative Task acceptance PASS | TL closes the Task issue without waiting for its stage group |
 | Target acceptance | all Task issues closed | TL requests AI Reviewer Target-wide acceptance with the exact merged default-branch SHA and Target acceptance-command evidence |
 | Target closure | AI Reviewer returns Target-wide PASS to TL | TL closes the Target issue and promotes ready work |
-| Goal closure | all Targets closed; Goal-level acceptance has evidence | TL reports to Owner for confirmation of Goal closure |
+| Goal closure | all Targets closed; Goal-level acceptance has evidence | TL closes the Goal issue and notifies Owner with the verdict, evidence and remaining limits |
 
 - On an FS gap signal, route the evidence through contract R3–R5; have Planner prepare any
   definition delta and retain its exact-revision gate. Keep the Target/AC mapping in the issue.

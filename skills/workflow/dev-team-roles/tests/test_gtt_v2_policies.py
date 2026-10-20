@@ -52,12 +52,17 @@ class GoalTargetTaskV2Tests(unittest.TestCase):
             "all Task issues closed", "exact merged default-branch SHA",
             "Target acceptance-command evidence", "AI Reviewer returns Target-wide PASS to TL",
             "all Targets closed; Goal-level acceptance has evidence",
-            "TL reports to Owner for confirmation of Goal closure",
+            "TL closes the Goal issue and notifies Owner with the verdict, evidence and remaining limits",
         )
         self.assert_clauses(
             "squad", "every included PR is legally merged",
             "passed cumulative Task acceptance", "TL closes the Target only on PASS",
-            "Owner for confirmation of Goal closure",
+            "after all Targets close and Goal-level acceptance has evidence, TL closes the Goal issue",
+            "and notifies Owner with the verdict, evidence and remaining limits",
+        )
+        self.assert_clauses(
+            "pr-manager", "Never change Task, Target or Goal status; TL owns Task/Target closure",
+            "TL closes the Goal and notifies Owner with the verdict, evidence and remaining limits",
         )
 
     def test_planner_decides_task_delta_and_only_prepares_target_delta(self):
@@ -148,7 +153,8 @@ class GoalTargetTaskV2Tests(unittest.TestCase):
     def test_workflow_index_uses_task_writers_and_tl_closure(self):
         text = (ROLES_DIR.parent / "README.md").read_text()
         for clause in ("每 Task 一个写者", "PR 关联 Task issue", "最后一个 PR 累计核对 Task 验收",
-                       "TL 关闭 Task", "TL 关闭 Target", "Owner 确认 Goal 关闭", "PRM 不改三层状态"):
+                       "TL 关闭 Task", "TL 关闭 Target", "TL 关闭 Goal，并通知 Owner 结论、证据与剩余限制",
+                       "PRM 不改三层状态"):
             with self.subTest(clause=clause):
                 self.assertIn(clause, text)
 
