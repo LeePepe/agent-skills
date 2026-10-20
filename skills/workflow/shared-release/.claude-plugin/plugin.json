@@ -1,5 +1,0 @@
-{
-  "name": "shared-release",
-  "description": "04 自动化发布——合并至默认分支且前置检查通过后触发的自动化发布工作流，引用 shared-ci v0.5.0 发布模板与规范。用于指导 shared-* 库及各 repo 的自动化发布接线、版本决策与发布边界。",
-  "category": "workflow"
-}
