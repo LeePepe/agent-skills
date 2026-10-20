@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "count": 18,
+  "count": 14,
   "skills": [
     {
       "name": "multica-delivery-supervisor",
@@ -55,24 +55,6 @@
       "user_invocable": false,
       "has_references": true,
       "has_eval": false
-    },
-    {
-      "name": "my-designer",
-      "category": "design",
-      "path": "skills/design/my-designer",
-      "description": "Design lead only for rendered UI and visual-interface work in the personal projects VitalStride (including the VitalStrike alias), AIDash, Financial, and VoxPocket: layout, hierarchy, styling, interaction, chart presentation, design systems, scaffolds, and UI kits. Defaults to Basalt + Recharts for React web frontends; preserves native SwiftUI. Owns the visual direction end to end and may coordinate specialist design skills. All other projects belong to their project-specific skills or engineering workflow, including operational dashboards, query definitions, data contracts, widget inventory, workflow grouping, and control-plane configuration.",
-      "user_invocable": false,
-      "has_references": true,
-      "has_eval": true
-    },
-    {
-      "name": "visual-design-modernization",
-      "category": "design",
-      "path": "skills/design/visual-design-modernization",
-      "description": "Use when a user says an app's UI \"looks bad / dated / not modern\" and wants to improve visual quality (spacing, typography, color, hierarchy, data-viz) — especially for SwiftUI/macOS/iOS but the method is framework-agnostic. Provides a repeatable diagnose→north-star→isolated-prototype→objective-review→migrate loop, a reusable design-reviewer that substitutes for design experience, and a swappable brand-color system. Works fully without Figma.",
-      "user_invocable": false,
-      "has_references": true,
-      "has_eval": true
     },
     {
       "name": "auto-review-merge",
@@ -135,24 +117,6 @@
       "description": "用 shared-ci 的模板与检查器让一个 repo 满足统一的 repo 合同（薄 AGENTS、layer 表、同入口 verify、shared-ci caller、required 汇总 gate、PR 模板、CODEOWNERS），或接入共享库新版本，或从现有 repo 拆出共享库。三种模式：init（新建或补齐）、adopt（接入/升级共享库）、split（拆出 SDK/共享库，保留历史）。取代 layered-agent-context。",
       "user_invocable": false,
       "has_references": false,
-      "has_eval": false
-    },
-    {
-      "name": "xcode-cli",
-      "category": "repo",
-      "path": "skills/repo/xcode-cli",
-      "description": "Route Apple-platform builds, tests, simulator runs, and result inspection through Swift and Xcode command-line tools. Use when Codex needs to build or test a Swift package, Xcode project, or workspace; diagnose Apple build failures; run an iOS simulator; choose between swift build/test and xcodebuild; or parse xcresult output. Package-only changes stay on SwiftPM commands and escalate to xcodebuild only when the diff includes app/Xcode integration work or the user explicitly requests integration verification. Not for Xcode MCP or GUI automation.",
-      "user_invocable": false,
-      "has_references": true,
-      "has_eval": true
-    },
-    {
-      "name": "deep-research",
-      "category": "research",
-      "path": "skills/research/deep-research",
-      "description": "对任意主题做深度、多来源、经交叉核查的调研,产出带引用、按置信度分级的报告。五阶段流水线:把问题分解成 4-8 个子问题 → 跨渠道(web/github/news/academic)并行 fan-out 调研 → 对每个发现做对抗式核查(证伪而非确认,发现者≠核查者)→ 交叉验证+圆桌综合、标注分歧 → 输出 HIGH/MEDIUM/LOW/CONTESTED 分级的引用报告。Provider-agnostic:同一份 skill 在 Claude Code、Kimi(kimi -p)、Codex(codex exec)三端都成立;fan-out 与核查阶段可跨模型互查(claude 的发现让 codex/kimi 证伪,反之亦然),对方模型作独立第二视角。当用户想「深度调研 / deep research / 全面调研 / 多角度调研 / research roundtable / 帮我把某主题查透并给带引用的报告」时使用。调用前:若问题欠具体(如「买什么车」却无预算/用途/地区),先问 2-3 个澄清问题收窄范围,再把澄清结果织进 args。",
-      "user_invocable": true,
-      "has_references": true,
       "has_eval": false
     },
     {
