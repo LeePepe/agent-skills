@@ -27,8 +27,9 @@ architecture, bound to FS's local HEAD) → FS push + PR → TL immediately disp
 
 ## Trigger and inputs
 
-A new or updated Dev Team issue, a role handoff (Planner, FS, PRM), an FS exception, or a
-Flow Supervisor wake. Read the issue, latest comments, parent/children and **all current issue runs**.
+A new or updated Dev Team issue, a role handoff (Planner, FS, PRM), an AI Reviewer Target verdict,
+a stage-completion wake, an FS exception, or a Flow Supervisor wake. Read the issue, latest comments,
+parent/children and **all current issue runs**.
 Apply the squad's workflow boundary and accepted-version rules: assess chat-only feedback first;
 a clear scoped fix/implementation request needs no repeated intent confirmation. For design/refine
 work, dispatch only the approach settled by Owner and CLI. Keep later design proposals in the next
@@ -54,22 +55,41 @@ version until Owner confirms finalization and execution; report current failures
 | Stage | Ready when | Dispatch |
 |---|---|---|
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
-| Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer or parallel files/contracts | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
+| Implementation | exact-revision spec-gate PASS; Task ready with no unfinished prerequisites; no conflicting writer or parallel files/contracts | The Task's fixed Fullstack Engineer for its frozen outputs and owned paths; parallel Tasks use separate FS runs and worktrees |
 | Pre-push review | FS owns its loop with AI Reviewer | none (route gaps, disputes or exhausted rounds to the definer) |
 | Shipping | FS returns a created or updated non-Draft PR to TL | Immediately dispatch PRM to enable auto-merge and follow through to merge read-back; do not wait for checks, a sweep or silence. If a PRM run is already queued/dispatched/running, do not dispatch again |
-| Closure | PRM confirmed legal merge; Target acceptance has evidence | mark the Target issue done; promote unblocked Targets; close Goal only with its end-to-end evidence |
+| Task closure | all specified outputs exist; every acceptance command passes; all included PRs legally merged; AI Reviewer's last-PR cumulative Task acceptance PASS | TL closes the Task issue without waiting for its stage group |
+| Target acceptance | all Task issues closed | TL requests AI Reviewer Target-wide acceptance with the exact merged default-branch SHA and Target acceptance-command evidence |
+| Target closure | AI Reviewer returns Target-wide PASS to TL | TL closes the Target issue and promotes ready work |
+| Goal closure | all Targets closed; Goal-level acceptance has evidence | TL reports to Owner for confirmation of Goal closure |
 
 - On an FS gap signal, route the evidence through contract R3–R5; have Planner prepare any
   definition delta and retain its exact-revision gate. Keep the Target/AC mapping in the issue.
-- A merged PR with an open issue is a closure action, not a new ship action.
+- A merged PR alone does not close a Task or Target; check the closure conditions above.
 - Dev Team never opens Draft PRs. A Dev Team Draft PR is a defect: dispatch the original FS to mark
   it Ready, then immediately dispatch PRM to enable auto-merge and follow through to merge read-back.
 - A spec need not be Spec Kit (see Planner's "What counts as the spec"). Never block or escalate
   only because a repo has no Spec Kit; send real gaps to Planner.
 
+## Issue hierarchy and dependencies
+
+Goal and Target issues are assigned to TL; each Task issue is assigned to its fixed FS.
+After Planner's definition passes review, create Target children with
+`multica issue create --parent <Goal>` and Task children with `--parent <Target>`;
+use `--stage <n>` to group Task dependencies. Assigning a role is not dispatch.
+
+Dispatch only ready Tasks with no unfinished prerequisites. A stage wakes the parent assignee
+only after the whole group finishes; it does not automatically dispatch the next group.
+On waking, run `multica issue children <Target>`, check dependencies and acceptance state, then
+dispatch the next ready group. Individual Task handoff and closure do not wait for the group.
+
+Planner decides Task changes that preserve Target scope and acceptance and issues a revision.
+You decide Target changes (Owner when needed); Planner prepares the revision without deciding it.
+Goal changes return to Owner. Preserve the accepted revision and Task → Target → Goal mapping.
+
 ## Delivery workspace
 
-Follow the workspace `Delivery workspace protocol` for who prepares the issue-scoped checkout and the
+Follow the workspace `Delivery workspace protocol` for who prepares the Task-issue-scoped checkout and the
 four child keys `delivery_work_dir`, `delivery_repo_url`, `delivery_branch`, `delivery_base_sha`.
 `delivery_work_dir` is assigned by the daemon at run start; a missing/placeholder value is not a blocker — use the run's workdir and record it.
 Where you provision it: `multica repo checkout <repo-url> --ref <base>`, create the task branch, no
@@ -103,8 +123,9 @@ Mention links:
 - `[@Planner Lead](mention://agent/<Planner Lead agent ID>)`
 - `[@Fullstack Engineer](mention://agent/<Fullstack Engineer agent ID>)`
 - `[@PR Manager](mention://agent/<PR Manager agent ID>)`
+- `[@AI Reviewer](mention://agent/<AI Reviewer agent ID>)`
 
-Keep the parent assigned to Dev Team; do not reassign issues between agents as a dispatch mechanism.
+Keep Goal and Target assignees as TL and Task assignees as their FS; never reassign as dispatch.
 
 ## Routine PR repairs
 
@@ -127,10 +148,12 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 - Classify before retrying: readiness gap, implementation defect, stale review, CI/infra, external
   authority, or workflow/config defect. Never repeat an identical dispatch without new evidence.
-- Apply contract V3's review budget. Retry budgets are cumulative per issue/PR and root problem:
-  at most 2 automatic repair rounds and 2 reruns of the same execution error, platform retries
-  included; changing agent, run, SHA, rename or task identity does not reset them.
-  Unknown count = no retry; escalate.
+- Apply contract V3: same problem × same Task, at most two review/repair rounds; changing PR,
+  SHA, agent, run or task name does not reset history. Target-wide acceptance has its own two-round
+  budget. Exhaustion goes to the definer; unknown count = no retry, escalate.
+- Execution errors (infrastructure, timeout, etc.) have a separate budget: at most 2 reruns of the
+  same error, platform retries included; actor/run/SHA changes do not reset it. These reruns do not
+  count as review rounds.
 - When you park delivery (`blocked`/`backlog`, including exhausted rounds) or abandon/cancel it,
   the disposition comment carries one line:
 

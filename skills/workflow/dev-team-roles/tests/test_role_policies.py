@@ -141,7 +141,7 @@ def pr_manager_evaluate_pr(
     last_receipt: Optional[SweepReceipt],
 ) -> SweepAction:
     """Models follow-up eligibility after issue-based Dev Team provenance resolution."""
-    # PRs without a Dev Team Target issue are never sweep inputs for GitHub reads.
+    # PRs without a Dev Team Task issue are never sweep inputs for GitHub reads.
     if tracking_issue is None or not tracking_issue.is_dev_team:
         return SweepAction("skip", "no_dev_team_issue", pr.number)
     if pr.is_draft:
@@ -444,7 +444,7 @@ class SkillDocumentValidationTests(unittest.TestCase):
         bindings = {
             "dev-team-team-lead": "Contract role: 协调者.",
             "dev-team-planner": "Contract role: Target 定义方.",
-            "dev-team-fullstack-engineer": "Contract role: Target 写者.",
+            "dev-team-fullstack-engineer": "Contract role: Task 写者.",
             "dev-team-ai-reviewer": "Contract role: 独立验收.",
             "dev-team-pr-manager": "Contract role: 交付.",
             "dev-team-flow-supervisor": "Contract role: none (supervision only).",
@@ -464,12 +464,12 @@ class SkillDocumentValidationTests(unittest.TestCase):
         section = text.split(heading, 1)[1].split("\n## ", 1)[0]
         self.assertLessEqual(len(section.splitlines()) + 1, 30)
         for binding in (
-            "| Goal definer | Owner + Team Lead |",
-            "| Target definer | Planner |",
-            "| Coordinator | Team Lead |",
-            "| Target writer | Fullstack Engineer |",
-            "| Independent acceptance | AI Reviewer |",
-            "| Delivery | PR Manager |",
+            "| Goal definer | Owner confirms the Goal; Planner may prepare it under R1 |",
+            "| Coordinator (including R4 Target-change decisions) | TL; Goal-scope changes go to Owner |",
+            "| Target definer | Planner defines each Target's Tasks and acceptance commands; decides Task changes that preserve Target scope and acceptance |",
+            "| Task writer | FS; parallel Tasks in one Target each use a separate FS run and worktree |",
+            "| Independent acceptance | AI Reviewer: each PR, cumulative Task acceptance on its last PR, and Target-wide acceptance after all Tasks finish |",
+            "| Delivery | PRM advances each PR to legal merge |",
             "Flow Supervisor supervises only and holds no contract role.",
             "The core's 负责人 is the Owner.",
             "**R1 (01/02)**", "**R4**", "**R6**", "**V4**",
@@ -487,7 +487,8 @@ class SkillDocumentValidationTests(unittest.TestCase):
         text = PR_MANAGER_SKILL.read_text(encoding="utf-8")
         sweep = text.split("## Follow-up sweep", 1)[1].split("## Dev Team repair path", 1)[0]
         cancel_pos = sweep.index("cancelled/won't-do")
-        for branch in ("- **Missing PRM acceptance**", "- **Already accepted Dev Team PR**"):
+        for branch in ("- **Missing PRM acceptance**", "- **Missing delivery report**",
+                       "- **Already accepted Dev Team PR**"):
             self.assertLess(cancel_pos, sweep.index(branch))
 
     def test_pr_manager_skill_guards_against_active_fullstack_engineer(self):

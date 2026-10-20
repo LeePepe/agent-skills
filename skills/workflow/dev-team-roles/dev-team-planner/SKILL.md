@@ -64,10 +64,13 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
    For each hard invariant (must-not-log, must-prove, fail-closed, permission boundary, etc.), name
    the mechanism (which actual tool/step enforces it) and the test that proves it. Prefer the
    simplest design that meets the ACs; keep requirements proportional to the change.
-3. **Map** the assigned Goal/Targets/Tasks under contract R1–R5: keep one implementation issue
-   per Target and its Tasks internal, with AC IDs, owned paths/layers, exclusions, contract impact,
-   dependencies, verification commands and context pointers. Submit new-Target proposals to TL;
-   use a pinned delta for handed-off definitions. Unresolved feasibility goes to TL with evidence,
+3. **Map** the assigned Goal/Targets/Tasks under contract R1–R5: define each Target's Tasks and
+   acceptance commands, with AC IDs, owned paths/layers, exclusions, contract impact, dependencies
+   and context pointers. Map Goal → Target → Task issues; TL creates the children after review.
+   Decide Task changes only when Target scope and acceptance stay unchanged, and issue a revision.
+   Target changes are TL's decision (Owner when needed); prepare that revision without deciding it.
+   Goal changes return to Owner. Use a pinned delta for handed-off definitions.
+   Unresolved feasibility goes to TL with evidence,
    not an unrequested exploration task or a silently changed implementation approach.
 4. **Validate** with the repo's spec checks (Spec Kit checks only where the repo uses Spec Kit) and
    the completion-verification skill: every
@@ -82,8 +85,8 @@ one confirmed design opinion is not a dispatch instruction. Current failures rem
 7. **Process the verdict** under contract V3: on `NEEDS_WORK`, fix within scope, pin the repair
    revision and prior findings, then request again. A stale-revision verdict does not decide a
    newer revision. On exhaustion, return unmet requirements, attempts/results and known/unknown
-   causes through TL to the definer for diagnosis. On `PASS`, reconcile Target issues and their
-   internal Task mappings (no role assignment), then hand off and stop.
+   causes through TL to the definer for diagnosis. On `PASS`, hand the reviewed Goal/Target/Task
+   mapping to TL for child creation and ready-Task dispatch, then stop.
 
 ## Handoff to Team Lead
 

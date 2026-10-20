@@ -7,7 +7,8 @@ description: Shared Dev Team squad rules in Multica (workflow boundary, flow, ha
 
 Contract role mapping: see [How Dev Team uses goal-target-task](#how-dev-team-uses-goal-target-task) for bindings to the `goal-target-task` skill.
 
-Dev Team delivers one Target per implementation issue from spec to merged PR. Each role's instructions define its
+Dev Team tracks Goal → Target → Task issues; each Task has one fixed FS writer and may contain
+several small, single-purpose PRs. Each role's instructions define its
 responsibility; this text defines only the shared flow, handoffs and merge rules. In-repo rules come
 from the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
@@ -20,18 +21,19 @@ assignment authority, frozen revisions, gap routing and scoped review. Role file
 
 | Core role | Dev Team holder |
 |---|---|
-| Goal definer | Owner + Team Lead |
-| Target definer | Planner |
-| Coordinator | Team Lead |
-| Target writer | Fullstack Engineer |
-| Independent acceptance | AI Reviewer |
-| Delivery | PR Manager |
+| Goal definer | Owner confirms the Goal; Planner may prepare it under R1 |
+| Coordinator (including R4 Target-change decisions) | TL; Goal-scope changes go to Owner |
+| Target definer | Planner defines each Target's Tasks and acceptance commands; decides Task changes that preserve Target scope and acceptance |
+| Task writer | FS; parallel Tasks in one Target each use a separate FS run and worktree |
+| Independent acceptance | AI Reviewer: each PR, cumulative Task acceptance on its last PR, and Target-wide acceptance after all Tasks finish |
+| Delivery | PRM advances each PR to legal merge |
 
 Flow Supervisor supervises only and holds no contract role. The core's 负责人 is the Owner.
 
 - **R1 (01/02)**: An assigned definer may be workflow 01's lead/CLI, workflow 02's Planner,
   or a broadly assigned original implementer; definition rights follow the assignment, not the workflow number.
-- **R4**: Team Lead, a human, or the lead main agent (Claude or Codex) may add Targets.
+- **R4**: TL decides Target changes, involving Owner when needed; Planner prepares the revision.
+  Goal changes return to Owner.
 - **R6**: Subagents do not touch Multica (no issue, comment, status or mention operations)
   and do not contact other roles.
 - **V4**: CI codex-review (shared-ci) should review only the Target scope or be advisory.
@@ -55,8 +57,8 @@ labels in existing artifacts do not change an already dispatched version.
 - Bind execution and acceptance to the contract's frozen Target revision. Record later design
   changes for the next version, dispatched only after Owner confirms finalization and execution;
   one confirmed design opinion is insufficient. Report current failures and safety blockers now,
-  never defer them to claim completion. TL schedules Target dependencies; Task and review-shard
-  subagent ordering stays with the delegator under contract R6.
+  never defer them to claim completion. TL schedules ready Tasks; Task-internal execution shards
+  and review shards stay with the delegator under contract R6.
 - Work needs a spec or docs before implementation; Spec Kit is not required. Small changes: the
   issue description (current, desired, scope, acceptance) is the spec. Larger features: a spec or
   design doc in the repo, using Spec Kit only where the repo already does. See Planner's "What
@@ -71,7 +73,7 @@ labels in existing artifacts do not change an already dispatched version.
 |---|---|
 | Team Lead | scheduling, re-scope, blocked work, recovery, Owner escalation, closure |
 | Planner Lead | spec/plan/tasks with stable AC IDs and existing behaviour / compatibility / removed behaviour |
-| AI Reviewer | (a) spec/plan gate; (b) pre-push spec + architecture review of FS's local HEAD |
+| AI Reviewer | spec/plan gate; PR and cumulative Task review of FS's local HEAD; Target-wide acceptance requested by TL |
 | Fullstack Engineer | implement, verify, self-review, push the reviewed SHA + PR |
 | PR Manager | TL-dispatched Dev Team PR → Adopt → CI/review → repair routing → Ship → delivery confirmation; follow-up sweeps only for existing team handoffs |
 | Flow Supervisor | wake the original owner when a Dev Team flow is truly interrupted; nothing else |
@@ -95,7 +97,7 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → TL imm
    dispatches PRM to enable auto-merge on opening; the PR template carries *Existing behaviour*,
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
 4. **CI + ship** — handing off a PR is not done; required checks must be green on that head.
-   Target completion also follows the contract's acceptance and legal-merge boundary. The
+   Task completion also follows the contract's acceptance and legal-merge boundary. The
    Dev Team FS returns the created or updated PR to TL, who immediately dispatches PRM without
    waiting for a sweep or silence; an active PRM run suppresses duplicate dispatch. PRM owns team
    delivery, from immediate auto-merge enablement through current-head checks to merge read-back
@@ -104,6 +106,43 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → TL imm
 Any new SHA invalidates the review; FS gets a new one before pushing it, scoped under contract V3.
 AI Reviewer covers spec + architecture pre-push; `codex-review-target` covers defects/standards at
 the PR head. Neither repeats the other's job.
+
+## Issue lifecycle
+
+- **Assignees**: Goal and Target issues are assigned to TL; each Task issue is assigned to its FS.
+  Stage completion therefore wakes TL.
+- **Create**: after Planner's definition passes review, TL creates Target children with
+  `multica issue create --parent <Goal>` and Task children with `--parent <Target>`;
+  `--stage <n>` groups Tasks by dependency.
+- **Dispatch**: TL dispatches only ready Tasks with no unfinished prerequisites. A stage wakes the
+  parent assignee only after the whole group finishes; it does not dispatch the next group.
+  On waking, TL runs `multica issue children <Target>`, checks dependencies and acceptance state,
+  then dispatches the next ready group. Individual Task handoff and closure do not wait for the group.
+- **PR ownership**: every PR links its Task issue. PRM intake, sweeps, receipts and delivery reports
+  use that Task issue and preserve the Task → Target → Goal parent mapping.
+- **After merge**: for every accepted team PR legally merged by PRM, Owner or another identity,
+  PRM verifies the merge, sends the final handoff to TL on the Task issue and confirms receipt.
+  Existing sweeps backfill merged PRs with an open Task and no delivery report, idempotently.
+  PRM never changes Task, Target or Goal status.
+- **Close Task**: TL closes the Task only when all specified outputs exist, every acceptance
+  command passes, every included PR is legally merged, and AI Reviewer's last-PR review has
+  passed cumulative Task acceptance.
+- **Close Target**: after all Tasks close, TL requests AI Reviewer Target-wide acceptance with the
+  merged combination (exact default-branch SHA) and Target acceptance-command evidence.
+  AI Reviewer returns the verdict to TL; TL closes the Target only on PASS.
+- **Close Goal**: after all Targets close and Goal-level acceptance has evidence, TL reports to
+  Owner for confirmation of Goal closure.
+- **Changes**: Planner decides Task changes that preserve Target scope and acceptance and issues
+  a revision. TL decides Target changes (Owner when needed), Planner prepares them; Goal changes
+  return to Owner.
+- **Review entry**: besides Planner/FS requests, AI Reviewer accepts TL's Target-wide request,
+  marks it `gate=target`, checks the merged SHA and command evidence, and returns its verdict to TL.
+  Each PR review checks that PR's single purpose; only the last PR checks cumulative Task acceptance.
+  Flow Supervisor routes verdicts to their requester, including TL.
+- **Rounds**: TL, FS, PRM and AI Reviewer count the same problem × same Task: at most two rounds;
+  changing PR, SHA, agent, run or task name does not reset history. Target-wide acceptance has its
+  own two-round budget. Execution-error reruns (infrastructure, timeout, etc.) have a separate budget
+  and do not count as review rounds.
 
 ## Handoffs
 

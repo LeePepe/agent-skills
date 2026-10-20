@@ -6,6 +6,10 @@ governs scope and rounds; [SKILL.md](../SKILL.md) supplies role-specific pinning
 ## Checking against the spec/ACs
 
 Compare the pinned diff and accepted spec/ACs directly; implementation reports are claims to check.
+For each PR, check its single purpose and Task scope; the last PR additionally checks cumulative
+Task acceptance. For TL's Target-wide request, use the exact merged default-branch SHA and all
+Target acceptance items. Check command evidence item by item; missing required evidence cannot pass.
+Use executor/CI results without rerunning or adjudicating build/test/lint/hooks/CI.
 Classify each conformance gap:
 
 - **Missing**: required behavior or evidence was omitted or claimed without implementation.
@@ -41,8 +45,11 @@ Follow SKILL.md's round budget and escalation rules; this output grants no addit
 ## Verdict mapping
 
 Apply contract V1–V3 before assigning a verdict; use V2's introduced/pre-existing classification
-and blocking conditions regardless of file path. `PASS` requires a pinned revision and sufficient evidence for the Target's
-checks (or prior findings and repair-diff regression checks on re-review); route exhausted rounds through TL to the definer.
+and blocking conditions regardless of file path. `PASS` requires a pinned revision and sufficient
+evidence for the current PR, last-PR cumulative Task checks, or Target-wide acceptance as requested
+(or prior findings and repair-diff regression checks on re-review). Count the same problem × same
+Task for at most two rounds; changing PR, SHA, agent, run or task name does not reset history.
+Target-wide acceptance has its own two-round budget; route exhausted rounds through TL to the definer.
 
 ## Sources
 
