@@ -19,18 +19,16 @@ class GoalTargetTaskV2Tests(unittest.TestCase):
                 self.assertIn(clause, text)
 
     def test_squad_covers_every_issue_lifecycle_item(self):
-        text = policy("squad")
-        for item in ("Assignees", "Create", "Dispatch", "PR ownership", "After merge",
-                     "Close Task", "Close Target", "Close Goal", "Changes", "Review entry", "Rounds"):
-            with self.subTest(item=item):
-                self.assertIn(f"**{item}**", text)
         self.assert_clauses(
-            "squad", "Goal → Target → Task issues", "one fixed FS writer",
-            "several small, single-purpose PRs", "TL decides Target changes",
-            "Goal changes return to Owner", "only the last PR checks cumulative Task acceptance",
+            "squad", "Contract definitions and V1 supply completion and acceptance conditions",
+            "**Assignees**", "**Create / Dispatch**", "**PR ownership**", "**After merge**",
+            "**Close Task / Target / Goal**", "**Changes**", "**Review entry**", "**Rounds**",
+            "../dev-team-team-lead/SKILL.md#issue-hierarchy-and-dependencies",
+            "../dev-team-team-lead/SKILL.md#stage-routing",
+            "../dev-team-pr-manager/SKILL.md#ship-confirm-clean-up",
         )
         for obsolete in ("a human", "lead main agent", "Owner + Team Lead"):
-            self.assertNotIn(obsolete, text)
+            self.assertNotIn(obsolete, policy("squad"))
 
     def test_tl_creates_hierarchy_and_dispatches_only_ready_tasks(self):
         self.assert_clauses(
@@ -46,60 +44,59 @@ class GoalTargetTaskV2Tests(unittest.TestCase):
 
     def test_closure_requires_all_task_prs_and_independent_acceptance(self):
         self.assert_clauses(
-            "team-lead", "all specified outputs exist; every acceptance command passes",
-            "all included PRs legally merged",
-            "AI Reviewer's last-PR cumulative Task acceptance PASS",
+            "team-lead", "contract Task completion + V1 cumulative acceptance satisfied",
             "all Task issues closed", "exact merged default-branch SHA",
             "Target acceptance-command evidence", "AI Reviewer returns Target-wide PASS to TL",
-            "all Targets closed; Goal-level acceptance has evidence",
+            "all Target issues closed; contract Goal completion and Goal-level acceptance evidence satisfied",
             "TL closes the Goal issue and notifies Owner with the verdict, evidence and remaining limits",
         )
         self.assert_clauses(
-            "squad", "every included PR is legally merged",
-            "passed cumulative Task acceptance", "TL closes the Target only on PASS",
-            "after all Targets close and Goal-level acceptance has evidence, TL closes the Goal issue",
-            "and notifies Owner with the verdict, evidence and remaining limits",
+            "squad", "Contract definitions and V1 supply completion and acceptance conditions",
+            "TL owns lifecycle status changes and the closure actions",
+            "../dev-team-team-lead/SKILL.md#stage-routing",
         )
         self.assert_clauses(
-            "pr-manager", "Never change Task, Target or Goal status; TL owns Task/Target closure",
-            "TL closes the Goal and notifies Owner with the verdict, evidence and remaining limits",
+            "pr-manager", "Never change Task, Target or Goal status",
+            "../dev-team-team-lead/SKILL.md#stage-routing",
         )
 
     def test_planner_decides_task_delta_and_only_prepares_target_delta(self):
         self.assert_clauses(
-            "planner", "define each Target's Tasks and acceptance commands",
-            "Map Goal → Target → Task issues; TL creates the children after review",
-            "Decide Task changes only when Target scope and acceptance stay unchanged, and issue a revision",
-            "Target changes are TL's decision (Owner when needed)",
-            "prepare that revision without deciding it", "Goal changes return to Owner",
+            "planner", "**Map** the assigned definition under contract R1–R5",
+            "../dev-team-squad/SKILL.md#how-dev-team-uses-goal-target-task",
+            "Hand the reviewed mapping to TL for child creation",
+        )
+        self.assert_clauses(
+            "squad", "| Target definer | Planner under R1–R5 |",
+            "| Coordinator (including R4 Target-change decisions) | TL; Goal-scope changes go to Owner |",
+            "| Goal definer | Owner confirms the Goal; Planner may prepare it under R1 |",
         )
 
     def test_fs_owns_one_frozen_task_and_delegates_only_internal_shards(self):
         self.assert_clauses(
-            "fullstack-engineer", "Contract role: Task 写者.",
-            "several small PRs, each with one purpose", "each PR linked to the Task issue",
-            "delegate execution shards within your Task", "for one level only; no new formal Tasks",
-            "frozen Task, owned-path subset, allowed operations and verification commands",
-            "Subagents do not commit, push, touch Multica or contact other roles",
-            "Task's sole writer", "do not change the definition",
-            "whether it is the Task's last PR", "cumulative Task acceptance-command evidence on the last PR",
+            "fullstack-engineer", "Contract role: Task 写者.", "under contract R2",
+            "each PR linked to the Task issue", "For delegation use contract R6",
+            "../dev-team-squad/SKILL.md#how-dev-team-uses-goal-target-task",
+            "**Implement** under contract R2–R5", "whether it is the Task's last PR",
+            "cumulative Task acceptance-command evidence on the last PR",
         )
+        self.assert_clauses("squad", "subagents do not commit, push, touch Multica",
+                            "or contact other roles")
 
     def test_reviewer_scopes_pr_task_and_target_acceptance(self):
         self.assert_clauses(
             "ai-reviewer", "from Planner Lead, Fullstack Engineer or Team Lead",
-            "this PR's declared single purpose within its frozen Task",
-            "Only the Task's last PR checks cumulative Task acceptance across all its PRs",
-            "do not require each PR to complete the Target",
+            "apply contract V1–V2 directly", "for the requested review unit",
             "TL supplies the frozen Target, all closed Task issues, exact merged default-branch SHA",
             "Target acceptance-command evidence", "Return the verdict to TL",
-            "check acceptance-command evidence item by item; missing required evidence cannot pass",
-            "do not rerun or adjudicate build/test/lint/hooks/CI",
+            "Apply contract V1 to each acceptance-command result provided by executor/CI",
+            "including cumulative Task evidence when required",
+            "you never run or judge build/test/lint/hook/CI gates",
         )
         rubric = " ".join((ROLES_DIR / "dev-team-ai-reviewer" / "references" /
                             "review-rubric.md").read_text().split())
-        self.assertIn("the last PR additionally checks cumulative Task acceptance", rubric)
-        self.assertIn("missing required evidence cannot pass", rubric)
+        self.assertIn("Apply contract V1 to the review unit and command evidence", rubric)
+        self.assertIn("../SKILL.md#trigger-and-inputs", rubric)
 
     def test_target_verdict_has_marker_and_tl_return_route(self):
         self.assert_clauses(
@@ -138,25 +135,28 @@ class GoalTargetTaskV2Tests(unittest.TestCase):
     def test_round_history_is_task_scoped_and_execution_errors_are_separate(self):
         for role in ("team-lead", "fullstack-engineer", "pr-manager", "ai-reviewer"):
             with self.subTest(role=role):
-                text = policy(role).lower()
-                self.assertIn("same problem × same task", text)
-                self.assertIn("at most two", text)
-                self.assertIn("changing pr, sha, agent, run or task name does not reset history", text)
-                self.assertIn("target-wide acceptance has its own two-round budget", text)
-                self.assertIn("separate budget", text)
-                self.assertIn("do not count as review rounds", text)
-                for obsolete in ("cumulative per pr", "cumulative per repo/pr", "per issue/pr"):
+                text = policy(role)
+                self.assertIn("contract V3", text)
+                self.assertIn("../dev-team-squad/SKILL.md#retry-budgets", text)
+                for obsolete in ("cumulative per PR", "cumulative per repo/PR", "per issue/PR"):
                     self.assertNotIn(obsolete, text)
-        for role in ("team-lead", "fullstack-engineer", "pr-manager"):
-            self.assert_clauses(role, "at most 2 reruns of the same error, platform retries included")
+        self.assert_clauses(
+            "squad", "Review/repair round accounting is authoritative in contract V3",
+            "unknown counts block retry (not tracking)",
+            "Execution errors (infrastructure, timeout, etc.) have a separate budget",
+            "at most 2 reruns of the same error, platform retries included",
+            "actor/run/SHA changes do not reset it", "do not count as review rounds",
+        )
 
     def test_workflow_index_uses_task_writers_and_tl_closure(self):
         text = (ROLES_DIR.parent / "README.md").read_text()
-        for clause in ("每 Task 一个写者", "PR 关联 Task issue", "最后一个 PR 累计核对 Task 验收",
-                       "TL 关闭 Task", "TL 关闭 Target", "TL 关闭 Goal，并通知 Owner 结论、证据与剩余限制",
-                       "PRM 不改三层状态"):
-            with self.subTest(clause=clause):
-                self.assertIn(clause, text)
+        for target in ("dev-team-squad/SKILL.md", "dev-team-team-lead/SKILL.md",
+                       "dev-team-fullstack-engineer/SKILL.md", "dev-team-ai-reviewer/SKILL.md",
+                       "dev-team-pr-manager/SKILL.md"):
+            with self.subTest(target=target):
+                self.assertIn(target, text)
+        self.assertIn("三层关闭及 Goal 通知 Owner", text)
+        self.assertIn("三层定义、R1–R6、交接和 V1–V4", text)
 
 
 if __name__ == "__main__":
