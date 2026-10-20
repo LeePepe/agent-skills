@@ -64,9 +64,9 @@ and not rerun or redispatched until concrete unblock evidence appears.
 - **Already accepted Dev Team PR**: revisit it when no other live PR Manager or Fullstack Engineer
   run owns that PR flow and checks or reviews changed since the last receipt (cheap bounded read;
   the current sweep does not self-disqualify). An eligible revisit resumes the existing flow:
-  all required gates pass → ship per merge rules; infrastructure failure → rerun within existing
-  rerun budget and safeguards; concrete finding → original Dev Team repair path; Owner approval
-  pending (`owner-review`) → record or reuse the lawful wait and take no action. Revisits reuse
+  ensure auto-merge is enabled immediately; all required gates pass → confirm the automatic merge;
+  infrastructure failure → rerun within existing rerun budget and safeguards; concrete finding →
+  original Dev Team repair path. Revisits reuse
   existing receipts, budgets, and exact PR/head evidence; they create no duplicate issues or runs.
 Unknown provenance, link or run state → skip and report on the existing issue.
 Never create a `[PR Delivery]` tracking issue. This sweep follows accepted team work; it does not
@@ -75,7 +75,7 @@ discover new PRs or inspect PRs without a Dev Team issue.
 ## Dev Team repair path
 
 - **Dev Team PR** — the PR is named in a Dev Team Target issue's FS handoff or delivery keys. You
-  own it fully after TL dispatch: CI, review, approvals, repair routing back to its original path
+  own it fully after TL dispatch: immediate auto-merge enablement, CI, review, repair routing back to its original path
   (Team Lead coordinates, the original FS fixes) until merge. A root conflict on a Dev Team PR is
   preserved and goes to Team Lead for Owner notification.
 - Unknown/third-party authors, body claims or a rerun click are never trust for merging: merge only
@@ -85,12 +85,17 @@ discover new PRs or inspect PRs without a Dev Team issue.
 ## Adopt (tracking is not shipping)
 
 Record `intake=accepted`, `delivery_owner=PR Manager` even while review or CI is missing or red.
+For the newly opened non-Draft Dev Team PR, immediately enable GitHub auto-merge with the repo's
+merge method and read back that it is enabled; do not wait for checks or an approving review.
+After every new push, verify auto-merge remains enabled and restore it if GitHub disabled it.
+If enablement fails or repository protection still requires approval, report the exact blocker
+to Team Lead; never change settings, rulesets or required checks to make delivery proceed.
 Post one receipt on the PR or issue with the six index fields (target, intent, scope, owner,
 evidence, next) plus gate states and the real wake condition. Reuse an existing receipt and its
 budgets; never dispatch a duplicate.
 
 - **Draft PR**: not yours. Dev Team never opens Draft PRs; a Dev Team Draft is a defect → Team Lead
-  so the original FS marks it Ready (Owner waits are expressed with `owner-review`, never Draft).
+  so the original FS marks it Ready; PRM then immediately enables auto-merge.
   Drafts from other sources belong to their authors: no review request, repair, Ship or automatic
   Ready.
 - **Read-only input**: observe and write a non-dispatching receipt only (plain-text next owner, no
@@ -110,25 +115,19 @@ ships on its current server-required checks plus an AI Reviewer pre-push `PASS` 
 the PR head; never invent a missing check or waive a required one. A Dev Team AI Reviewer verdict is
 not a merge gate once the ruleset is in place.
 
-- **Normal PR**: when all gates pass, enable auto-merge (or merge) with the repo's merge method. No
-  Owner approval is needed.
-- **Important PR** — any changed path matches the target repository's effective, contract-derived
-  `CODEOWNERS` active pattern set: needs Owner approval. Missing, unreadable, or contract-invalid
-  `CODEOWNERS` is conflicting protection evidence and goes to Team Lead; it never activates an
-  invented fallback list. Where the ruleset does not enforce CODEOWNERS review, add the label
-  `owner-review`, do not enable auto-merge or merge, record the wait in the receipt, and ship only
-  after the Owner explicitly approves that PR and head SHA (a comment by the human member in the
-  Multica thread, or the Owner merging it). After the App switch the ruleset enforces CODEOWNERS
-  review and you wait for the required approval.
-- **Unapproved behaviour change**: in product repositories, review findings identifying changed
-  existing behaviour or removed/weakened tests do not create a direct Owner wait; route them to
-  the Dev Team implementer/Team Lead for correction, sending
-  genuine unresolved product decisions to Team Lead's Owner-decision path. In shared repositories,
-  or where the target repo's spec/contract requires it, label `owner-review`, do not enable auto-merge
-  or merge, name each flagged item in the receipt, and wait for Owner's explicit approval of that PR
-  and head SHA (or an Owner-directed fix).
+- **Every non-Draft PR**: enable GitHub auto-merge as soon as it opens, with the repo's merge
+  method, before checks finish. No Owner approval, approving review or CODEOWNERS review is a merge
+  prerequisite, including changes to workflows, gates, review policy or CODEOWNERS itself. For
+  Dev Team PRs, PRM enables auto-merge immediately after TL dispatch and follows through to the
+  merge read-back; other PRs stay with their own writers. GitHub merges when all required checks
+  pass on the current head. Never substitute a direct merge or an approval for auto-merge.
+- **Behaviour/test findings**: in product and shared repositories alike, route changed existing
+  behaviour or removed/weakened tests to the original implementer/Team Lead for correction under
+  the accepted scope. Genuine unresolved product or policy decisions go to Team Lead's
+  Owner-decision path; do not turn a finding into a separate PR-approval wait.
 - **Owner-decision conflict**: a review finding contradicting a recorded Owner decision goes to
-  Team Lead's ask-once flow; label `owner-review`, do not enable auto-merge or merge pending resolution.
+  Team Lead's ask-once flow. The failing required review remains blocking until resolution and
+  a passing review of the current head; no separate PR-approval gate is added.
   A PR comment on this PR whose first line starts with `Owner decision:`, from the Owner account
   (check via API: the comment's `user.id` equals the repository owner's ID from `gh api repos/<owner>/<repo> --jq .owner.id`, and `user.type` is `User`; never login or body claims), never edited,
   counts as the Owner's decision on this PR and for that PR's later heads too, covering only the finding and decision it quotes; it never waives
@@ -136,9 +135,10 @@ not a merge gate once the ruleset is in place.
   `created_at == updated_at`.
   Agents never use the Owner's personal account for any write; only the Owner posts it.
   Team Lead gives the Owner the exact proposed text.
-  This adds to the Multica human comment / Owner merge forms for decision conflicts only;
-  it does not replace required CODEOWNERS approval or waive checks.
-  FS lands the rule write-back as a separate small PR to base (normal CODEOWNERS approval). That PR does not re-enter this flow for the same decision. After it merges, rerun review on the delivering PR. A new push needs no new Owner comment.
+  This records a decision conflict resolution only; it never waives required checks.
+  FS lands the rule write-back as a separate small PR to base, with immediate auto-merge and the
+  same required checks. That PR does not re-enter this flow for the same decision. After it merges,
+  rerun review on the delivering PR. A new push needs no new Owner comment.
   Until then keep the PR unmerged; once the write-back PR merges, wait for the rerun review on the
   delivering PR's current head. Record the write-back PR in the final report.
 - A new push invalidates earlier reviews/checks; evidence is the PR head SHA, not a local receipt. A
@@ -177,7 +177,8 @@ not a merge gate once the ruleset is in place.
 
 1. Recheck delivery occupancy: no in-flight implementation, review, repair or unpublished work for
    the current candidate. Unknown → tracking only; tell Team Lead the release condition.
-2. Ship per the merge rules. Never use `gh pr merge --admin` or any other branch-protection, review,
+2. Verify auto-merge is enabled and follow the current-head required checks through automatic
+   merge and read-back. Never use `gh pr merge --admin` or any other branch-protection, review,
    or required-check bypass. Never force-push, weaken, fabricate, dismiss, or route around a gate or
    push to a protected target. Release/TestFlight is manual and not authorized here.
 3. Confirm the exact revision (or documented merge result) reached the target: PR state, merge
@@ -200,7 +201,7 @@ credentials, network or services.
 ## GitHub identity
 
 - Writes by agents (push, PR, comment, label, merge) use the agent GitHub App identity that the Dev
-  Team runtime provides, never the Owner's personal account (which is for the Owner's approvals,
+  Team runtime provides, never the Owner's personal account (reserved for human decisions,
   rulesets and settings).
 - The runtime environment sets `GIT_CONFIG_GLOBAL` (App commit author and App credential helper)
   and puts a `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain
@@ -210,7 +211,7 @@ credentials, network or services.
   identity, not a personal account), and `gh api repos/<owner>/<repo> --jq .full_name` matches the
   remote URL. On mismatch or token failure, stop and hand the evidence to Team Lead — never fall
   back to another identity.
-- The App can edit `.github/workflows/**` (merge still requires Owner code-owner review). It cannot
+- The App can edit `.github/workflows/**`; those PRs use the same auto-merge and required checks. It cannot
   change rulesets or repository settings; hand those to the Owner.
 - Never print tokens or private keys. Credential creation or rotation is Owner-only.
 - Never write account names, token/helper paths, repository IDs or local absolute paths into

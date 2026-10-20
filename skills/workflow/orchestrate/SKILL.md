@@ -49,7 +49,7 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 - 本版必要补拆记录进 plan；新需求回同一需求入口，不改当前版。按[实现修复与升级](../README.md#实现修复与升级)
   保留两轮历史：团队 TL、subagent 既有主会话组织诊断，仍无解带证据交 Owner，不自动换执行方。
 - 已进入查证结论等待 Owner 的工作保持未完成；后来新证据到达不自行恢复。独立已授权任务继续。
-- PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；非 Dev Team PR 由各自写者交付，Draft 保留原作者／审批路径。Flow Supervisor 只唤醒真中断的团队原责任方，
+- PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；非 Dev Team PR 由各自写者交付；非 Draft PR 打开即启用 auto-merge，required checks 全绿后读回合并，Draft 保留原作者责任。Flow Supervisor 只唤醒真中断的团队原责任方，
   不接管 subagent 主会话。协调者不因观察而获得取消其他会话、合并或替代角色的权限。
 - 故障走 [运行恢复](../runtime-recovery/SKILL.md)，未知结果先对账，不重复重试。
 

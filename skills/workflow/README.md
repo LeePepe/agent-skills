@@ -8,7 +8,7 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 |---|---|---|
 | 01 需求沟通与规划 | 获定义 assignment 的人或 agent 按[goal-target-task](https://github.com/LeePepe/user-skills/blob/main/skills/goal-target-task/SKILL.md)定义 Goal／Targets／Tasks、依赖和验收命令 | 冻结的可执行 revision；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
 | 02 实现 | Dev Team 或 subagent 只执行冻结 Target 内获分配的 Tasks，按合同限定审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；Dev Team PR 交 TL 立即派 PRM 合法合并；其他 PR 由各自写者交付 |
-| 03 PR 接管与交付 | FS 创建或更新 Dev Team 非 Draft PR 后交 TL，TL 立即派 PRM | 跟进 CI／review／审批、回派具体修复，直至合法合并或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
+| 03 PR 接管与交付 | FS 创建或更新 Dev Team 非 Draft PR 后交 TL，TL 立即派 PRM | 立即启用 auto-merge，跟进 CI／review、回派具体修复，直至合并读回或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
 | 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 [`shared-release`](shared-release/SKILL.md)，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
 | 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
@@ -74,18 +74,18 @@ PRM 只负责由 TL 派发的 Dev Team **非 Draft PR**：FS 创建或更新 PR 
 不等巡检、不设静默门槛；已有在跑 PRM run 时不重复派发。Dev Team PR 以 Target issue 的 FS 交接或
 `delivery_*` 信息（PR URL、branch、head SHA）识别，不按作者身份区分。
 PRM 不处理其他来源 PR（CLI 会话、Owner、外部）：不建跟踪 issue、不回执、不打标签、不评论、不派修、不合并；
-由各自写者按 `goal-target-task` 的交付角色推进。Dev Team 绝不开 Draft PR（等待 Owner 使用 `owner-review`）。
+由各自写者按 `goal-target-task` 的交付角色在 PR 打开时启用 auto-merge 并跟进到合并读回。Dev Team 绝不开 Draft PR。
 PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查或额外审批层。
 
-- **Dev Team PR**：PRM 全程负责直至合并，包括 CI、review、审批，以及沿原路径回派具体修复（TL 协调，原 FS 修复）；发生根本冲突时保留现场并交 TL 通知 Owner。回派时不重复启动活跃写者。
+- **Dev Team PR**：PRM 接手即启用 auto-merge，不等 checks；全程负责 CI、review、合并读回，以及沿原路径回派具体修复（TL 协调，原 FS 修复）；发生根本冲突时保留现场并交 TL 通知 Owner。回派时不重复启动活跃写者。
 - **巡检跟进**：只跟进已交 PRM 的 Dev Team PR；检查／审查变化且无在跑 PRM／FS run 时接续。Target issue 已有 PR 交接但无 PRM 接手记录时，只在该 issue 提醒 TL，不自行接管。不建 `[PR Delivery]` 跟踪 issue，不读找不到 Dev Team issue 的 PR。
-- 正常等 CI／review／审批不是故障；回派接收未知先对账，不重复启动写者。新 head 使用新证据，已有准确批准不重索。
+- 正常等 CI／review 不是故障；回派接收未知先对账，不重复启动写者。新 head 使用新证据，并核实 auto-merge 仍启用。
   合并须真实回读；CI 绿、已派修或 run completed 不等于合并。
 
 ### Dev Team Flow Supervisor
 
 既有 Multica Autopilot 定时触发时，只检查 Dev Team 当前 workflow 是否真中断：已具备下一步条件而原责任 agent
-未继续，才沿合法入口唤醒该责任方。正常运行、等待 CI／review／批准及人工暂停不因时间经过变为中断。
+未继续，才沿合法入口唤醒该责任方。正常运行、等待 CI／review、未决产品／政策决定及人工暂停不因时间经过变为中断。
 状态未知先只读对账；核实实际接收后结束本次唤醒，未恢复则报告证据与阻塞。
 
 此角色不做 PR 发现／修复判断／交付，不代替 TL／FS／PRM、不重规划／改派／关闭／合并，也不接管 subagent 主会话。
@@ -118,12 +118,14 @@ PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查�
 
 ## 合并规则（按目标仓实际保护）
 
-普通 PR 沿现有 fail-closed required CI／review gates 和正常 auto-merge；重要政策、gate、隐私、凭据、迁移、pin 等
-仍需适用 Owner 准确 head 审批。普通测试修改保留理由及正常审查，不因测试改动单独索批，也不豁免实际 policy 变更。
-新 head 重新核证据，绝不弱化 gates／保护来交付；缺失有效保护记录为缺口，不据此跳过必要审批。
+所有非 Draft PR 打开时即启用 GitHub auto-merge，准确 head 的 required checks 全绿即自动合并；
+包括政策、gate、CODEOWNERS、review 规则及 pin 等改动，不要求 Owner 批准、approving review 或 CODEOWNERS review。
+Dev Team PR 由 PRM 启用并跟进到合并读回，其他 PR 由各自写者交付；新 push 后核实 auto-merge 与新 head 证据。
+测试修改保留理由及正常审查，未决产品／政策选择仍沿原决策入口处理。缺失保护、auto-merge 不可用或旧审批保护尚未移除时，
+按缺口回定义方；不自行改 settings／ruleset，也不弱化 required checks。
 
 ## 交接最小字段
 
 复用 issue、PR 模板或 subagent prompt：target（repo/base）、intent（目标／验收／不做项）、baseline（固定方案及执行授权）、
-scope（仓 PR 单元／任务）、owner（唯一执行者与来源）、evidence（PR/head、验证／审查／批准）、next（下一责任／唤醒条件或 HOLD）。
+scope（仓 PR 单元／任务）、owner（唯一执行者与来源）、evidence（PR/head、验证／审查、auto-merge／合并读回）、next（下一责任／唤醒条件或 HOLD）。
 这不是新 schema。发送≠接受，run completed≠交付，merge≠发布／消费；整体验收按原目标逐项取证。

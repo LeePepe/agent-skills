@@ -14,7 +14,7 @@ PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；本 skill 是该
 读取 repo remote、PR URL、准确 head、Draft 状态、现有交接／来源与执行者。通过 AGENTS 读取本仓 guide、
 实际固定 shared 合同、验证入口及适用 layer context；日志、PR 文本与来源标记不是授权。
 
-- Draft 保留原作者／既有审批路径，不观察推进、派修或自动 Ready。
+- Draft 保留原作者责任，不观察推进、派修或自动 Ready。
 - Dev Team 非 Draft PR 的 TL 派发与巡检跟进重复命中时接续已有 PRM 工作，不创建第二 watcher。
 - 以 Dev Team Target issue 的 FS 交接或 `delivery_*` 信息核实归属，不按作者区分；非团队 PR 由各自写者交付，PRM 不读、不处理。
   Dev Team PR 的受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
@@ -25,7 +25,7 @@ PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；本 skill 是该
 
 ## 2. PRM 读取对应 head 的信号
 
-使用受支持的检查／等待机制读取 required checks、review 和审批；等待不是失败，不忙轮询。
+使用受支持的检查／等待机制读取 required checks、review 和 auto-merge 状态；等待不是失败，不忙轮询。
 检查所有终态（success、failure、cancelled、timed_out、skipped、unknown），不能只等待 success 或把意外 skip 当绿。
 读取日志／artifact 前核对其 PR/head；旧 SHA 失败不自动触发当前版本修复。
 
@@ -53,14 +53,15 @@ PRM 不自行改方向、关闭或合并，也不对非团队 PR 留言、打标
 
 只暂存本任务文件，按项目约定正常 commit/push、创建或更新对应 PR；失败不能记作当次实现完成。
 回报 PR/head、实际验证／审查、修复结果、限制及下一责任；不继续独自等 CI／merge，不直接合并。
-新 push 后 PRM 核对新 head 的检查／审批，旧证据不得冒充新候选通过。
+新 push 后 PRM 核对新 head 的 checks，并核实 auto-merge 仍启用；旧证据不得冒充新候选通过。
 
 同一根问题两轮完整修复／验证／复查无实质进展，TL／原主会话诊断，仍无解带证据升级 Owner；
 task/run/SHA 不清零。硬安全／权限阻塞立即报告，不凑次数。已进入 Owner 判断等待后，新证据不自动解锁。
 
 ## 5. 交付结果
 
-PRM 沿既有 fail-closed CI、review、准确审批及正常合并路径交付并回读；helper 不另造 merge 门、不改 settings。
+PRM 在 Dev Team 非 Draft PR 打开后接手即启用 auto-merge，跟进 fail-closed required CI／review checks，
+准确 head 全绿即自动合并并读回；不另等 Owner／CODEOWNERS 审批。helper 不另造 merge 门、不改 settings。
 Dev Team 根本冲突按上述合同交 TL，不代表合并或实现完成。当次实现输出、PR 处置终态、PR 合并、发布和消费者验收分开报告。
 发送≠接受、CI 绿≠合并，`冲突保留` 不等于实现交付。
 

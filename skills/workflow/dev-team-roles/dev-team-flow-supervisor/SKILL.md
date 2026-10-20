@@ -43,8 +43,7 @@ Skip (not interrupted) when any of these holds:
 - A queued/dispatched/running run exists for the issue or its next owner — normal activity.
 - The next owner completed a run within the last **5 minutes** — duplicate-wake cooldown.
 - The flow is waiting lawfully: CI or required checks running, a review requested and pending,
-  PR Manager waiting on Owner approval (`owner-review`), a pending Owner decision, a member-assigned
-  manual gate, or a human pause. Elapsed time alone never turns a lawful wait into an interruption.
+  a pending product/policy decision, a member-assigned non-merge manual gate, or a human pause. Elapsed time alone never turns a lawful wait into an interruption.
 - The issue is `blocked` by Team Lead with a named unblocking event that has not happened.
 
 Interrupted means: a stage finished, its output (handoff, verdict, PR, merge) exists, the next

@@ -16,7 +16,7 @@ Multica 用链接部署：
 | `dev-team-planner/` | `dev-team-planner` | Planner Lead |
 | `dev-team-fullstack-engineer/` | `dev-team-fullstack-engineer` | Fullstack Engineer |
 | `dev-team-ai-reviewer/` | `dev-team-ai-reviewer` | AI Reviewer |
-| `dev-team-pr-manager/` | `dev-team-pr-manager` | PR Manager；TL 立即派发 Dev Team PR，Autopilot 每 30 分钟只跟进已交接 PR |
+| `dev-team-pr-manager/` | `dev-team-pr-manager` | PR Manager；TL 立即派发 Dev Team PR，接手即启用 auto-merge 并跟进到合并读回；Autopilot 每 30 分钟只跟进已交接 PR |
 | `dev-team-flow-supervisor/` | `dev-team-flow-supervisor` | Dev Team Flow Supervisor（原 Pipeline Supervisor，2026-10-13 改名并收窄） |
 
 改动流程：改本目录 → PR 合并 → `multica skill refresh` → 回读核对。

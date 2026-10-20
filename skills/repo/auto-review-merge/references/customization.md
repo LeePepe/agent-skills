@@ -43,10 +43,12 @@ flags in `scripts/ci/claude-review.sh` where it calls `claude -p` (e.g. `--model
 `setup-runner.sh` handles Darwin + Linux platform detection. On Linux, `svc.sh install` uses
 systemd and typically needs `sudo`; run the runner as a dedicated user that has `claude` logged in.
 
-## Making it require approvals too
+## Required checks without approving reviews
 
-Set `required_approving_review_count` > 0 in `main-protection.json` when you add human reviewers.
-The template ships `0` (solo repo). Re-run `apply` after editing.
+Keep `required_approving_review_count` at `0` and `require_code_owner_review` at `false`.
+Every non-Draft PR gets auto-merge enabled on opening and merges when required checks pass;
+human or CODEOWNERS approval is not a merge prerequisite. Repository settings and ruleset
+changes still require separately authorized administration.
 
 ## Have an ANTHROPIC_API_KEY and want cloud-only?
 
