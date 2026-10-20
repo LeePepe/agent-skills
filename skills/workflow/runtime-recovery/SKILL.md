@@ -64,7 +64,7 @@ launchd 每次启动 runner 都读取默认 `~/.config/raven-actions/host.json`�
 恢复后由原 owner 重新读取权威状态（PR head SHA、issue 状态、worktree），确认唯一写者与既有继续条件。
 按 [workflow 责任边界](../README.md#dev-team-flow-supervisor) 及 [Flow Supervisor 角色说明](../dev-team-roles/dev-team-flow-supervisor/SKILL.md)：Dev Team Flow Supervisor 只唤醒已具备下一步却中断的原责任方，
 不代执行、改派、修复或合并，也不负责 daemon/runner/API 等平台故障修复；正常等待／人工暂停不触发唤醒，接收未知先对账，实际接收后才报已唤醒。
-subagent 仍由原主会话协调；非 Draft PR 交付仍归 [PR Manager](../dev-team-roles/dev-team-pr-manager/SKILL.md)。已交 Owner 判断的查证结论不因环境恢复或新证据自动解锁。
+subagent 仍由原主会话协调；[PR Manager](../dev-team-roles/dev-team-pr-manager/SKILL.md) 只交付 TL 派发的 Dev Team 非 Draft PR，其他 PR 由各自写者交付。已交 Owner 判断的查证结论不因环境恢复或新证据自动解锁。
 
 ## 演练（验收）
 

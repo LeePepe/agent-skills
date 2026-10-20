@@ -91,7 +91,7 @@ Distinguish agreement with an idea from approval to execute a whole version. New
 - Send canonical planning changes to the existing planning owner with the exact decision; subagents need no extra Dev Team task graph.
 - Send implementation-local execution to the original FS/subagent only after the governing planning artifact or issue decision is explicit.
 - Re-enter the normal independent review gate after content or code changes.
-- Keep team dependency scheduling with TL, subagent scheduling with the original main conversation, and non-Draft PR lifecycle with PRM. Fundamental external-PR conflicts follow the [source-specific disposition and notification boundary](../../workflow/README.md#prm-唯一交付责任): PRM verifies the author-facing comment and `冲突保留` label as the ordinary external PR's handling terminal, with normal reprocessing after author updates. Dev Team / Owner subagent / Owner-marked notification rules remain unchanged; ordinary external conflicts do not become Owner questions.
+- Keep team dependency scheduling with TL, subagent scheduling with the original main conversation, and TL-dispatched Dev Team non-Draft PR delivery with PRM. Follow the [PRM boundary](../../workflow/README.md#prm-唯一交付责任): team root conflicts go through TL for Owner notification; PRM does not read, comment, label, route repairs, merge or otherwise process PRs from CLI sessions, the Owner or external sources. Those PRs remain with their own writers.
 
 Future runs may reuse a recorded decision when scope, assumptions and effective version match. Reuse never supplies a missing answer to an active Owner wait. A mismatch or superseding evidence reopens only the affected decision, preserving the prior record and unaffected conclusions.
 

@@ -73,7 +73,7 @@ labels in existing artifacts do not change an already dispatched version.
 | Planner Lead | spec/plan/tasks with stable AC IDs and existing behaviour / compatibility / removed behaviour |
 | AI Reviewer | (a) spec/plan gate; (b) pre-push spec + architecture review of FS's local HEAD |
 | Fullstack Engineer | implement, verify, self-review, push the reviewed SHA + PR |
-| PR Manager | Discover → Adopt → CI/review → repair routing → Ship → delivery confirmation; the backstop for PRs nobody is driving |
+| PR Manager | TL-dispatched Dev Team PR → Adopt → CI/review → repair routing → Ship → delivery confirmation; follow-up sweeps only for existing team handoffs |
 | Flow Supervisor | wake the original owner when a Dev Team flow is truly interrupted; nothing else |
 
 ## Flow
@@ -81,10 +81,10 @@ labels in existing artifacts do not change an already dispatched version.
 ```
 Planner ⇄ AI Reviewer (spec gate) → Team Lead → FS implement
   → FS ⇄ AI Reviewer (pre-push spec + architecture, bound to local HEAD) → FS push + PR
-  → CI (aggregate gate, codex-review-target) → PRM ship → Team Lead closure
+  → Team Lead immediately dispatches PRM → CI (aggregate gate, codex-review-target) → PRM ship → Team Lead closure
 ```
 
-Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
+Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → TL immediately dispatches PRM`.
 
 1. **Spec gate** — AI Reviewer applies its spec-gate checklist (`dev-team-ai-reviewer` skill, section A)
    to the Target definition under contract V1. Spec errors stop here.
@@ -96,8 +96,9 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → PRM`.
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
 4. **CI + ship** — handing off a PR is not done; required checks must be green on that head.
    Target completion also follows the contract's acceptance and legal-merge boundary. The
-   author may stay to watch required checks and fix failures, or hand off and leave; PRM is the
-   backstop either way and ships on the server-required checks (below).
+   Dev Team FS returns the created or updated PR to TL, who immediately dispatches PRM without
+   waiting for a sweep or silence; an active PRM run suppresses duplicate dispatch. PRM owns team
+   delivery on the server-required checks (below); other PRs remain with their own writers.
 
 Any new SHA invalidates the review; FS gets a new one before pushing it, scoped under contract V3.
 AI Reviewer covers spec + architecture pre-push; `codex-review-target` covers defects/standards at
@@ -109,8 +110,8 @@ the PR head. Neither repeats the other's job.
   owner, evidence, next) plus the accepted plan version and exact revision/SHA: see
   the workflow index `skills/workflow/README.md` §交接最小字段 in this skill's source repository.
 - AI Reviewer answers the role that requested it. Planner hands a passing plan to Team Lead; FS
-  hands a pushed, reviewed PR directly to PRM. Team Lead intervenes between them only for scope,
-  content, authority, recovery or Owner-decision conflicts.
+  hands a pushed, reviewed PR to TL, who immediately dispatches PRM unless a PRM run is already
+  queued/dispatched/running. Scope, content, authority, recovery or Owner-decision conflicts also go to TL.
 - PRM routes a clear shipping-time code/check failure to the PR's actual implementer; conflicting
   evidence, ownership, policy, permissions, infra or merge conflicts go to Team Lead.
 - Dispatch with a final `@mention` comment after all other writes; never use assignment as dispatch.

@@ -5,7 +5,7 @@ description: Supervise named Multica projects and delivery PRs, or resume tasks 
 
 # Multica Delivery Supervisor
 
-Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level helper usable by Codex or Hermes, not the deployed Dev Team Flow Supervisor. Read the [workflow responsibility boundary](../README.md), [Flow Supervisor role instructions](../dev-team-roles/dev-team-flow-supervisor/SKILL.md), and [PR Manager role instructions](../dev-team-roles/dev-team-pr-manager/SKILL.md): PRM owns non-Draft PR discovery, adoption, and delivery; Flow Supervisor only wakes the interrupted original Dev Team actor through the existing Multica Autopilot path, and never repairs daemon/runner/API/credentials/platform state. This skill adds no background wake capability and does not replace the original subagent coordinator.
+Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level helper usable by Codex or Hermes, not the deployed Dev Team Flow Supervisor. Read the [workflow responsibility boundary](../README.md), [Flow Supervisor role instructions](../dev-team-roles/dev-team-flow-supervisor/SKILL.md), and [PR Manager role instructions](../dev-team-roles/dev-team-pr-manager/SKILL.md): PRM owns only TL-dispatched Dev Team non-Draft PR adoption and delivery; Flow Supervisor only wakes the interrupted original Dev Team actor through the existing Multica Autopilot path, and never repairs daemon/runner/API/credentials/platform state. This skill adds no background wake capability and does not replace the original subagent coordinator.
 
 ## Invocation
 
@@ -33,7 +33,7 @@ Use the actually applicable repository/role contracts for actors and gates, reco
 
 ## Reconcile
 
-Follow [references/supervision-protocol.md](references/supervision-protocol.md). Build one evidence-backed state for every nonterminal leaf issue and explicitly linked delivery PR (unlinked non-Draft PR discovery and lifecycle belong exclusively to PR Manager; Drafts remain observational and preserved under original-author ownership). Cross-check issue, run, actor, workdir, branch, candidate SHA, review SHA, required checks, merge, release, and terminal status.
+Follow [references/supervision-protocol.md](references/supervision-protocol.md). Build one evidence-backed state for every nonterminal leaf issue and explicitly linked delivery PR (PRM does not discover unlinked PRs; a team issue missing PRM acceptance goes back to TL, and other PRs remain with their own writers; Drafts remain observational and preserved under original-author ownership). Cross-check issue, run, actor, workdir, branch, candidate SHA, review SHA, required checks, merge, release, and terminal status.
 
 Classify each case as:
 
@@ -45,13 +45,13 @@ Classify each case as:
 - `complete`: the completion contract is satisfied.
 
 Evidence absence stays unknown. Never infer completion from a green check, merged PR, terminal run, or silent issue alone.
-For a preserved external conflict PR, read the [PRM disposition contract](../README.md#普通外部-pr-的冲突保留终态) before treating its open state as a stall or an Owner decision. Verify the existing disposition and any later author update; this helper does not perform PRM's comment/label actions.
+For an external conflict PR, follow the [PRM boundary](../README.md#prm-唯一交付责任): PRM does not read or process it, including historical comment/label dispositions and later author updates. Its own writer retains delivery; do not route it to PRM.
 
 ## Act within the workflow
 
-For `actionable` cases, reconcile the intended original actor and any existing accepted handoff. Use only its already-authorized entry and verify actual receipt. Keep non-Draft PR discovery, repair routing and delivery with PRM (Drafts remain with their original authors); Dev Team stage/dependency progression with TL/FS; subagents with their original main conversation. A generic supervision request does not authorize role takeover, reassignment, cancellation, closure, merge, or automatic Draft Ready.
+For `actionable` cases, reconcile the intended original actor and any existing accepted handoff. Use only its already-authorized entry and verify actual receipt. Keep TL-dispatched Dev Team non-Draft PR follow-up, repair routing and delivery with PRM (other PRs remain with their own writers; Drafts with their original authors); Dev Team stage/dependency progression with TL/FS; subagents with their original main conversation. A generic supervision request does not authorize role takeover, reassignment, cancellation, closure, merge, or automatic Draft Ready.
 
-Route implementation to the original executor, applicable independent read-only code/style and spec/architecture review to its reviewer, lifecycle/CI work to PRM, and team coordination to TL. Dev Team Reviewer does not run or judge tests/build/lint/CI; FS full self-review does not replace independent review. Preserve workdir ownership, exact-SHA continuity and all required gates.
+Route implementation to the original executor, applicable independent read-only code/style and spec/architecture review to its reviewer, TL-dispatched Dev Team PR lifecycle/CI work to PRM, and team coordination to TL. Dev Team Reviewer does not run or judge tests/build/lint/CI; FS full self-review does not replace independent review. Preserve workdir ownership, exact-SHA continuity and all required gates.
 
 When the project contract does not authorize the supervisor to mutate a state, report the proposed next actor and action without performing it. Repository edits, code fixes, review verdicts, workflow redesign, gate weakening, and direct default-branch pushes are outside this skill.
 

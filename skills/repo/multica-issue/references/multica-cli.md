@@ -189,8 +189,8 @@ git show "$APPROVED_REF:$REF_PATH"
 ```
 
 这些变量由当前任务的已核实配置填入，逐文件比较方案内容。缺失或不匹配则保持待派发，按 `SKILL.md` 的
-固定方案可读取门禁处理；不要 stash 他人内容、跳过 hooks 或自行合并。授权的文档 PR 经正常 gates/审批、PRM
-推进后重新核验，才继续派发。多个 issue 可共用同一个必要文档 PR。
+固定方案可读取门禁处理；不要 stash 他人内容、跳过 hooks 或自行合并。授权的文档 PR 经正常 gates/审批，由原写者交付（Dev Team PR 交 TL 立即派 PRM）
+后重新核验，才继续派发。多个 issue 可共用同一个必要文档 PR。
 
 ---
 
@@ -204,7 +204,7 @@ Outcome Check 不进入本节:它保持 backlog,assign 给 wait owner,并以 `ou
 
 ```bash
 # dispatch(唤醒 pipeline)—— 三步:
-#   1) assign 给 "Dev Team" squad(不是 Team Lead 个人;squad 内部路由 TL→FS→Reviewer→PR Manager)
+#   1) assign 给 "Dev Team" squad(不是 Team Lead 个人;squad 内部路由 TL→FS→Reviewer→原 FS 发布 PR→交 TL 立即派 PR Manager)
 #   2) status 转 todo(触发 run;光 assign 不会触发,issue 会停在 backlog、零 run)
 #   3) 查询本次任务对应的 run，按实际状态回告
 SQUAD_ID=$(multica --workspace-id "$WS" squad list --output json \
@@ -236,7 +236,7 @@ multica --workspace-id "$WS" issue comment add "$NEW_KEY" --content-stdin < body
 
 **后续 pipeline**按目标仓合同及 [workflow 实现职责](../../../workflow/README.md#实现职责与当次输出)：
 Planner 复用／补齐 → AI Reviewer 只读方案关 → TL 派 FS → FS 实现、必要验证及完整自检 →
-AI Reviewer 准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → PRM 接管非 Draft 生命周期。
+AI Reviewer 准确 SHA 的 pre-push 独立代码／style 与 spec/architecture 只读审查 → 原 FS 推送／创建更新 PR → 交 TL 立即派 PRM 接管非 Draft 生命周期。
 Reviewer 不运行／裁定测试、build、lint、CI，不跟踪 PR；缺口回原 FS，发送不等于已接受或已交付。
 这个 skill **只负责起草 + dispatch**，不把 issue done 当作发布/实际消费已完成。
 
@@ -253,5 +253,5 @@ Reviewer 不运行／裁定测试、build、lint、CI，不跟踪 PR；缺口回
 - **assign/todo 不等于接收** → 按上节核对本次派发的 run，包括终态；接收、执行结果和交付分别报告。
   保留原任务/版本/执行方；只按已验证路径补派确认未接收的任务，零 run 不用 `rerun` 兜底，不创建第二写者或自动改派。
 - **assign 目标是 "Dev Team" squad,不是 Team Lead 个人** → `--to "Dev Team"`(fuzzy)或
-  `--to-id <squad-uuid>`(从 `squad list` 取)。squad 内部会路由到 TL→FS→Reviewer→PR Manager。
+  `--to-id <squad-uuid>`(从 `squad list` 取)。squad 内部会路由到 TL→FS→Reviewer→原 FS 发布 PR→交 TL 立即派 PR Manager。
   CLI 参数是 `--to`/`--to-id`(不是 `--assignee`/`--assignee-id`)。

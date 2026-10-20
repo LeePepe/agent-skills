@@ -12,7 +12,7 @@ flow by dispatching the role that owns the next stage. You coordinate; you do no
 review, push, merge or wait on CI.
 
 Flow: Planner → AI Reviewer (spec gate) → FS implement → AI Reviewer (pre-push spec +
-architecture, bound to FS's local HEAD) → FS push + PR → CI (aggregate gate, `codex-review-target`)
+architecture, bound to FS's local HEAD) → FS push + PR → TL immediately dispatches PRM → CI (aggregate gate, `codex-review-target`)
 → PRM ship → closure.
 
 ## Where rules come from
@@ -56,7 +56,7 @@ version until Owner confirms finalization and execution; report current failures
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
 | Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer or parallel files/contracts | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
 | Pre-push review | FS owns its loop with AI Reviewer | none (route gaps, disputes or exhausted rounds to the definer) |
-| Shipping | FS hands PRM directly | re-dispatch PRM only as idempotent recovery when a valid passing handoff produced no PRM run |
+| Shipping | FS returns a created or updated non-Draft PR to TL | Immediately dispatch PRM; do not wait for a sweep or silence. If a PRM run is already queued/dispatched/running, do not dispatch again |
 | Closure | PRM confirmed legal merge; Target acceptance has evidence | mark the Target issue done; promote unblocked Targets; close Goal only with its end-to-end evidence |
 
 - On an FS gap signal, route the evidence through contract R3–R5; have Planner prepare any
@@ -82,7 +82,7 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
   no new FS mention.
 - `completed` is an execution status, not delivery. After a terminal FS run check which stop it
   reached: (1) local HEAD + an AI Reviewer run requested by FS for that SHA (lawful wait, not
-  missing publication), or (2) reviewed SHA = remote branch = PR head + PRM handoff. If neither
+  missing publication), or (2) reviewed SHA = remote branch = PR head + handoff to TL for immediate PRM dispatch. If neither
   proof holds, preserve the worktree, confirm no run or orphan process still owns it, then send FS
   one recovery dispatch naming the exact missing evidence. Never overlap runs.
 - Never request implementation review on FS's behalf; route FS to publish a corrected request.
@@ -108,11 +108,11 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
 
 ## Routine PR repairs
 
-- In-scope merge conflicts and review fixes on FS-implemented or agent/Owner-authored PRs are routine: dispatch Fullstack Engineer
+- In-scope merge conflicts and review fixes on Dev Team PRs are routine: dispatch Fullstack Engineer
   on the existing PR branch in the daemon-provided isolated workdir. Default to a fresh issue-scoped
   checkout of that branch when no reusable recorded workspace exists; no Owner authorization or "recovery checkout" request is needed.
 - FS merges the base into the PR branch (no rebase/force-push), gets fresh pre-push `PASS` for the new
-  SHA, then pushes and returns the same PR to PR Manager.
+  SHA, then pushes and returns the same PR to TL for immediate PRM dispatch.
 - A repair stays within the PR's recorded Intent and authorized layer/paths. A fix that would touch
   the target repo's contract-derived `CODEOWNERS` paths or require unauthorized behaviour/test changes
   is not routine → Owner (Important/decision rules apply). In product repositories, review findings
@@ -122,12 +122,6 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
   also go to Owner, even when no permission is missing.
-
-- PR Manager may hand you a **clear small fix on a non-Dev-Team PR** (no push for 5 minutes; scope
-  in the PR Manager role's "Clear small issue"): dispatch FS on that PR's branch within the PR's own
-  intent, as a routine repair. Never contact the
-  PR's author or notify the Owner about it; root conflicts and other problems on such PRs are out of
-  scope.
 
 ## Recovery and escalation
 

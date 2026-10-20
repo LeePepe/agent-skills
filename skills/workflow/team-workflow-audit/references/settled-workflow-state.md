@@ -6,8 +6,8 @@
 
 - **A：实现并发起PR。** Dev Team、直接执行agent或其他开发者均可作为来源；不强制先经Codex整理或预建Multica issue。以下内部先审后发布协议适用于Dev Team FS，不把直接作者伪装成FS/TL来源。
 - **Dev Team A段：** 保留必要的Planner规划路径 → FS准备/复用工作区、实现与自审 → 固定未提交Git tree → 内部AI Reviewer明确允许发布 → FS commit/push/创建或更新PR。Planner并非每任务必跑；原有规划门槛和no-code验收不增加、不豁免。
-- **B：PR后统一交付。** PRM先接管跟踪 → GitHub Actions独立审查与required CI → 交唯一实现者修复 → 新候选与复验 → 合并 → 按项目获授权发布 → 实际使用/效果验收与反馈。Adopt不等于Ship；红门禁、缺上游issue或作者不同不构成拒绝跟踪的理由。
-- PRM持有交付推进责任，不改代码/配置；TL持有实现侧监督、恢复与范围判断责任；FS/唯一实现者修复。Multica原生Autopilot负责发现、唤醒、补漏和监督，不成为第二套开发团队。
+- **B：PR后统一交付。** Dev Team FS 创建或更新非 Draft PR 后交 TL，TL 立即派 PRM接管跟踪 → GitHub Actions独立审查与required CI → 交唯一实现者修复 → 新候选与复验 → 合并 → 按项目获授权发布 → 实际使用/效果验收与反馈。Adopt不等于Ship；红门禁不构成拒绝接管的理由；必须有 Dev Team Target issue 的 FS 交接或 delivery 信息，不按作者身份区分，其他 PR 由各自写者交付。
+- PRM持有 TL 派发的 Dev Team PR 交付推进责任，不改代码/配置；TL持有实现侧监督、恢复与范围判断责任；FS/唯一实现者修复。Multica原生Autopilot对 PR 只跟进已有 Dev Team 交接，不发现新 PR，不成为第二套开发团队。
 - AIDash既是普通受管App，也是状态、证据及Owner反馈界面，不是自动修复者。Dev Team保持同一物理daemon，保留provider/runtime分工；仅FS模型按下表明确授权变更。各项目保留自己的门禁和发布方式。
 
 ## 最终改动与落地状态
@@ -16,7 +16,7 @@
 |---|---|---|
 | 1：首次准备 | 首次工作区准备由FS执行；TL不再为准备额外运行一个TL。准备条件集中于workspace协议，角色使用条件指针；保留Planner先行、既有工作区复用和半成品恢复。 | 9/18配置部署与独立回读、17项静态断言。[1] 未启动业务验收；没有因此修复跨issue授权来源。 |
 | 2：FS模型 | 共享FS角色设为`gemini-3.7-flash`，`custom_args=["--context","long_context"]`；不硬写窗口上限，不改provider/runtime/daemon或其他角色模型。 | 9/18会话目录声明总窗口1M/输入936K，配置独立回读。[2] 无新业务进程argv验收，不声称旧在途任务已切换；Owner仅同意本轮先视第2项完成，未证明收尾问题已解决；结束hook未安装。 |
-| 3：PRM入口 | 三项目保留提前Adopt、取消FS/TL来源及内部PASS作为接管前提；B段消费required `codex-review-target`与optional `kimi-review`，不再向Dev Team内部Reviewer补派PR后审查。 | 9/18纠正部署与独立回读、静态/保护测试。[3] Claude/legacy Codex暂停未恢复；缺乏自动唤醒接线不能由入口合同代替。 |
+| 3：PRM入口 | 三项目保留提前Adopt、由 TL 按 Dev Team Target issue 的 FS 交接或 delivery 信息立即派发，不以内部PASS作为接管前提；B段消费required `codex-review-target`与optional `kimi-review`，不再向Dev Team内部Reviewer补派PR后审查。 | 9/18纠正部署与独立回读、静态/保护测试。[3] Claude/legacy Codex暂停未恢复；缺乏自动唤醒接线不能由入口合同代替。 |
 | 3补充：发布许可 | 内部Reviewer输出绑定候选的`publication_status=approved|blocked`及`allowed_operations`；正常新候选获准后FS才能commit/push/PR。TL与PRM承认合法待审、获批待发布状态。 | 9/19六字段部署回读、49项静态检查与21个原生Git隔离用例。[4] 不是已安装的Git/runtime硬阻断，也不等于真实Dev Team业务闭环已通过。 |
 | 4：Actions误判 | AIDash/VoxPocket把Codex主prompt抽为Markdown并用单次非执行性渲染；AIDash安全段独立Markdown、原Swift证据helper保留。VitalStride沿用原模板/renderer，纠正未来规范与当前审查操纵的判据。没有AGENTS白名单；实质泄密/提权/绕门禁仍阻塞。 | 15次无工具隔离模型评测；AIDash#208（<owner>/AIDash#208）、VoxPocket#47（<owner>/VoxPocket#47）、VitalStride#436（<owner>/VitalStride#436）均经实际Actions审查、required CI正常合并，merge tree匹配批准候选。[5] 新的可信base会读新规则；未重放历史身份PR。 |
 | 4附带授权：文档结构 | VoxPocket AGENTS由159→130行，完整身份段逐字移到`docs/agents/github-identity.md`，根文件保留所有Git/gh操作前的必读指针；140行门槛未改。 | 单独Owner授权、原块字节一致、原docs-map/freshness通过并随#47合并。[5] 不是删除身份要求、放宽门禁或修复共享local-review。 |
@@ -71,7 +71,7 @@ Supervisor监督现有Multica issue / Dev Team交接连续性：交接证据是�
 - **缺交接找发送者，已接收找责任角色。** 先补读触发/父线程与真实交接证据，再通过合法入口唤醒发送者补交接；已接受后由接收角色继续。责任或调用目标不明时找发送者/当前责任人/TL澄清，不自动向Owner索要权限，也不无条件rerun当前assignee。
 - **合法等待不是停滞。** 固定候选已有对应运行中的内部Reviewer则等审；已获发布许可但未push由原FS发布；当前候选被Reviewer阻塞则回原实现/修订负责人。保留Planner先行与规划修订、FS准备、no-code/legacy及现有先审后发布协议；Supervisor不新增验收门。PRM接受交接后独立负责B段，Supervisor仅跟踪责任和活动，不给B段补派内部Reviewer。
 - **先读完整证据，再形成动作。** 按触发、线程、候选代次/base/tree/SHA及真实author/run/交接元数据关联；增量时间窗只是发现游标，旧FAIL不能代替新候选结果，执行者自述不能代替跨角色接收。GET返回反证后废弃旧草稿，重建阶段、责任人、摘要与latch；不把依赖未读GET的写入预先批处理。
-- **唤醒不创造权限。** 操作前确认预期接收者与真实invoke目标、在途活动和既有冷却；原5分钟同agent冷却不等于30分钟修复接管门槛。保留人工暂停、相关Action、唯一实现者与跨run/SHA累计预算。实际denied才记录拒绝，保留caller/run/目标/操作/时间；不换actor、mention或assignment绕过。未知结果先只读核对。
+- **唤醒不创造权限。** 操作前确认预期接收者与真实invoke目标、在途活动和既有冷却；原5分钟同agent冷却不作为 TL 派 PRM 的静默门槛。保留人工暂停、相关Action、唯一实现者与跨run/SHA累计预算。实际denied才记录拒绝，保留caller/run/目标/操作/时间；不换actor、mention或assignment绕过。未知结果先只读核对。
 - **Owner只接真实的人类决策或外部权限缺口。** 流程证据缺失先由发送者/当前责任人/TL补齐；真实拒绝与错误完成摘要分开处理。原人工升级去重latch保留，沉默或新一轮巡检不清零。终结结论消费责任角色按原合同给出的正式交接，不能用run completed、PR merged或执行者自述独立宣布完成；既有done/cancelled issue不重开。
 
 这些是现有instructions的决策规则，不是新运行时状态机或硬门；本节也不授权审计skill执行上述动作。早先把“验证修复真正完成”交给Supervisor的提案已被此职责边界取代，历史错误摘要仍是审计观察，不能据此扩张Supervisor职权。[7]
@@ -80,11 +80,11 @@ Supervisor监督现有Multica issue / Dev Team交接连续性：交接证据是�
 
 固定候选包含base/tree/范围。内容、基线或范围变化使批准失效；hook若改内容，不得继续发布旧许可。FS从真实平台元数据核验Reviewer comment/run/author ID，不让Reviewer自证尚未生成的评论ID。推送绑定批准的固定commit OID和明确ref，不依赖可被hook移动的HEAD。内部批准不等于GitHub权限、CI通过或App发布许可。[4]
 
-已有真实未push commit可按实际OID/tree/parent审查后复用；已有published-SHA的历史审查可按真实证据接续。新内容或新违规不能自称legacy以绕过新协议。PRM可提前跟踪，但原实现者仍在实现/待审/修复/待发布/恢复时不得合并、清理或关闭；没有push不单独构成执行失败。[4]
+已有真实未push commit可按实际OID/tree/parent审查后复用；已有published-SHA的历史审查可按真实证据接续。新内容或新违规不能自称legacy以绕过新协议。PRM经 TL 派发可提前跟踪 Dev Team PR，但原实现者仍在实现/待审/修复/待发布/恢复时不得合并、清理或关闭；没有push不单独构成执行失败。[4]
 
 ## 保留的恢复、权限与发布边界
 
-- 修复接管保留30分钟静默门槛，同时核对人工暂停、相关Actions和在途实现，保持唯一实现者；不把静默时长替代上述检查。
+- Dev Team PR 由 TL 立即派 PRM，不设30分钟静默门槛；修复或 rerun 仍核对人工暂停、相关Actions和在途实现，保持唯一实现者。
 - 同一问题最多2轮自动修复，同错最多2次rerun；平台尝试计入预算，换agent/run/SHA不清零。明确不可修立即升级；职责不等于当前调用者有invoke权限，不能换入口试探绕过真实拒绝。
 - 需求限定修改范围，实际diff决定适用gate。不为过关顺带改架构、workflow或共享instructions；第四项文档调整有单独授权，不构成通用扩权。
 - 保留独立审查、服务端required CI；Kimi不阻塞合并，但实际结果与失败尝试留存。Draft只跑基础CI，不做AI review、不自动Ready。

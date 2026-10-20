@@ -2,9 +2,9 @@
 
 Covers:
 - Flow Supervisor workspace routing and issue scan prioritization/exclusion
-- PR Manager cancellation safeguard (before both tracked and untracked branches)
+- PR Manager Dev Team provenance and cancellation safeguards
 - PR Manager revisit eligibility, concurrent ownership, and pending Owner approval
-- PR Manager discovery sweep accounting and branch isolation
+- PR Manager follow-up-only sweeps and missing-handoff TL reminders
 """
 
 from dataclasses import dataclass, field
@@ -128,7 +128,7 @@ def flow_supervisor_is_interrupted(issue: Issue) -> bool:
 
 @dataclass
 class SweepAction:
-    action_type: str  # "create_tracking", "revisit_ship", "revisit_rerun", "revisit_route", "revisit_lawful_wait", "skip"
+    action_type: str  # "remind_tl", "revisit_ship", "revisit_rerun", "revisit_route", "revisit_lawful_wait", "skip"
     reason: str
     pr_number: int
 
@@ -140,8 +140,14 @@ def pr_manager_evaluate_pr(
     current_sweep_id: str,
     last_receipt: Optional[SweepReceipt],
 ) -> SweepAction:
-    """Models PR Manager discovery sweep routing and revisit eligibility."""
-    # Step 1: Cancellation safeguard (applies before both branches)
+    """Models follow-up eligibility after issue-based Dev Team provenance resolution."""
+    # PRs without a Dev Team Target issue are never sweep inputs for GitHub reads.
+    if tracking_issue is None or not tracking_issue.is_dev_team:
+        return SweepAction("skip", "no_dev_team_issue", pr.number)
+    if pr.is_draft:
+        return SweepAction("skip", "draft_not_eligible", pr.number)
+
+    # Cancellation safeguard applies before reminders and accepted-PR revisits.
     if tracking_issue and tracking_issue.status == IssueStatus.CANCELLED:
         return SweepAction(
             action_type="skip",
@@ -149,15 +155,6 @@ def pr_manager_evaluate_pr(
             pr_number=pr.number,
         )
 
-    # Step 2: Untracked PR branch
-    if tracking_issue is None:
-        return SweepAction(
-            action_type="create_tracking",
-            reason="untracked_pr",
-            pr_number=pr.number,
-        )
-
-    # Step 3: Already tracked PR revisit branch
     # Concurrent ownership check: skip if another live PR Manager or Fullstack Engineer run owns that PR flow
     # Note: current sweep run does not self-disqualify
     competing_runs = [
@@ -172,6 +169,9 @@ def pr_manager_evaluate_pr(
             reason="concurrent_ownership_active",
             pr_number=pr.number,
         )
+
+    if last_receipt is None or last_receipt.status != "accepted":
+        return SweepAction("remind_tl", "missing_prm_acceptance", pr.number)
 
     # Check if checks or reviews changed since last receipt
     evidence_changed = pr.checks_changed or pr.reviews_changed
@@ -207,7 +207,7 @@ def pr_manager_evaluate_pr(
     if pr.has_concrete_finding:
         return SweepAction(
             action_type="revisit_route",
-            reason="concrete_finding_routed_by_source",
+            reason="concrete_finding_to_original_fs",
             pr_number=pr.number,
         )
 
@@ -295,9 +295,9 @@ class FlowSupervisorPolicyTests(unittest.TestCase):
 
 
 class PRManagerPolicyTests(unittest.TestCase):
-    """Test suite for Dev Team PR Manager discovery, cancellation and revisit policies."""
+    """Test suite for Dev Team-only follow-up, cancellation and revisit policies."""
 
-    def test_cancellation_safeguard_blocks_both_tracked_and_untracked_branches(self):
+    def test_cancellation_safeguard_blocks_followup(self):
         pr = PR(number=101, repo="synthetic-owner/synthetic-repo", head_sha="abc1234", checks_changed=True, gates_pass=True)
         cancelled_issue = Issue(id="iss-canc", project_id="p1", status=IssueStatus.CANCELLED, title="PR 101")
 
@@ -313,7 +313,7 @@ class PRManagerPolicyTests(unittest.TestCase):
         self.assertEqual(action.action_type, "skip")
         self.assertEqual(action.reason, "cancelled_tracking_is_terminal")
 
-    def test_untracked_pr_routes_to_creation(self):
+    def test_pr_without_dev_team_issue_is_ignored(self):
         pr = PR(number=102, repo="synthetic-owner/synthetic-repo", head_sha="abc1234")
         action = pr_manager_evaluate_pr(
             pr=pr,
@@ -322,8 +322,33 @@ class PRManagerPolicyTests(unittest.TestCase):
             current_sweep_id="sweep-1",
             last_receipt=None,
         )
-        self.assertEqual(action.action_type, "create_tracking")
-        self.assertEqual(action.reason, "untracked_pr")
+        self.assertEqual(action.action_type, "skip")
+        self.assertEqual(action.reason, "no_dev_team_issue")
+
+    def test_non_team_issue_never_enters_prm_followup(self):
+        pr = PR(number=102, repo="synthetic-owner/synthetic-repo", head_sha="abc1234",
+                checks_changed=True, gates_pass=True)
+        issue = Issue(id="external", project_id="p1", status=IssueStatus.IN_PROGRESS,
+                      title="External PR", is_dev_team=False)
+        receipt = SweepReceipt(pr_number=102, head_sha="abc1234", status="accepted", recorded_at="2026-10-19")
+        action = pr_manager_evaluate_pr(pr, issue, [], "s1", receipt)
+        self.assertEqual(action.action_type, "skip")
+        self.assertEqual(action.reason, "no_dev_team_issue")
+
+    def test_missing_acceptance_only_reminds_tl_on_team_issue(self):
+        pr = PR(number=102, repo="synthetic-owner/synthetic-repo", head_sha="abc1234",
+                checks_changed=True, gates_pass=True)
+        issue = Issue(id="team", project_id="p1", status=IssueStatus.IN_REVIEW, title="Team PR")
+        action = pr_manager_evaluate_pr(pr, issue, [], "s1", None)
+        self.assertEqual(action.action_type, "remind_tl")
+        self.assertEqual(action.reason, "missing_prm_acceptance")
+
+    def test_draft_does_not_enter_followup(self):
+        pr = PR(number=102, repo="synthetic-owner/synthetic-repo", head_sha="abc1234", is_draft=True)
+        issue = Issue(id="team", project_id="p1", status=IssueStatus.IN_REVIEW, title="Team PR")
+        action = pr_manager_evaluate_pr(pr, issue, [], "s1", None)
+        self.assertEqual(action.action_type, "skip")
+        self.assertEqual(action.reason, "draft_not_eligible")
 
     def test_concurrent_ownership_prevents_competing_revisit_from_other_runs(self):
         pr = PR(number=103, repo="synthetic-owner/synthetic-repo", head_sha="abc1234", checks_changed=True, gates_pass=True)
@@ -399,41 +424,24 @@ class PRManagerPolicyTests(unittest.TestCase):
         action = pr_manager_evaluate_pr(pr_infra, tracked_issue, [], "s1", receipt)
         self.assertEqual(action.action_type, "revisit_rerun")
 
-        # Case 4: Concrete finding -> route by source
+        # Case 4: Concrete finding -> original FS
         pr_find = PR(number=200, repo="synthetic-owner/synthetic-repo", head_sha="abc", reviews_changed=True, has_concrete_finding=True)
         action = pr_manager_evaluate_pr(pr_find, tracked_issue, [], "s1", receipt)
         self.assertEqual(action.action_type, "revisit_route")
 
-    def test_revisits_do_not_consume_new_tracking_issue_cap(self):
-        # Sweep cap: max 3 new tracking issues per sweep
-        # Revisits must not consume this quota
-        new_prs = [PR(number=i, repo="synthetic-owner/synthetic-repo", head_sha=f"sha_{i}") for i in range(1, 6)]
-        tracked_revisit_prs = [
-            PR(number=100 + i, repo="synthetic-owner/synthetic-repo", head_sha=f"sha_r_{i}", checks_changed=True, gates_pass=True)
-            for i in range(1, 4)
-        ]
-
-        created_count = 0
-        revisited_count = 0
-        quota_remaining = 3
-
-        # Process new PRs
-        for pr in new_prs:
-            action = pr_manager_evaluate_pr(pr, None, [], "s1", None)
-            if action.action_type == "create_tracking" and quota_remaining > 0:
-                created_count += 1
-                quota_remaining -= 1
-
-        # Process revisits
-        for pr in tracked_revisit_prs:
-            iss = Issue(id=f"iss-{pr.number}", project_id="p1", status=IssueStatus.IN_PROGRESS, title=f"PR {pr.number}")
-            receipt = SweepReceipt(pr_number=pr.number, head_sha="old", status="accepted", recorded_at="2026-10-13")
-            action = pr_manager_evaluate_pr(pr, iss, [], "s1", receipt)
-            if action.action_type == "revisit_ship":
-                revisited_count += 1
-
-        self.assertEqual(created_count, 3)  # Capped at 3
-        self.assertEqual(revisited_count, 3)  # Revisits proceed without being blocked by new issue cap
+    def test_sweep_never_creates_tracking_and_still_revisits_accepted_team_prs(self):
+        actions = []
+        for number in range(1, 6):
+            pr = PR(number=number, repo="synthetic-owner/synthetic-repo", head_sha="new",
+                    checks_changed=True, gates_pass=True)
+            actions.append(pr_manager_evaluate_pr(pr, None, [], "s1", None))
+        for number in range(101, 104):
+            pr = PR(number=number, repo="synthetic-owner/synthetic-repo", head_sha="new",
+                    checks_changed=True, gates_pass=True)
+            issue = Issue(id=f"team-{number}", project_id="p1", status=IssueStatus.IN_REVIEW, title="Team PR")
+            receipt = SweepReceipt(pr_number=number, head_sha="old", status="accepted", recorded_at="2026-10-19")
+            actions.append(pr_manager_evaluate_pr(pr, issue, [], "s1", receipt))
+        self.assertEqual([action.action_type for action in actions], ["skip"] * 5 + ["revisit_ship"] * 3)
 
 
 class SkillDocumentValidationTests(unittest.TestCase):
@@ -484,26 +492,43 @@ class SkillDocumentValidationTests(unittest.TestCase):
 
     def test_pr_manager_skill_contains_cancellation_safeguard_before_branches(self):
         text = PR_MANAGER_SKILL.read_text(encoding="utf-8")
-        self.assertIn("cancelled/won't-do", text)
-
-        # Confirm cancellation safeguard appears before both bullet branches
-        sweep_section = text.split("## Discovery sweep", 1)[1].split("## Routing by PR source", 1)[0]
-
-        # Check order: cancellation statement before - **Untracked PR** and - **Already tracked PR**
-        cancel_pos = sweep_section.find("cancelled/won't-do")
-        untracked_pos = sweep_section.find("- **Untracked PR**")
-        tracked_pos = sweep_section.find("- **Already tracked PR**")
-
-        self.assertNotEqual(cancel_pos, -1, "Cancellation check missing in discovery sweep section")
-        self.assertNotEqual(untracked_pos, -1, "Untracked PR branch missing")
-        self.assertNotEqual(tracked_pos, -1, "Already tracked PR branch missing")
-        self.assertLess(cancel_pos, untracked_pos, "Cancellation safeguard must precede untracked branch")
-        self.assertLess(cancel_pos, tracked_pos, "Cancellation safeguard must precede already tracked branch")
+        sweep = text.split("## Follow-up sweep", 1)[1].split("## Dev Team repair path", 1)[0]
+        cancel_pos = sweep.index("cancelled/won't-do")
+        for branch in ("- **Missing PRM acceptance**", "- **Already accepted Dev Team PR**"):
+            self.assertLess(cancel_pos, sweep.index(branch))
 
     def test_pr_manager_skill_guards_against_active_fullstack_engineer(self):
         text = PR_MANAGER_SKILL.read_text(encoding="utf-8")
-        sweep_section = text.split("## Discovery sweep", 1)[1].split("## Routing by PR source", 1)[0]
-        self.assertIn("no other live PR Manager or Fullstack Engineer run owns that PR flow", " ".join(sweep_section.split()))
+        sweep = text.split("## Follow-up sweep", 1)[1].split("## Dev Team repair path", 1)[0]
+        self.assertIn("no other live PR Manager or Fullstack Engineer run owns that PR flow", " ".join(sweep.split()))
+
+    def test_pr_manager_has_no_actions_for_prs_outside_dev_team(self):
+        text = " ".join(PR_MANAGER_SKILL.read_text(encoding="utf-8").split())
+        self.assertIn("PRM does not handle", text)
+        self.assertIn("no tracking issue, receipt, label, comment, repair dispatch or merge", text)
+        self.assertIn("Without a Dev Team issue, do not read or process the PR", text)
+        for obsolete_rule in (
+            "authors (fs or a cli subagent)", "any other source", "follow it to a lawful merge",
+            "clear small issue", "5 minutes", "≥30 minutes", "a new tracking issue is",
+            "issue=none", "discovery sweep",
+        ):
+            with self.subTest(obsolete_rule=obsolete_rule):
+                self.assertNotIn(obsolete_rule, text.lower())
+
+    def test_pr_manager_sweep_only_follows_existing_team_handoffs(self):
+        text = " ".join(PR_MANAGER_SKILL.read_text(encoding="utf-8").split())
+        self.assertIn("Read GitHub checks/reviews only for Dev Team PRs already handed to PRM", text)
+        self.assertIn("remind TL only on that issue. Do not adopt the PR yourself", text)
+        self.assertIn("Never create a `[PR Delivery]` tracking issue", text)
+        self.assertIn("Author identity cannot distinguish team and CLI work", text)
+
+    def test_tl_immediately_dispatches_prm_after_fs_returns_pr(self):
+        text = (ROLES_DIR / "dev-team-team-lead" / "SKILL.md").read_text(encoding="utf-8")
+        shipping = next(line for line in text.splitlines() if line.startswith("| Shipping |"))
+        self.assertIn("FS returns a created or updated non-Draft PR to TL", shipping)
+        self.assertIn("Immediately dispatch PRM", shipping)
+        self.assertIn("do not wait for a sweep or silence", shipping)
+        self.assertIn("already queued/dispatched/running, do not dispatch again", shipping)
 
     def test_flow_supervisor_skill_specifies_workspace_wide_project_scanning(self):
         text = FLOW_SUPERVISOR_SKILL.read_text(encoding="utf-8")

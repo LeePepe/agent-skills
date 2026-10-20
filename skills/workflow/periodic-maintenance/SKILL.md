@@ -27,5 +27,5 @@ description: 06 周期维护的未启用源码入口：按有效决定核对公�
 真实只读执行隔离和 backlog 出口核验。具体运行前置见 [适配器说明](references/adapters.md)。
 
 维护只提出普通需求／待澄清，不修文档、补实现、删代码、指派团队、转 todo、关闭积压或追踪 PR／修复效果。
-开发与 PR 交付仍由原 workflow／PRM 承担；运行恢复沿既有 runtime-recovery 权限，不因维护失败自动修 runner。
+开发仍由原 workflow 承担；PRM 只交付 TL 派发的 Dev Team 非 Draft PR，其他 PR 由各自写者交付；运行恢复沿既有 runtime-recovery 权限，不因维护失败自动修 runner。
 反复／未修复的展示留给 AIDash 后续，本版不增加团队、主管、task 类型、平台 schema 或审批层。

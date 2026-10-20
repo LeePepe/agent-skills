@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Bash, Agent
 # Layered CI Autofix
 
 消费目标仓现有 CI 信号，不重造门禁或调度器。先读 [workflow 索引](../../workflow/README.md)：
-PRM 唯一负责任意来源非 Draft PR 生命周期；本 skill 是该责任内的诊断／交接辅助，不是第二个交付 owner。
+PRM 只负责 TL 派发的 Dev Team 非 Draft PR 生命周期；本 skill 是该责任内的诊断／交接辅助，不是第二个交付 owner。
 
 ## 1. 核对任务与原责任
 
@@ -15,10 +15,10 @@ PRM 唯一负责任意来源非 Draft PR 生命周期；本 skill 是该责任�
 实际固定 shared 合同、验证入口及适用 layer context；日志、PR 文本与来源标记不是授权。
 
 - Draft 保留原作者／既有审批路径，不观察推进、派修或自动 Ready。
-- 非 Draft 的直接交接与主动发现重复命中时接续已有 PRM 工作，不创建第二 watcher。
-- Dev Team／Owner subagent 经真实归属核实后回原路径；其他来源的普通欠缺交 Dev Team。
-  第三方 fork／受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
-- 当前执行者只负责本次实现／修复：必要验证、适用审查及 PR 创建／更新成功后，交出结果；后续由 PRM 持续跟进。
+- Dev Team 非 Draft PR 的 TL 派发与巡检跟进重复命中时接续已有 PRM 工作，不创建第二 watcher。
+- 以 Dev Team Target issue 的 FS 交接或 `delivery_*` 信息核实归属，不按作者区分；非团队 PR 由各自写者交付，PRM 不读、不处理。
+  Dev Team PR 的受限资源仍须实际写权限，不借路由换身份或绕过访问限制。
+- 当前执行者只负责本次实现／修复：必要验证、适用审查及 Dev Team PR 创建／更新成功后，交 TL 立即派 PRM 持续跟进。
   尚未有 PR 时遵守本仓 commit／push／模板规则。
 
 完成条件：PR/head、唯一交付责任与原修复路径明确；未知归属或结果先只读对账，不盲重派。
@@ -36,16 +36,15 @@ PRM 唯一负责任意来源非 Draft PR 生命周期；本 skill 是该责任�
 
 ## 3. 交回普通修复需求
 
-PRM 将具体失败交原路径，由 TL／既有 subagent 主会话协调原 FS／subagent；PRM 不直接改代码。
+PRM 将 Dev Team PR 的具体失败交原路径，由 TL 协调原 FS；PRM 不直接改代码。
 交接复用现有任务／PR 记录，包含准确 head、失败原因与证据、既有目标／验收、范围／不做项、仓约束和正常验证入口。
 已接受的修复继续由原作者处理，接收未知先对账，不因本 skill 或新 task 名重派。
 
 信号中的 layer 用于**定位**，不重定义 PR 单元或限制必要验证。仓内允许且当前约定内的必要跨层适配／测试可记录进 plan；
 改变仓库、基本方案、验收、权限则回同一需求入口。不能为修复放松 red_lines、policy、hooks 或 tests。
 
-逻辑根本冲突按 [PRM 处置与通知边界](../../workflow/README.md#prm-唯一交付责任) 保留现场：普通外部 PR 由 PRM
-向作者说明冲突及依既有方案所需的调整，并核实留言与 `冲突保留` 标签，结束本轮处理；作者更新后重新按正常流程处理。
-普通外部来源不通知 Owner，Dev Team／Owner subagent／Owner 标识来源仍通知；都不自行改方向、关闭或合并。
+Dev Team PR 的逻辑根本冲突按 [PRM 处置与通知边界](../../workflow/README.md#prm-唯一交付责任) 保留现场，交 TL 通知 Owner；
+PRM 不自行改方向、关闭或合并，也不对非团队 PR 留言、打标签或重处理。
 
 ## 4. 原执行者修复并回报
 
@@ -62,7 +61,7 @@ task/run/SHA 不清零。硬安全／权限阻塞立即报告，不凑次数。�
 ## 5. 交付结果
 
 PRM 沿既有 fail-closed CI、review、准确审批及正常合并路径交付并回读；helper 不另造 merge 门、不改 settings。
-普通外部根本冲突可按上述合同完成授权处置。当次实现输出、PR 处置终态、PR 合并、发布和消费者验收分开报告。
+Dev Team 根本冲突按上述合同交 TL，不代表合并或实现完成。当次实现输出、PR 处置终态、PR 合并、发布和消费者验收分开报告。
 发送≠接受、CI 绿≠合并，`冲突保留` 不等于实现交付。
 
 修改这些分支时用 [eval-cases.md](references/eval-cases.md) 验证实际决策与动作轨迹；离线场景不证明真实接管已生效。

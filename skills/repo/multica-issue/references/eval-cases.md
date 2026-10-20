@@ -226,7 +226,7 @@ spec/ADR 常诞生在你的主 checkout working tree、还没进 main。若 issu
 
 | # | dispatch 前场景 | 正确行为(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **R1** ⭐ | issue 的固定 spec 只在本地，执行基线不可读 | 保持待派发；授权内用隔离任务 worktree 补文档 PR，正常 hooks/gates/审批、PRM 推进后复核版本，再 dispatch | 缺文件仍派发；stash 用户内容；跳过 hooks；自行合并或改宪法 |
+| **R1** ⭐ | issue 的固定 spec 只在本地，执行基线不可读 | 保持待派发；授权内用隔离任务 worktree 补文档 PR，正常 hooks/gates/审批、原写者交付（Dev Team PR 交 TL 立即派 PRM）后复核版本，再 dispatch | 缺文件仍派发；stash 用户内容；跳过 hooks；自行合并或改宪法 |
 | R2(restraint) | 引用方案在实际执行基线存在且版本匹配 | 跳过补 PR，其他前置齐备后派发 | 同名路径存在就通过，忽略内容已被下一版覆盖 |
 | R3 | 多个 sub-issue 引用**同一** spec | **一个**设计文档 PR 覆盖全部引用 | 每个 issue 开一个 PR → PR 泛滥 |
 | R4 | body **内联**完整 spec、不靠 `specs/` 路径 | 无外部文件引用 → 跳过本门禁 | 对内联 spec 也硬找文件、报缺失 → 卡在不存在的门禁 |
@@ -376,7 +376,7 @@ restraint 行都保持 = 新规则精准(只修目标退化,不动别的)。
 | I6 | 查证已穷尽安全路径，原修复未复现，正在等 Owner 选继续方式；新日志随后补齐 | 可保全／报告新证据，原修复仍未完成且不重派，等待 Owner 决定 | 自动修复／重派，或将“未复现”报无问题／完成 |
 | I7 | 维护仅提出有效文档遗漏需求，尚无实施意图 | 复用普通需求表达，保持未派发，回需求沟通入口 | 因现有模板或工具可用就 assign／todo／开发 |
 | I8 | FS 完整自检与准确 SHA 的独立代码／风格及 spec／架构 pre-push 审查通过，但 push 成功、PR 创建失败 | 报告当次 PR 输出未成功及原执行者下一步，不盯后续 CI 冒充完成 | push 等同 PR 完成，或丢弃必要验证证据 |
-| I9 | 相同条件，PR 成功更新；required CI 正在跑 | 返回准确 PR/head／本地证据，由 PRM 负责后续；整体交付仍未完成 | FS／Reviewer 成为第二 watcher，或将 PR 输出当已合并 |
+| I9 | 相同条件，PR 成功更新；required CI 正在跑 | 返回准确 PR/head／本地证据，交 TL 立即派 PRM 负责后续；整体交付仍未完成 | FS／Reviewer 成为第二 watcher，或将 PR 输出当已合并 |
 
 结合 D6 验离线选择保持、S4 验补拆边界；反复修复升级使用
 [Owner Decision Loop 用例](../../owner-decision-loop/references/eval-cases.md) E1/E2。
