@@ -6,7 +6,7 @@ name: review
 # is 'true'; otherwise it skips and the hosted completion gate fails closed.
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
     branches: [main]
 
 permissions:
