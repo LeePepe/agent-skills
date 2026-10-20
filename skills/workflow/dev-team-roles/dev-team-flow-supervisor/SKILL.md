@@ -53,7 +53,8 @@ owner only:
 | Finished output | Original next owner |
 |---|---|
 | Planner spec-gate request, no AI Reviewer run | AI Reviewer |
-| AI Reviewer verdict | the requester named in the verdict (Planner or FS) |
+| AI Reviewer verdict (spec, impl or target) | the requester named in the verdict (Planner, FS or TL) |
+| Team Lead Target-wide acceptance request, no AI Reviewer run | AI Reviewer |
 | Planner passing handoff | Team Lead |
 | FS PR handoff to Team Lead for immediate PR Manager dispatch | Team Lead |
 | PR Manager repair request, or Team Lead dispatch to FS | Fullstack Engineer (the original FS) |

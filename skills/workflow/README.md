@@ -57,28 +57,39 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
 ### 实现职责与当次输出
 
 - **Dev Team**：Planner 按定义 assignment 复用、校验、补齐 spec/plan/tasks；AI Reviewer 只读方案审查通过后交 TL，
-  TL 按冻结 Tasks 及依赖派 FS；每 Target 一个写者，Tasks 留在其内部清单。
+  TL 建 Target／Task 子 issue，形成 Goal→Target→Task；Goal／Target assignee 为 TL、Task 为其固定 FS；
+  按 `--stage` 分依赖组，只派就绪 Task。整组完成唤醒 TL 后，读 `multica issue children <Target>` 核对依赖与验收再派下一组；
+  单个 Task 交接与关闭不等整组。每 Task 一个写者，同一 Target 的并行 Task 各用独立 FS run／worktree；
+  Task 可含多个小而单一目的的 PR，PR 关联 Task issue。Planner 决定不改 Target 范围与验收的 Task 变更并出 revision；
+  Target 变更由 TL 判断、Planner 编制，Goal 变更回 Owner。
 - **FS**：开发、必要验证、修复和现有完整 code-review 自检。完成后交准确 SHA 的 pre-push 独立 spec 与 architecture 审查；
   通过由原 FS 推送／创建更新 PR；缺口按合同回定义方，不默认换作者。
 - **Dev Team AI Reviewer**：承担只读 spec/plan（spec gate），以及发布前准确 SHA 的独立 spec 与 architecture 审查；
+  每 PR 只查本 PR 单一目的，最后一个 PR 累计核对 Task 验收；所有 Task 关闭后，接受 TL 的 Target 整体验收请求，
+  核对合并后默认分支准确 SHA、组合结果及每条验收命令证据，缺必要证据不通过，结论返回 TL。
   不承担代码缺陷／规范审查（由 PR head 的 `codex-review-target` 负责），不执行或裁定 build/test/lint/hooks/CI，不盯 PR。FS 完整 code-review 自检保留，不能替代独立审查。
 - **subagent**：原执行者负责开发、验证、修复；既有主会话管理依赖与结果，适用审查按仓合同安排。
   团队 Reviewer 的职责边界不构成其他执行者的通用免审。
 - **当次实现输出**：本次必要实现、验证与审查满足，且所需 PR 成功创建／更新后回报 PR URL、准确 head、
   对应证据、剩余限制与下一责任。Dev Team 的 FS 将 PR 交 TL，TL 立即派 PRM；其他执行者按 `goal-target-task` 的交付角色推进自己的 PR。不隐去已知失败或缺失验证。
   push／PR 失败不是本次实现成功；此交接不是 PR 最终交付或仓合同的远端 done，required gates 全部保留。
+- **关闭**：输出齐全、验收命令全通过、全部 PR 合法合并且最后一个 PR 的累计 Task 审查 PASS 后，TL 关闭 Task；
+  所有 Task 关闭并经 AI Reviewer 的 Target 整体验收 PASS 后，TL 关闭 Target；所有 Target 关闭且 Goal 级验收有证据后，
+  TL 汇报 Owner 确认 Goal 关闭。PRM 不改三层状态。
 
 ## PRM 唯一交付责任
 
 PRM 只负责由 TL 派发的 Dev Team **非 Draft PR**：FS 创建或更新 PR 后交回 TL，TL 立即派 PRM，
-不等巡检、不设静默门槛；已有在跑 PRM run 时不重复派发。Dev Team PR 以 Target issue 的 FS 交接或
+不等巡检、不设静默门槛；已有在跑 PRM run 时不重复派发。Dev Team PR 以 Task issue 的 FS 交接或
 `delivery_*` 信息（PR URL、branch、head SHA）识别，不按作者身份区分。
 PRM 不处理其他来源 PR（CLI 会话、Owner、外部）：不建跟踪 issue、不回执、不打标签、不评论、不派修、不合并；
 由各自写者按 `goal-target-task` 的交付角色在 PR 打开时启用 auto-merge 并跟进到合并读回。Dev Team 绝不开 Draft PR。
 PRM 消费既有仓库 PR 单元及门禁，不新增 PR 大小／范围审查或额外审批层。
 
 - **Dev Team PR**：PRM 接手即启用 auto-merge，不等 checks；全程负责 CI、review、合并读回，以及沿原路径回派具体修复（TL 协调，原 FS 修复）；发生根本冲突时保留现场并交 TL 通知 Owner。回派时不重复启动活跃写者。
-- **巡检跟进**：只跟进已交 PRM 的 Dev Team PR；检查／审查变化且无在跑 PRM／FS run 时接续。Target issue 已有 PR 交接但无 PRM 接手记录时，只在该 issue 提醒 TL，不自行接管。不建 `[PR Delivery]` 跟踪 issue，不读找不到 Dev Team issue 的 PR。
+- **巡检跟进**：只跟进已交 PRM 的 Dev Team PR；检查／审查变化且无在跑 PRM／FS run 时接续。Task issue 已有 PR 交接但无 PRM 接手记录时，只在该 issue 提醒 TL，不自行接管。不建 `[PR Delivery]` 跟踪 issue，不读找不到 Dev Team issue 的 PR。
+- **交付回执**：PRM 的入口、巡检、回执和报告都在 Task issue，保留 Task→Target→Goal 映射。已接手 PR 无论由谁合法合并，
+  PRM 回读 merge 后向 TL 最终交接并确认接收；既有巡检幂等补查已合并、Task 未关闭且无交付报告的漏报，不改三层状态。
 - 正常等 CI／review 不是故障；回派接收未知先对账，不重复启动写者。新 head 使用新证据，并核实 auto-merge 仍启用。
   合并须真实回读；CI 绿、已派修或 run completed 不等于合并。
 
