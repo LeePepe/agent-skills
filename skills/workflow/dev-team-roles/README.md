@@ -11,7 +11,7 @@ Multica 用链接部署：
 
 | 目录 | Multica skill | 绑定到 |
 |---|---|---|
-| `dev-team-squad/` | `dev-team-squad` | 六个 Dev Team agent；squad instructions 也指向它 |
+| `dev-team-squad/` | `dev-team-squad` | 下列五个 squad 成员及 squad 外的 Flow Supervisor；squad instructions 也指向它 |
 | `dev-team-team-lead/` | `dev-team-team-lead` | Team Lead |
 | `dev-team-planner/` | `dev-team-planner` | Planner Lead |
 | `dev-team-fullstack-engineer/` | `dev-team-fullstack-engineer` | Fullstack Engineer |
@@ -19,9 +19,23 @@ Multica 用链接部署：
 | `dev-team-pr-manager/` | `dev-team-pr-manager` | PR Manager；TL 立即派发 Dev Team PR，接手即启用 auto-merge 并跟进到合并读回；Autopilot 每 30 分钟只跟进已交接 PR |
 | `dev-team-flow-supervisor/` | `dev-team-flow-supervisor` | Dev Team Flow Supervisor（原 Pipeline Supervisor，2026-10-13 改名并收窄） |
 
+## Squad 成员
+
+以 [squad Team](dev-team-squad/SKILL.md#team) 为准：
+
+| Member | Squad role |
+|---|---|
+| TL (Team Lead) | leader |
+| FS (Fullstack Engineer) | engineer |
+| AI Reviewer | reviewer |
+| PRM (PR Manager) | ops |
+| Planner (Planner Lead) | planner |
+
+Flow Supervisor 不在 squad 内，按自己的 Multica Autopilot 运行；加载 squad skill 不代表成员身份。
+
 改动流程：改本目录 → PR 合并 → `multica skill refresh` → 回读核对。
 
-写法：每个角色只写职责、输入、输出、交接字段（见 [workflow 索引](../README.md#交接最小字段)）与红线；
+写法：每个角色只写职责、输入、输出、七项交接字段（见 [squad Handoffs](dev-team-squad/SKILL.md#handoffs)）与红线；
 仓内规则一律引用目标 repo 的 `AGENTS.md` 与 `shared-ci@<SHA>/ai/agent-protocol.md`，不在角色文本里复制。
 本仓公开，按 [review rules](../../../docs/review-rules.md)：不写账号名、数字 ID、仓库 ID、令牌、私钥和本机路径。
 GitHub 身份运行时用 `gh api` 查（如仓库所有者 ID），Multica 的 agent、成员等 ID 运行时用 `multica` 查。

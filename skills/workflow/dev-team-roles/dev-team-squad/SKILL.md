@@ -7,38 +7,37 @@ description: Shared Dev Team squad rules in Multica (workflow boundary, flow, ha
 
 Contract role mapping: see [How Dev Team uses goal-target-task](#how-dev-team-uses-goal-target-task) for bindings to the `goal-target-task` skill.
 
-Dev Team tracks Goal → Target → Task issues; each Task has one fixed FS writer and may contain
-several small, single-purpose PRs. Each role's instructions define its
-responsibility; this text defines only the shared flow, handoffs and merge rules. In-repo rules come
-from the target repo's `AGENTS.md` → repo development guide → pinned
+Each role's instructions define its operational responsibility; this text owns shared Dev Team
+runtime details. Contract rules are referenced in the binding section below.
+
+## Repository context
+
+Read the target repo's `AGENTS.md` → repo development guide → pinned
 `shared-ci@<SHA>/ai/agent-protocol.md` (full 40-char SHA). Without a shared-ci pin, use the repo's
 documented rules and gates. Project exceptions never belong in squad or role text.
-
-Read the `goal-target-task` skill for Goal/Target/Task definitions,
-assignment authority, frozen revisions, gap routing and scoped review. Role files add only their operational duties.
+Treat every repository as new; never carry project names, commands, policies or workarounds
+between repos. Resolve the repo from the issue's Multica project binding, not prose or a user checkout.
 
 ## How Dev Team uses goal-target-task
+
+Load the [goal-target-task contract](https://github.com/LeePepe/user-skills/blob/cb5ec84961d05a937a3a5196e02a8eeac224fd4f/skills/goal-target-task/SKILL.md) for the three layers, R1–R6,
+role/source binding, handoff requirements and V1–V4. This is the authority for those rules;
+the table binds its roles to Dev Team, without redefining them.
 
 | Core role | Dev Team holder |
 |---|---|
 | Goal definer | Owner confirms the Goal; Planner may prepare it under R1 |
 | Coordinator (including R4 Target-change decisions) | TL; Goal-scope changes go to Owner |
-| Target definer | Planner defines each Target's Tasks and acceptance commands; decides Task changes that preserve Target scope and acceptance |
-| Task writer | FS; parallel Tasks in one Target each use a separate FS run and worktree |
-| Independent acceptance | AI Reviewer: each PR, cumulative Task acceptance on its last PR, and Target-wide acceptance after all Tasks finish |
-| Delivery | PRM advances each PR to legal merge |
+| Target definer | Planner under R1–R5 |
+| Task writer | FS |
+| Independent acceptance | AI Reviewer under V1–V3 |
+| Delivery | PRM advances each Dev Team PR to legal merge |
 
 Flow Supervisor supervises only and holds no contract role. The core's 负责人 is the Owner.
-
-- **R1 (01/02)**: An assigned definer may be workflow 01's lead/CLI, workflow 02's Planner,
-  or a broadly assigned original implementer; definition rights follow the assignment, not the workflow number.
-- **R4**: TL decides Target changes, involving Owner when needed; Planner prepares the revision.
-  Goal changes return to Owner.
-- **R6**: Subagents do not touch Multica (no issue, comment, status or mention operations)
-  and do not contact other roles.
-- **V4**: CI codex-review (shared-ci) should review only the Target scope or be advisory.
-  Changes to shared-ci gates require a separately authorized Target;
-  existing gates remain in force and must not be bypassed.
+Dev Team's R6 operational restriction: subagents do not commit, push, touch Multica
+(issue, comment, status or mention operations), or contact other roles.
+CI codex-review (shared-ci) should review only the Target scope or be advisory; existing gates
+remain governed by contract V4.
 
 ## Workflow boundary and accepted version
 
@@ -54,29 +53,27 @@ labels in existing artifacts do not change an already dispatched version.
   basic implementation approach before handing work to Dev Team or subagents. Unselected design
   exploration is not default team implementation input. An explicit choice of the current CLI as
   executor still follows repo rules.
-- Bind execution and acceptance to the contract's frozen Target revision. Record later design
-  changes for the next version, dispatched only after Owner confirms finalization and execution;
-  one confirmed design opinion is insufficient. Report current failures and safety blockers now,
-  never defer them to claim completion. TL schedules ready Tasks; Task-internal execution shards
-  and review shards stay with the delegator under contract R6.
-- Work needs a spec or docs before implementation; Spec Kit is not required. Small changes: the
-  issue description (current, desired, scope, acceptance) is the spec. Larger features: a spec or
-  design doc in the repo, using Spec Kit only where the repo already does. See Planner's "What
-  counts as the spec".
-- Plans record tasks, versions, dependencies, completion conditions and next actions. General
-  update/migration rules belong to the repo guide or versioned shared docs; plans reference the
-  applicable version instead of maintaining a second policy.
+- Apply contract R2–R6 to the accepted revision and gaps. Record later design changes for the
+  next version, dispatched only after Owner confirms finalization and execution; one confirmed
+  design opinion is insufficient. Report current failures and safety blockers now, never defer
+  them to claim completion.
+- Spec format and readiness details: [Planner — What counts as the spec](../dev-team-planner/SKILL.md#what-counts-as-the-spec-owner-2026-10-1213).
+- Plan requirements come from the contract; keep progress and next actions in its execution
+  ledger. General update/migration rules belong to the repo guide or versioned shared docs;
+  reference the applicable version instead of maintaining a second policy.
 
 ## Team
 
-| Role | Owns |
+| Member | Squad role |
 |---|---|
-| Team Lead | scheduling, re-scope, blocked work, recovery, Owner escalation, closure |
-| Planner Lead | spec/plan/tasks with stable AC IDs and existing behaviour / compatibility / removed behaviour |
-| AI Reviewer | spec/plan gate; PR and cumulative Task review of FS's local HEAD; Target-wide acceptance requested by TL |
-| Fullstack Engineer | implement, verify, self-review, push the reviewed SHA + PR |
-| PR Manager | TL-dispatched Dev Team PR → Adopt → CI/review → repair routing → Ship → delivery confirmation; follow-up sweeps only for existing team handoffs |
-| Flow Supervisor | wake the original owner when a Dev Team flow is truly interrupted; nothing else |
+| TL (Team Lead) | leader |
+| FS (Fullstack Engineer) | engineer |
+| AI Reviewer | reviewer |
+| PRM (PR Manager) | ops |
+| Planner (Planner Lead) | planner |
+
+Flow Supervisor is outside the squad and runs through its own Multica Autopilot.
+It still loads this shared skill with its role skill; skill assignment is not squad membership.
 
 ## Flow
 
@@ -93,100 +90,150 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → TL imm
 2. **Pre-push review** — AI Reviewer applies its spec + architecture checklist (`dev-team-ai-reviewer` skill, section B)
    under contract V1–V3 to the exact candidate; findings cite accepted ACs or repository red lines.
    `PASS` / `NEEDS_WORK` is bound to the SHA; not a merge gate.
-3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft. TL immediately
-   dispatches PRM to enable auto-merge on opening; the PR template carries *Existing behaviour*,
-   *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
-4. **CI + ship** — handing off a PR is not done; required checks must be green on that head.
-   Task completion also follows the contract's acceptance and legal-merge boundary. The
-   Dev Team FS returns the created or updated PR to TL, who immediately dispatches PRM without
-   waiting for a sweep or silence; an active PRM run suppresses duplicate dispatch. PRM owns team
-   delivery, from immediate auto-merge enablement through current-head checks to merge read-back
-   (below); other PRs remain with their own writers.
+3. **Push + PR** — FS publishes under [its workflow](../dev-team-fullstack-engineer/SKILL.md#workflow),
+   then uses [Merge rules](#merge-rules-all-repos) for TL/PRM delivery.
+4. **CI + ship** — delivery follows [Merge rules](#merge-rules-all-repos); completion follows
+   contract V1 and [Issue lifecycle](#issue-lifecycle).
 
-Any new SHA invalidates the review; FS gets a new one before pushing it, scoped under contract V3.
+For any later SHA, FS applies contract V3 before push.
 AI Reviewer covers spec + architecture pre-push; `codex-review-target` covers defects/standards at
 the PR head. Neither repeats the other's job.
 
 ## Issue lifecycle
 
+Contract definitions and V1 supply completion and acceptance conditions; this section maps the
+Multica actions to their owners.
+
 - **Assignees**: Goal and Target issues are assigned to TL; each Task issue is assigned to its FS.
-  Stage completion therefore wakes TL.
-- **Create**: after Planner's definition passes review, TL creates Target children with
-  `multica issue create --parent <Goal>` and Task children with `--parent <Target>`;
-  `--stage <n>` groups Tasks by dependency.
-- **Dispatch**: TL dispatches only ready Tasks with no unfinished prerequisites. A stage wakes the
-  parent assignee only after the whole group finishes; it does not dispatch the next group.
-  On waking, TL runs `multica issue children <Target>`, checks dependencies and acceptance state,
-  then dispatches the next ready group. Individual Task handoff and closure do not wait for the group.
+- **Create / Dispatch**: TL owns child creation, stage readiness and dependency scheduling:
+  [TL — Issue hierarchy and dependencies](../dev-team-team-lead/SKILL.md#issue-hierarchy-and-dependencies).
 - **PR ownership**: every PR links its Task issue. PRM intake, sweeps, receipts and delivery reports
   use that Task issue and preserve the Task → Target → Goal parent mapping.
-- **After merge**: for every accepted team PR legally merged by PRM, Owner or another identity,
-  PRM verifies the merge, sends the final handoff to TL on the Task issue and confirms receipt.
-  Existing sweeps backfill merged PRs with an open Task and no delivery report, idempotently.
-  PRM never changes Task, Target or Goal status.
-- **Close Task**: TL closes the Task only when all specified outputs exist, every acceptance
-  command passes, every included PR is legally merged, and AI Reviewer's last-PR review has
-  passed cumulative Task acceptance.
-- **Close Target**: after all Tasks close, TL requests AI Reviewer Target-wide acceptance with the
-  merged combination (exact default-branch SHA) and Target acceptance-command evidence.
-  AI Reviewer returns the verdict to TL; TL closes the Target only on PASS.
-- **Close Goal**: after all Targets close and Goal-level acceptance has evidence, TL closes the Goal issue
-  and notifies Owner with the verdict, evidence and remaining limits.
-- **Changes**: Planner decides Task changes that preserve Target scope and acceptance and issues
-  a revision. TL decides Target changes (Owner when needed), Planner prepares them; Goal changes
-  return to Owner.
-- **Review entry**: besides Planner/FS requests, AI Reviewer accepts TL's Target-wide request,
-  marks it `gate=target`, checks the merged SHA and command evidence, and returns its verdict to TL.
-  Each PR review checks that PR's single purpose; only the last PR checks cumulative Task acceptance.
-  Flow Supervisor routes verdicts to their requester, including TL.
-- **Rounds**: TL, FS, PRM and AI Reviewer count the same problem × same Task: at most two rounds;
-  changing PR, SHA, agent, run or task name does not reset history. Target-wide acceptance has its
-  own two-round budget. Execution-error reruns (infrastructure, timeout, etc.) have a separate budget
-  and do not count as review rounds.
+- **After merge**: PRM's role skill owns merge read-back, the final TL handoff and idempotent
+  backfill for merges by any identity: [Ship, confirm, clean up](../dev-team-pr-manager/SKILL.md#ship-confirm-clean-up).
+- **Close Task / Target / Goal**: TL owns lifecycle status changes and the closure actions:
+  [TL — Stage routing](../dev-team-team-lead/SKILL.md#stage-routing), applying contract definitions/V1.
+- **Changes**: apply contract R1–R5 using the holders in [the binding table](#how-dev-team-uses-goal-target-task).
+- **Review entry**: Planner/FS/TL request their corresponding AI Reviewer job; request pinning,
+  command-evidence checks and verdict routing live in [AI Reviewer](../dev-team-ai-reviewer/SKILL.md).
+- **Rounds**: review/repair history follows contract V3; runtime retries follow [Retry budgets](#retry-budgets).
 
 ## Handoffs
 
-- Every request and handoff carries the six fields of the workflow index (target, intent, scope,
-  owner, evidence, next) plus the accepted plan version and exact revision/SHA: see
-  the workflow index `skills/workflow/README.md` §交接最小字段 in this skill's source repository.
-- AI Reviewer answers the role that requested it. Planner hands a passing plan to Team Lead; FS
-  hands a pushed, reviewed PR to TL, who immediately dispatches PRM unless a PRM run is already
-  queued/dispatched/running. Scope, content, authority, recovery or Owner-decision conflicts also go to TL.
-- PRM routes a clear shipping-time code/check failure to the PR's actual implementer; conflicting
-  evidence, ownership, policy, permissions, infra or merge conflicts go to Team Lead.
+Apply the contract's role/source binding and handoff requirements. Dev Team renders them as
+**seven fields**, also used by the workflow index and every role:
+
+| Field | Carries |
+|---|---|
+| target | repo and base |
+| intent | goal, acceptance and non-goals |
+| baseline | accepted plan revision, execution authorization, contract SHA and loaded version |
+| scope | assigned Task, owned paths/layers and this PR's purpose/last-PR status |
+| owner | unique executor, source binding and Task → Target → Goal mapping |
+| evidence | exact PR/head, verification/review, auto-merge/merge read-back and limits |
+| next | next responsible role, wake condition or HOLD |
+
+This is a rendering of the contract handoff, not a new schema; role-specific inputs supplement it.
+For checkout reuse, follow the workspace `Delivery workspace protocol`; role-local preparation,
+validation and cleanup steps live in TL, FS and PRM respectively.
+
+## Dispatch and recovery
+
 - Dispatch with a final `@mention` comment after all other writes; never use assignment as dispatch.
-  A comment is not dispatch until a run is queued/running. Each role is idempotent: read the issue,
-  runs, branch, PR and prior comments first and reuse valid work.
+  A comment is not dispatch until a run is queued/dispatched/running. Read the issue, runs, branch,
+  PR and prior comments first and reuse valid work. Never overlap active writers or delivery runs.
 - If the selected executor is unavailable, retain the version, task identity and executor. On
-  recovery, query receipt/run state and deduplicate before resending; an unknown result is not
-  proof of non-execution. Never blindly replay or automatically switch to the current CLI or a
-  subagent. Persistent failure goes to TL as a blocker; this adds no background recovery service.
-- Gap and exhausted-review handoffs go through TL to the definer under contract R3–R5/V3;
-  include unmet requirements, attempts/results, known causes, unknowns and a recommendation.
-  TL diagnoses unresolved cases and escalates to Owner if still unresolved, including technical
-  failures; preserve acceptance and cumulative history.
-- Follow the workspace `Delivery workspace protocol`; every role reuses the one issue-scoped
-  checkout through delivery and cleanup.
+  recovery, query receipt/run state and deduplicate before resending only work proven unreceived.
+  Unknown execution results follow the contract's role-binding rule; no automatic fallback to the
+  current CLI or subagent. Persistent failure goes to TL as a blocker, not a background recovery service.
+- A write with an unknown result (timeout or ambiguous response) requires read-only reconciliation
+  before retry; never blindly replay it.
+- Gap and exhausted-review handoffs use contract R3–R5/V3 through TL to the definer. TL diagnoses
+  unresolved cases and escalates still-unresolved technical failures to Owner under
+  [Owner decisions](#owner-decisions); preserve acceptance and cumulative history.
+
+## Retry budgets
+
+Review/repair round accounting is authoritative in contract V3. TL, FS, PRM and AI Reviewer carry
+that same history; unknown counts block retry (not tracking), and exhaustion returns through TL
+to the definer with unmet requirements, attempts/results, known causes, unknowns and recommendation.
+Technical inability is an exception, not permission for indefinite retries or lowered acceptance.
+
+Execution errors (infrastructure, timeout, etc.) have a separate budget: at most 2 reruns of the
+same error, platform retries included; actor/run/SHA changes do not reset it. These reruns do not
+count as review rounds. Before automatic repair or rerun, prove no human pause, no queued/running
+related Action, no active implementer run or orphan process, and one unique implementer.
+Unknown → observe and record the next check condition.
 
 ## Merge rules (all repos)
 
-- **Every non-Draft PR**: enable GitHub auto-merge on opening, before checks finish. PRM is
-  responsible for Dev Team PRs immediately after TL dispatch and follows through to merge
-  read-back; other writers deliver their own PRs. Fail-closed aggregate gate ✓ +
-  `codex-review-target` ✓ + other server-required checks ✓ → automatic merge on the current head.
-  No Owner approval, approving review or CODEOWNERS review is a merge prerequisite, including
-  changes to workflows, gates, review policy or CODEOWNERS itself.
-  `kimi-review` is advisory. A codex finding fails the check; the implementer fixes and a new SHA is
-  re-reviewed. Never replace auto-merge with a direct merge or bypass a required check.
+- **Every non-Draft PR**: enable GitHub auto-merge on opening, before checks finish, using the repo's
+  merge method. FS returns each created/updated Dev Team PR to TL; TL immediately dispatches PRM
+  unless its run is already queued/dispatched/running. PRM owns team auto-merge and delivery through
+  merge read-back; other PRs remain with their own writers. Dev Team never opens Draft PRs.
+- Current head: fail-closed aggregate gate ✓ + `codex-review-target` ✓ + every other server-required
+  check ✓ → automatic merge. `kimi-review` is advisory; record it without waiting or blocking.
+  Missing PR template fields (*Existing behaviour*, *Intent*, *Compatibility*, *Removed or weakened
+  tests + reason*, *Test evidence*) return to the implementer for repair.
+- Transition: where the ruleset does not yet require aggregate / `codex-review-target`, use current
+  server-required checks plus AI Reviewer's pre-push `PASS` at the PR head. Once that ruleset is in
+  place the Dev Team verdict is not a merge gate. Never invent a missing check or waive a required one.
+- No Owner approval, approving review or CODEOWNERS review is a merge prerequisite, including
+  changes to workflows, gates, review policy or CODEOWNERS itself. Missing protection, unavailable
+  auto-merge or old approval protection is a gap to TL/definer, never authority to change settings,
+  rulesets or required checks. Target-repo protections remain effective.
 - **Behaviour/test findings**: in product and shared repositories alike, route changed behaviour
-  or removed/weakened tests back to the original implementer/Team Lead for correction. Unresolved
-  product or policy decisions go to Team Lead's Owner-decision path, without an extra PR-approval gate.
-- A new push expires earlier reviews/checks; evidence is the PR head SHA.
-- Agents write to GitHub via the agent GitHub App identity provided by the Dev Team runtime
-  environment as defined in the FS/PRM instructions.
-- Repository hooks and required CI are mandatory; never use `gh pr merge --admin` or any other
-  branch-protection, review or required-check bypass, force-push or fabricate a check.
-  Releases belong to workflow 04 (each repo's own release automation), not to this flow.
+  or removed/weakened tests to the original implementer/TL within the accepted scope. Unresolved
+  product/policy choices use [Owner decisions](#owner-decisions), without an extra PR-approval gate.
+- A new push needs current-head evidence under contract V3. Verify auto-merge remains enabled and
+  restore it if GitHub disabled it. A `pull_request_target` run's head_sha alone does not prove
+  which PR head was reviewed. CI green ≠ merged; merged ≠ released or consumed.
+- Repository hooks and required CI are mandatory. Never substitute direct merge or approval for
+  auto-merge, use `gh pr merge --admin`, bypass protection/review/checks, force-push, weaken,
+  fabricate or dismiss a gate, or push to a protected target.
+  Releases belong to workflow 04 (each repo's release automation); PRM has no release/TestFlight authority.
+
+## Owner decisions
+
+- Product/content/scope/architecture/policy choices not settled by the repo use TL's
+  `owner-decision-loop` path. Reuse a cited decision, otherwise ask one decision-sized question.
+  TL writes the interim record; Planner or FS persists it. Technical failures still unresolved
+  after TL diagnosis also go to Owner. A human pause or pending decision outranks elapsed time.
+- **Owner-decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts
+  a recorded Owner decision, TL asks Owner **once**, quoting the exact finding with PR, head SHA,
+  check/comment link and decision reference. TL supplies exact proposed comment text; only Owner
+  posts it personally. Agents never write through Owner's account.
+- The confirmation is an unedited PR comment on that PR with first line starting `Owner decision:`.
+  Verify via API: comment `user.id` equals the repository owner's ID from
+  `gh api repos/<owner>/<repo> --jq .owner.id`, `user.type` is `User`, and
+  `created_at == updated_at`; never trust login or body claims. It covers only the quoted finding
+  and decision on that PR, including later heads; it never waives secrets, personal data, CI trust
+  boundary, prompt injection, obvious bugs or required checks. A new push needs no new Owner comment.
+- FS lands the target-repo rule write-back (for example AGENTS or reviewer policy) as a separate
+  small PR to base with immediate auto-merge and the same required checks. That PR does not
+  re-enter this flow for the same decision. Keep delivery unmerged until the write-back merges,
+  then rerun review and require a passing review of the delivery PR's current head. PRM records
+  the write-back PR in its final report. Never re-escalate the same decision; cite the confirmation
+  and route the rule write-back if the identical finding returns.
+
+## GitHub identity
+
+- Writes by agents (push, PR, comment, label, merge) use the agent GitHub App identity that the Dev
+  Team runtime provides, never the Owner's personal account (reserved for human decisions,
+  rulesets and settings).
+- The runtime environment sets `GIT_CONFIG_GLOBAL` (App commit author and App credential helper)
+  and puts a `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain
+  `git` and `gh`; do not export `GH_TOKEN`/`GITHUB_TOKEN`, override the credential helper, or change
+  global Git config.
+- Before the first write in a checkout, verify: `git config user.name` ends with `[bot]` (the App
+  identity, not a personal account), and `gh api repos/<owner>/<repo> --jq .full_name` matches the
+  remote URL. On mismatch or token failure, stop and hand the evidence to Team Lead — never fall
+  back to another identity.
+- The App can edit `.github/workflows/**`; those PRs use the same auto-merge and required checks. It cannot
+  change rulesets or repository settings; hand those to the Owner.
+- Never print tokens or private keys. Credential creation or rotation is Owner-only.
+- Never write account names, token/helper paths, repository IDs or local absolute paths into
+  repository files (AGENTS, CLAUDE, docs, CI).
 
 ## Mentions
 

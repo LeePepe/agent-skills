@@ -6,10 +6,8 @@ governs scope and rounds; [SKILL.md](../SKILL.md) supplies role-specific pinning
 ## Checking against the spec/ACs
 
 Compare the pinned diff and accepted spec/ACs directly; implementation reports are claims to check.
-For each PR, check its single purpose and Task scope; the last PR additionally checks cumulative
-Task acceptance. For TL's Target-wide request, use the exact merged default-branch SHA and all
-Target acceptance items. Check command evidence item by item; missing required evidence cannot pass.
-Use executor/CI results without rerunning or adjudicating build/test/lint/hooks/CI.
+Apply contract V1 to the review unit and command evidence; use [SKILL.md's request pinning and
+checklists](../SKILL.md#trigger-and-inputs).
 Classify each conformance gap:
 
 - **Missing**: required behavior or evidence was omitted or claimed without implementation.
@@ -24,17 +22,14 @@ missing proof explicitly required by an AC or mandatory rule is assessed against
 
 ## Re-review (rounds >=2) output
 
-Use these entries in order; contract V3 limits re-review to prior findings and the repair diff;
-do not rescan unchanged code:
+Use these entries in order within contract V2–V3:
 
 1. **Prior findings**: for each prior finding, report `ADDRESSED` or `NOT ADDRESSED` with
    file:line evidence. A repair attempt counts only when the specific defect is gone.
-2. **Repair-diff regressions**: list problems introduced by the repair under contract V2, with the
-   severity, cited source, trigger and file:line evidence regardless of which file is affected.
-   These block; otherwise write `None`.
-3. **Other findings / backlog**: apply contract V2; cite any remaining blocking findings with pinned
-   evidence and trigger. Label previously missed blockers `missed-in-round-N`. Pre-existing problems
-   that meet none of V2's blocking conditions go to backlog and do not block.
+2. **Repair-diff regressions**: classify under contract V2; include severity, source, trigger
+   and file:line evidence, or write `None`.
+3. **Other findings / backlog**: classify under contract V2 with pinned evidence and trigger.
+   Label previously missed blockers `missed-in-round-N`.
 4. **Round verdict**: give the round number, exact revision/SHA and `PASS` or `NEEDS_WORK`,
    naming any remaining blockers or coverage gaps.
    End the comment with the same machine-readable review line immediately before the requester mention,
@@ -44,12 +39,8 @@ Follow SKILL.md's round budget and escalation rules; this output grants no addit
 
 ## Verdict mapping
 
-Apply contract V1–V3 before assigning a verdict; use V2's introduced/pre-existing classification
-and blocking conditions regardless of file path. `PASS` requires a pinned revision and sufficient
-evidence for the current PR, last-PR cumulative Task checks, or Target-wide acceptance as requested
-(or prior findings and repair-diff regression checks on re-review). Count the same problem × same
-Task for at most two rounds; changing PR, SHA, agent, run or task name does not reset history.
-Target-wide acceptance has its own two-round budget; route exhausted rounds through TL to the definer.
+Use [SKILL.md Verdict](../SKILL.md#verdict) under contract V1–V3, including the required evidence,
+round accounting and exhausted-round route.
 
 ## Sources
 

@@ -466,13 +466,12 @@ class SkillDocumentValidationTests(unittest.TestCase):
         for binding in (
             "| Goal definer | Owner confirms the Goal; Planner may prepare it under R1 |",
             "| Coordinator (including R4 Target-change decisions) | TL; Goal-scope changes go to Owner |",
-            "| Target definer | Planner defines each Target's Tasks and acceptance commands; decides Task changes that preserve Target scope and acceptance |",
-            "| Task writer | FS; parallel Tasks in one Target each use a separate FS run and worktree |",
-            "| Independent acceptance | AI Reviewer: each PR, cumulative Task acceptance on its last PR, and Target-wide acceptance after all Tasks finish |",
-            "| Delivery | PRM advances each PR to legal merge |",
+            "| Target definer | Planner under R1–R5 |", "| Task writer | FS |",
+            "| Independent acceptance | AI Reviewer under V1–V3 |",
+            "| Delivery | PRM advances each Dev Team PR to legal merge |",
             "Flow Supervisor supervises only and holds no contract role.",
             "The core's 负责人 is the Owner.",
-            "**R1 (01/02)**", "**R4**", "**R6**", "**V4**",
+            "This is the authority for those rules", "contract V4",
         ):
             with self.subTest(binding=binding):
                 self.assertIn(binding, section)
@@ -519,31 +518,35 @@ class SkillDocumentValidationTests(unittest.TestCase):
     def test_tl_immediately_dispatches_prm_after_fs_returns_pr(self):
         text = (ROLES_DIR / "dev-team-team-lead" / "SKILL.md").read_text(encoding="utf-8")
         shipping = next(line for line in text.splitlines() if line.startswith("| Shipping |"))
-        self.assertIn("FS returns a created or updated non-Draft PR to TL", shipping)
+        self.assertIn("FS returns a created or updated PR to TL", shipping)
         self.assertIn("Immediately dispatch PRM", shipping)
         self.assertIn("do not wait for checks, a sweep or silence", shipping)
-        self.assertIn("enable auto-merge and follow through to merge read-back", shipping)
-        self.assertIn("already queued/dispatched/running, do not dispatch again", shipping)
+        self.assertIn("or duplicate an active PRM run", shipping)
+        self.assertIn("../dev-team-squad/SKILL.md#merge-rules-all-repos", shipping)
 
     def test_prm_enables_auto_merge_before_checks_and_restores_after_push(self):
         text = " ".join(PR_MANAGER_SKILL.read_text(encoding="utf-8").split())
         adoption = text.split("## Adopt", 1)[1].split("## Merge rules", 1)[0]
-        self.assertIn("immediately enable GitHub auto-merge", adoption)
-        self.assertIn("read back that it is enabled", adoption)
-        self.assertIn("do not wait for checks or an approving review", adoption)
-        self.assertIn("After every new push, verify auto-merge remains enabled", adoption)
-        self.assertIn("never change settings, rulesets or required checks", adoption)
+        self.assertIn("../dev-team-squad/SKILL.md#merge-rules-all-repos", adoption)
+        self.assertIn("read back auto-merge enablement", adoption)
+        squad = " ".join((ROLES_DIR / "dev-team-squad" / "SKILL.md").read_text().split())
+        merge = squad.split("## Merge rules", 1)[1].split("## Owner decisions", 1)[0]
+        self.assertIn("enable GitHub auto-merge on opening, before checks finish", merge)
+        self.assertIn("Verify auto-merge remains enabled and restore it if GitHub disabled it", merge)
+        self.assertIn("never authority to change settings, rulesets or required checks", merge)
 
     def test_merge_policy_includes_codeowners_and_shared_repository_changes(self):
-        for skill in ("dev-team-pr-manager", "dev-team-squad"):
-            with self.subTest(skill=skill):
-                text = " ".join((ROLES_DIR / skill / "SKILL.md").read_text().split())
-                merge = text.split("## Merge rules", 1)[1]
-                self.assertIn("Every non-Draft PR", merge)
-                self.assertIn("before checks finish", merge)
-                self.assertIn("No Owner approval, approving review or CODEOWNERS review is a merge prerequisite", merge)
-                self.assertIn("including changes to workflows, gates, review policy or CODEOWNERS itself", merge)
-                self.assertIn("product and shared repositories alike", merge)
+        text = " ".join((ROLES_DIR / "dev-team-squad" / "SKILL.md").read_text().split())
+        merge = text.split("## Merge rules", 1)[1].split("## Owner decisions", 1)[0]
+        for clause in ("Every non-Draft PR", "before checks finish",
+                       "No Owner approval, approving review or CODEOWNERS review is a merge prerequisite",
+                       "including changes to workflows, gates, review policy or CODEOWNERS itself",
+                       "product and shared repositories alike"):
+            with self.subTest(clause=clause):
+                self.assertIn(clause, merge)
+        for role in ("pr-manager", "team-lead", "fullstack-engineer"):
+            text = (ROLES_DIR / f"dev-team-{role}" / "SKILL.md").read_text()
+            self.assertIn("../dev-team-squad/SKILL.md#merge-rules-all-repos", text)
 
     def test_prm_ship_requires_merge_read_back_and_cleanup_after_proven_merge(self):
         text = " ".join(PR_MANAGER_SKILL.read_text().split())

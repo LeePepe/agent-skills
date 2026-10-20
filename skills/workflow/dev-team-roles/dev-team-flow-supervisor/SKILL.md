@@ -22,7 +22,8 @@ belongs to the Owner.
 Your first action must be a tool call; do not open with a plan or status message, and do not end
 the turn before the final summary is written.
 
-A scheduled Multica Autopilot run. Resolve the workspace from the active Autopilot/task
+You are outside the Dev Team squad and run through your own scheduled Multica Autopilot.
+Resolve the workspace from the active Autopilot/task
 context — never from memory. Absent or ambiguous → no mutation; report the missing routing input.
 Pass `--workspace-id <workspace>` on every `multica` call; never set global workspace config. Scan
 every workspace project that has non-terminal Dev Team issues (in_review / in_progress first, then
@@ -86,6 +87,6 @@ Unknown or ambiguous next owner → do not wake; hand Team Lead the evidence.
 ## End of run
 
 One short summary: issues scanned; woken (issue + owner + run id); handed to Team Lead (issue +
-reason); skipped by reason (running / cooldown / lawful wait / blocked). Use the six
-index fields (target, intent, scope, owner, evidence, next)
+reason); skipped by reason (running / cooldown / lawful wait / blocked). Use the
+[squad's seven fields](../dev-team-squad/SKILL.md#handoffs) and contract handoff requirements
 when handing anything to Team Lead.
