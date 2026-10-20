@@ -75,7 +75,7 @@ AGENTS 保持目录，合同缺失或矛盾记录为前置缺口，不由角色�
   push／PR 失败不是本次实现成功；此交接不是 PR 最终交付或仓合同的远端 done，required gates 全部保留。
 - **关闭**：输出齐全、验收命令全通过、全部 PR 合法合并且最后一个 PR 的累计 Task 审查 PASS 后，TL 关闭 Task；
   所有 Task 关闭并经 AI Reviewer 的 Target 整体验收 PASS 后，TL 关闭 Target；所有 Target 关闭且 Goal 级验收有证据后，
-  TL 汇报 Owner 确认 Goal 关闭。PRM 不改三层状态。
+  TL 关闭 Goal，并通知 Owner 结论、证据与剩余限制。PRM 不改三层状态。
 
 ## PRM 唯一交付责任
 

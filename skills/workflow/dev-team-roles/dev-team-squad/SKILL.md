@@ -130,8 +130,8 @@ the PR head. Neither repeats the other's job.
 - **Close Target**: after all Tasks close, TL requests AI Reviewer Target-wide acceptance with the
   merged combination (exact default-branch SHA) and Target acceptance-command evidence.
   AI Reviewer returns the verdict to TL; TL closes the Target only on PASS.
-- **Close Goal**: after all Targets close and Goal-level acceptance has evidence, TL reports to
-  Owner for confirmation of Goal closure.
+- **Close Goal**: after all Targets close and Goal-level acceptance has evidence, TL closes the Goal issue
+  and notifies Owner with the verdict, evidence and remaining limits.
 - **Changes**: Planner decides Task changes that preserve Target scope and acceptance and issues
   a revision. TL decides Target changes (Owner when needed), Planner prepares them; Goal changes
   return to Owner.
