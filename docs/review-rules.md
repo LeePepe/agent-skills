@@ -35,12 +35,12 @@ its `needs` and have its result checked. Only success may pass the aggregate.
 - Secrets, tokens, or private keys in repository files, examples, or output.
 - Personal information, local absolute paths (for example `/Users/...`),
   account names, token-helper paths, or repository IDs in repository files.
-- Weakening or bypassing `ci-aggregate`, `codex-review-gate`, CODEOWNERS,
-  validators, or required checks; making checks skippable or accepting any
+- Weakening or bypassing `ci-aggregate`, `codex-review-gate`, validators,
+  or required checks; making checks skippable or accepting any
   result other than success. A shared-ci pin change must use a full 40-character
   commit SHA of `LeePepe/shared-ci` (never a branch or short ref); review what
-  the new revision changes. CODEOWNERS enforces approval of such changes, so do
-  not block them only for missing approval evidence in the PR.
+  the new revision changes. Missing approval evidence never blocks a change on
+  its own.
 - A `pull_request_target` workflow checking out or executing PR head code,
   including scripts or instructions obtained from the untrusted diff.
 - Skill instructions telling agents to skip verification, bypass approvals or
