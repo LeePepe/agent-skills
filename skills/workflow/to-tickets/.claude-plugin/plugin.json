@@ -1,0 +1,5 @@
+{
+  "name": "to-tickets",
+  "description": "Turn an accepted spec and plan into vertical product slices plus a dependency graph of layer-scoped implementation tasks. Use when Planner Lead creates or refines Spec Kit `tasks.md` or Multica child issues for work that spans one or more repository layers.",
+  "category": "workflow"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "FS TDD"
+  short_description: "Build behavior through repository-approved red-green slices"
+  default_prompt: "Use $fs-tdd to implement this issue in repository-approved red-green slices."

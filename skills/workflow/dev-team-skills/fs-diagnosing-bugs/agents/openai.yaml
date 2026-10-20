@@ -1,0 +1,4 @@
+interface:
+  display_name: "FS Diagnosing Bugs"
+  short_description: "Reproduce and fix code defects with a tight loop"
+  default_prompt: "Use $fs-diagnosing-bugs to reproduce and fix this code defect."
