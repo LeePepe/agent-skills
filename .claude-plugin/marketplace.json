@@ -20,12 +20,6 @@
       "source": "./skills/repo/multica-issue",
       "category": "repo",
       "description": "向 Multica dev team 提 issue 并直接派发触发 pipeline:反查 project、分类 bug/功能/架构、带 layer red_lines+test、三步 dispatch + run 验证。"
-    },
-    {
-      "name": "to-tickets",
-      "source": "./skills/workflow/to-tickets",
-      "category": "workflow",
-      "description": "Turn an accepted spec and plan into vertical product slices plus a dependency graph of layer-scoped implementation tasks. Use when Planner Lead creates or refines Spec Kit `tasks.md` or Multica child issues for work that spans one or more repository layers."
     }
   ]
 }

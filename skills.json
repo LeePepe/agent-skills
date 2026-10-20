@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "count": 9,
+  "count": 8,
   "skills": [
     {
       "name": "multica-delivery-supervisor",
@@ -45,15 +45,6 @@
       "description": "Audit an explicitly named team, repository, or project delivery workflow against evidence, current instructions, workflow fitness, and delivered outcomes. Use only when the user explicitly invokes $team-workflow-audit or directly asks to run this audit. Never remediate or mutate audited systems.",
       "user_invocable": false,
       "has_references": true,
-      "has_eval": false
-    },
-    {
-      "name": "to-tickets",
-      "category": "workflow",
-      "path": "skills/workflow/to-tickets",
-      "description": "Turn an accepted spec and plan into vertical product slices plus a dependency graph of layer-scoped implementation tasks. Use when Planner Lead creates or refines Spec Kit `tasks.md` or Multica child issues for work that spans one or more repository layers.",
-      "user_invocable": false,
-      "has_references": false,
       "has_eval": false
     },
     {
