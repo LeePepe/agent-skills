@@ -1,0 +1,4 @@
+interface:
+  display_name: "FS Codebase Design"
+  short_description: "Design deep modules at clear implementation seams"
+  default_prompt: "Use $fs-codebase-design to choose a testable interface for this implementation task."
