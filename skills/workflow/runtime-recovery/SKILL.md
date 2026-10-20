@@ -34,7 +34,7 @@ description: 运行恢复辅助——控制面、daemon、runner 不可用或执
 不因本 skill 而获得新的配置／凭据权限。
 
 - daemon 与 self-hosted runner 各由一个 LaunchAgent 托管：`KeepAlive`（崩溃/登录后自动拉起）。
-- runner 需重新注册或 repo 缺少 runner 时，按 [repo-kit 的 self-hosted runner 配方](../../repo/repo-kit/SKILL.md) 操作。
+- runner 需重新注册或 repo 缺少 runner 时，按 repo-kit 的 self-hosted runner 配方操作。
 - 健康检查（同一 LaunchAgent 的定时任务，或 `StartInterval`）：睡眠唤醒、网络切换后，daemon 或 runner 连续失败则重启该进程。
 - 恢复后按下方“接回”核对原任务；已部署的 Dev Team Flow Supervisor 只经既有 Autopilot 入口唤醒真正中断的原责任 agent。
   先核实该入口、部署与合法触发权限，不把 source 说明当现网能力，不触发 repo-wide PR sweep，也不修复 daemon、runner、API 或平台故障。
