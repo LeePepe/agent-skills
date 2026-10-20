@@ -35,7 +35,7 @@ Flow Supervisor supervises only and holds no contract role. The core's 负责人
 - **R6**: Subagents do not touch Multica (no issue, comment, status or mention operations)
   and do not contact other roles.
 - **V4**: CI codex-review (shared-ci) should review only the Target scope or be advisory.
-  Changes to shared-ci gates are a separate Target needing Owner approval;
+  Changes to shared-ci gates require a separately authorized Target;
   existing gates remain in force and must not be bypassed.
 
 ## Workflow boundary and accepted version
@@ -91,14 +91,15 @@ Shipping repair: `PRM → FS fix → AI Reviewer pre-push → FS push → TL imm
 2. **Pre-push review** — AI Reviewer applies its spec + architecture checklist (`dev-team-ai-reviewer` skill, section B)
    under contract V1–V3 to the exact candidate; findings cite accepted ACs or repository red lines.
    `PASS` / `NEEDS_WORK` is bound to the SHA; not a merge gate.
-3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft (Owner waits use
-   `owner-review`); the PR template carries *Existing behaviour*,
+3. **Push + PR** — only the reviewed SHA is pushed; the PR is never Draft. TL immediately
+   dispatches PRM to enable auto-merge on opening; the PR template carries *Existing behaviour*,
    *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test evidence*.
 4. **CI + ship** — handing off a PR is not done; required checks must be green on that head.
    Target completion also follows the contract's acceptance and legal-merge boundary. The
    Dev Team FS returns the created or updated PR to TL, who immediately dispatches PRM without
    waiting for a sweep or silence; an active PRM run suppresses duplicate dispatch. PRM owns team
-   delivery on the server-required checks (below); other PRs remain with their own writers.
+   delivery, from immediate auto-merge enablement through current-head checks to merge read-back
+   (below); other PRs remain with their own writers.
 
 Any new SHA invalidates the review; FS gets a new one before pushing it, scoped under contract V3.
 AI Reviewer covers spec + architecture pre-push; `codex-review-target` covers defects/standards at
@@ -130,18 +131,17 @@ the PR head. Neither repeats the other's job.
 
 ## Merge rules (all repos)
 
-- **Normal PR**: fail-closed aggregate gate ✓ + `codex-review-target` ✓ + other server-required
-  checks ✓ → auto-merge; no Owner approval.
+- **Every non-Draft PR**: enable GitHub auto-merge on opening, before checks finish. PRM is
+  responsible for Dev Team PRs immediately after TL dispatch and follows through to merge
+  read-back; other writers deliver their own PRs. Fail-closed aggregate gate ✓ +
+  `codex-review-target` ✓ + other server-required checks ✓ → automatic merge on the current head.
+  No Owner approval, approving review or CODEOWNERS review is a merge prerequisite, including
+  changes to workflows, gates, review policy or CODEOWNERS itself.
   `kimi-review` is advisory. A codex finding fails the check; the implementer fixes and a new SHA is
-  re-reviewed.
-- **Important PR** needs Owner approval: when any changed path matches the target repository's
-  effective, contract-derived `CODEOWNERS` active pattern set. Missing, unreadable, or contract-invalid
-  `CODEOWNERS` goes to Team Lead. Where the ruleset does not enforce CODEOWNERS review, PRM labels
-  `owner-review` and waits.
-- **Unapproved behaviour change**: in product repositories, AI Reviewer or codex findings flagging
-  changed behaviour or removed/weakened tests route back to the implementer or Team Lead for
-  correction (unresolved product decisions go to Team Lead's Owner-decision path). In shared
-  repositories, PRM labels `owner-review` and waits for the Owner.
+  re-reviewed. Never replace auto-merge with a direct merge or bypass a required check.
+- **Behaviour/test findings**: in product and shared repositories alike, route changed behaviour
+  or removed/weakened tests back to the original implementer/Team Lead for correction. Unresolved
+  product or policy decisions go to Team Lead's Owner-decision path, without an extra PR-approval gate.
 - A new push expires earlier reviews/checks; evidence is the PR head SHA.
 - Agents write to GitHub via the agent GitHub App identity provided by the Dev Team runtime
   environment as defined in the FS/PRM instructions.

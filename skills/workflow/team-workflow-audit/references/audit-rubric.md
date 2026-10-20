@@ -27,7 +27,7 @@ Outcome Integrity and Task Effectiveness are independent: a correctly reviewed a
 | Active work has an accountable next actor | nonterminal leaf with no live/queued actor and no explicit wait owner | P1 |
 | Executor impediments return to Team Lead | executor declares terminal block without TL recovery/escalation | P1 |
 | Handoffs preserve the reviewed SHA | implementation/review/merge SHAs differ without a new gate | P0 |
-| Required review precedes merge | merge time is earlier than required approval | P0 |
+| Required review check precedes merge | merge time is earlier than the passing required review check | P0 |
 | Runs have one authoritative successor | concurrent runs overlap without explicit supersession | P1 |
 | Autopilot stays inside its control-plane authority | source/config/runtime repair or a gate decision performed by an operations-only supervisor | P1; gate bypass may be P0 |
 | Retries preserve intent and budget | stale-HEAD/Owner-cancelled rerun, missing readiness, duplicate dispatch or budget reset on each sweep | P1 |

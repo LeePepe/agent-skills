@@ -1,9 +1,9 @@
 [
-  {"id":"healthy-delivery","events":["tl_workdir","fs_complete","review_approved","ci_passed","merged"],"implementation_sha":"aaa","review_sha":"aaa","merge_sha":"aaa","workflow_fit":true,"protective_deviation":false,"expected":[]},
+  {"id":"healthy-delivery","events":["tl_workdir","fs_complete","auto_merge_enabled","review_check_passed","ci_passed","merged"],"implementation_sha":"aaa","review_sha":"aaa","merge_sha":"aaa","workflow_fit":true,"protective_deviation":false,"expected":[]},
   {"id":"silent-stall","events":["tl_workdir","fs_complete"],"nonterminal":true,"next_actor":null,"expected":["silent_stall"]},
   {"id":"executor-invalid-block","events":["tl_workdir","executor_terminal_block"],"tl_recovery":false,"expected":["invalid_executor_block"]},
-  {"id":"stale-sha","events":["tl_workdir","fs_complete","review_approved","ci_passed","merged"],"implementation_sha":"bbb","review_sha":"aaa","merge_sha":"bbb","expected":["stale_sha"]},
-  {"id":"premature-merge","events":["tl_workdir","fs_complete","merged","review_approved"],"implementation_sha":"ccc","review_sha":"ccc","merge_sha":"ccc","expected":["merge_before_review"]},
+  {"id":"stale-sha","events":["tl_workdir","fs_complete","review_check_passed","ci_passed","merged"],"implementation_sha":"bbb","review_sha":"aaa","merge_sha":"bbb","expected":["stale_sha"]},
+  {"id":"premature-merge","events":["tl_workdir","fs_complete","merged","review_check_passed"],"implementation_sha":"ccc","review_sha":"ccc","merge_sha":"ccc","expected":["merge_before_review"]},
   {"id":"overlapping-runs","events":["tl_workdir","run_one_started","run_two_started"],"overlapping_runs":true,"supersession_explicit":false,"expected":["overlapping_runs"]},
   {"id":"compliant-unfit-workflow","events":["tl_workdir","executor_terminal_block"],"workflow_fit":false,"followed_workflow":true,"tl_recovery":false,"expected":["invalid_executor_block","unfit_workflow"]},
   {"id":"protective-deviation","events":["tl_workdir","unsafe_merge_refused","tl_escalated"],"workflow_fit":false,"followed_workflow":false,"protective_deviation":true,"expected":["unfit_workflow","protective_deviation"]},

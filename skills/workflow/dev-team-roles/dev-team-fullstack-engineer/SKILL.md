@@ -76,9 +76,9 @@ PR branch and record it as `delivery_work_dir`. Resolve conflicts by merging the
    The repair note lists the invariant and all instances fixed.
 7. **Publish**: push the reviewed SHA unchanged, open or update the PR with the repo's PR template:
    *Existing behaviour*, *Intent*, *Compatibility*, *Removed or weakened tests + reason*, *Test
-   evidence*. The PR is **never Draft**; a needed Owner wait is expressed by the `owner-review` label
-   and CODEOWNERS approval, not Draft. Confirm local HEAD = remote branch = PR `headRefOid` =
-   reviewed SHA, then hand off to Team Lead for immediate PRM dispatch. Never merge or enable auto-merge — that is PRM's.
+   evidence*. The PR is **never Draft**. Confirm local HEAD = remote branch = PR `headRefOid` =
+   reviewed SHA, then hand off to Team Lead immediately so PRM enables auto-merge on opening and
+   follows through to merge read-back. Never merge or enable auto-merge — that is PRM's.
    Handing off a PR is not done: required checks must pass on that head. Distinguish your
    implementation output from Target delivery under the contract. You may watch
    required checks and repair frozen Tasks (repeat steps 3–7), or hand off and stop; PRM is the
@@ -127,7 +127,7 @@ by PRM return through TL the same way with the new SHA and its fresh pre-push ve
 ## GitHub identity
 
 - Writes by agents (push, PR, comment, label, merge) use the agent GitHub App identity that the Dev
-  Team runtime provides, never the Owner's personal account (which is for the Owner's approvals,
+  Team runtime provides, never the Owner's personal account (reserved for human decisions,
   rulesets and settings).
 - The runtime environment sets `GIT_CONFIG_GLOBAL` (App commit author and App credential helper)
   and puts a `gh` wrapper that mints a short-lived App installation token first on `PATH`. Use plain
@@ -137,7 +137,7 @@ by PRM return through TL the same way with the new SHA and its fresh pre-push ve
   identity, not a personal account), and `gh api repos/<owner>/<repo> --jq .full_name` matches the
   remote URL. On mismatch or token failure, stop and hand the evidence to Team Lead — never fall
   back to another identity.
-- The App can edit `.github/workflows/**` (merge still requires Owner code-owner review). It cannot
+- The App can edit `.github/workflows/**`; those PRs use the same auto-merge and required checks. It cannot
   change rulesets or repository settings; hand those to the Owner.
 - Never print tokens or private keys. Credential creation or rotation is Owner-only.
 - Never write account names, token/helper paths, repository IDs or local absolute paths into

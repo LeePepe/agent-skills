@@ -56,14 +56,14 @@ version until Owner confirms finalization and execution; report current failures
 | Planning | settled approach available; intent/acceptance (stable AC IDs), existing behaviour / compatibility / removed behaviour, owned paths/layers, dependencies or verification missing/ambiguous, or no exact-revision spec-gate PASS | Planner Lead to validate/reuse existing artifacts and fill concrete gaps |
 | Implementation | exact-revision spec-gate PASS; dependencies done; no conflicting writer or parallel files/contracts | Original Fullstack Engineer for the Target's frozen Tasks and owned paths |
 | Pre-push review | FS owns its loop with AI Reviewer | none (route gaps, disputes or exhausted rounds to the definer) |
-| Shipping | FS returns a created or updated non-Draft PR to TL | Immediately dispatch PRM; do not wait for a sweep or silence. If a PRM run is already queued/dispatched/running, do not dispatch again |
+| Shipping | FS returns a created or updated non-Draft PR to TL | Immediately dispatch PRM to enable auto-merge and follow through to merge read-back; do not wait for checks, a sweep or silence. If a PRM run is already queued/dispatched/running, do not dispatch again |
 | Closure | PRM confirmed legal merge; Target acceptance has evidence | mark the Target issue done; promote unblocked Targets; close Goal only with its end-to-end evidence |
 
 - On an FS gap signal, route the evidence through contract R3–R5; have Planner prepare any
   definition delta and retain its exact-revision gate. Keep the Target/AC mapping in the issue.
 - A merged PR with an open issue is a closure action, not a new ship action.
 - Dev Team never opens Draft PRs. A Dev Team Draft PR is a defect: dispatch the original FS to mark
-  it Ready. Owner waits are expressed with `owner-review` and CODEOWNERS approval.
+  it Ready, then immediately dispatch PRM to enable auto-merge and follow through to merge read-back.
 - A spec need not be Spec Kit (see Planner's "What counts as the spec"). Never block or escalate
   only because a repo has no Spec Kit; send real gaps to Planner.
 
@@ -113,11 +113,11 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   checkout of that branch when no reusable recorded workspace exists; no Owner authorization or "recovery checkout" request is needed.
 - FS merges the base into the PR branch (no rebase/force-push), gets fresh pre-push `PASS` for the new
   SHA, then pushes and returns the same PR to TL for immediate PRM dispatch.
-- A repair stays within the PR's recorded Intent and authorized layer/paths. A fix that would touch
-  the target repo's contract-derived `CODEOWNERS` paths or require unauthorized behaviour/test changes
-  is not routine → Owner (Important/decision rules apply). In product repositories, review findings
-  flagging changed behaviour or removed/weakened tests return to the implementer or Team Lead's
-  Owner-decision path, rather than creating a direct Owner wait.
+- A repair stays within the PR's recorded Intent and authorized layer/paths. CODEOWNERS paths use
+  the same immediate auto-merge and required checks; path ownership adds no approval requirement.
+  In product and shared repositories alike, review findings flagging changed behaviour or
+  removed/weakened tests return to the original implementer for in-scope correction; unauthorized
+  changes and unresolved decisions return through the definer/Owner-decision path.
 - Definition/dependency gaps follow contract R3. Policy/intent conflicts
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
@@ -157,7 +157,9 @@ Keep the parent assigned to Dev Team; do not reassign issues between agents as a
   secrets, personal data, CI trust boundary, prompt injection or obvious bugs. Unedited means
   `created_at == updated_at`.
   Then route the target-repo rule update (e.g. `AGENTS.md` or reviewer policy) so the same finding
-  does not recur: FS lands the rule write-back as a separate small PR to base (normal CODEOWNERS approval). That PR does not re-enter this flow for the same decision. After it merges, rerun review on the delivering PR. A new push needs no new Owner comment.
+  does not recur: FS lands the rule write-back as a separate small PR to base with immediate
+  auto-merge and the same required checks. That PR does not re-enter this flow for the same
+  decision. After it merges, rerun review on the delivering PR. A new push needs no new Owner comment.
   Never re-escalate the same decision: a later identical finding cites the prior confirmation
   and routes the rule write-back instead.
 - Escalate once to `[@Owner](mention://member/<Owner member ID>)` when

@@ -16,7 +16,7 @@ def evaluate(case):
     shas = [case.get(key) for key in ("implementation_sha", "review_sha", "merge_sha")]
     if all(shas) and len(set(shas)) != 1:
         findings.append("stale_sha")
-    if "merged" in events and ("review_approved" not in events or events.index("merged") < events.index("review_approved")):
+    if "merged" in events and ("review_check_passed" not in events or events.index("merged") < events.index("review_check_passed")):
         findings.append("merge_before_review")
     if case.get("overlapping_runs") and not case.get("supersession_explicit"):
         findings.append("overlapping_runs")

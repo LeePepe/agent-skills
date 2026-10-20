@@ -52,7 +52,7 @@
    - Target 间依赖 → `--stage N`；不把内部 Task 依赖组变成 issue 或重复派发。
 3. **blocker 先建**,拿到真实 key 后依赖方在 Blocked-by 段引用它。
 4. **spec 先入库门禁**：核实引用的 spec/plan/tasks/ADR 在实际执行基线可读且匹配批准版本。
-   缺失时保持待派发，只在授权内补文档 PR，通过既有 gates 和审批后复核；详见 `SKILL.md` 第 4 步与
+   缺失时保持待派发，只在授权内补文档 PR，打开即启用 auto-merge、required checks 全绿合并读回后复核；详见 `SKILL.md` 第 4 步与
    `multica-cli.md` §「spec 先入库门禁」。
 5. dispatch:已就绪的 Target issues assign 给 "Dev Team" squad + 转 todo + 验证 run(两步+验证)；Goal parent 不派实现。
 

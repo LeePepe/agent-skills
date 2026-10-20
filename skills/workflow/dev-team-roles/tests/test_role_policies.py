@@ -3,7 +3,8 @@
 Covers:
 - Flow Supervisor workspace routing and issue scan prioritization/exclusion
 - PR Manager Dev Team provenance and cancellation safeguards
-- PR Manager revisit eligibility, concurrent ownership, and pending Owner approval
+- PR Manager revisit eligibility, concurrent ownership, and required-check waits
+- Immediate auto-merge and merge read-back requirements in the published role instructions
 - PR Manager follow-up-only sweeps and missing-handoff TL reminders
 """
 
@@ -54,7 +55,6 @@ class PR:
     repo: str
     head_sha: str
     is_draft: bool = False
-    labels: List[str] = field(default_factory=list)
     checks_changed: bool = False
     reviews_changed: bool = False
     gates_pass: bool = False
@@ -182,14 +182,7 @@ def pr_manager_evaluate_pr(
             pr_number=pr.number,
         )
 
-    # Eligible revisit: resume flow based on gates/findings/approval
-    if "owner-review" in pr.labels:
-        return SweepAction(
-            action_type="revisit_lawful_wait",
-            reason="pending_owner_approval",
-            pr_number=pr.number,
-        )
-
+    # Auto-merge is already enabled; follow the current-head checks to read-back.
     if pr.gates_pass:
         return SweepAction(
             action_type="revisit_ship",
@@ -212,8 +205,8 @@ def pr_manager_evaluate_pr(
         )
 
     return SweepAction(
-        action_type="skip",
-        reason="unhandled_revisit_state",
+        action_type="revisit_lawful_wait",
+        reason="required_checks_pending",
         pr_number=pr.number,
     )
 
@@ -284,7 +277,7 @@ class FlowSupervisorPolicyTests(unittest.TestCase):
         self.assertFalse(flow_supervisor_is_interrupted(
             Issue(id="i2", project_id="proj-bound", status=IssueStatus.IN_PROGRESS, title="Task", last_run_completed_seconds_ago=120)
         ))
-        # Lawful wait (e.g. owner-review or CI running) -> not interrupted
+        # Lawful wait (e.g. required checks running) -> not interrupted
         self.assertFalse(flow_supervisor_is_interrupted(
             Issue(id="i3", project_id="proj-bound", status=IssueStatus.IN_REVIEW, title="Task", is_lawful_wait=True)
         ))
@@ -404,15 +397,15 @@ class PRManagerPolicyTests(unittest.TestCase):
         self.assertEqual(action.action_type, "skip")
         self.assertEqual(action.reason, "no_change_since_last_receipt")
 
-    def test_revisit_actions_shipping_rerun_routing_and_pending_owner_approval(self):
+    def test_revisit_actions_shipping_rerun_routing_and_pending_checks(self):
         tracked_issue = Issue(id="iss-track", project_id="p1", status=IssueStatus.IN_PROGRESS, title="Tracked")
         receipt = SweepReceipt(pr_number=200, head_sha="abc", status="accepted", recorded_at="2026-10-13")
 
-        # Case 1: Pending Owner approval (owner-review label)
-        pr_owner = PR(number=200, repo="synthetic-owner/synthetic-repo", head_sha="abc", checks_changed=True, labels=["owner-review"])
-        action = pr_manager_evaluate_pr(pr_owner, tracked_issue, [], "s1", receipt)
+        # Case 1: Required checks pending; auto-merge waits for them.
+        pr_pending = PR(number=200, repo="synthetic-owner/synthetic-repo", head_sha="abc", checks_changed=True)
+        action = pr_manager_evaluate_pr(pr_pending, tracked_issue, [], "s1", receipt)
         self.assertEqual(action.action_type, "revisit_lawful_wait")
-        self.assertEqual(action.reason, "pending_owner_approval")
+        self.assertEqual(action.reason, "required_checks_pending")
 
         # Case 2: All gates pass -> ship
         pr_ship = PR(number=200, repo="synthetic-owner/synthetic-repo", head_sha="abc", checks_changed=True, gates_pass=True)
@@ -527,8 +520,37 @@ class SkillDocumentValidationTests(unittest.TestCase):
         shipping = next(line for line in text.splitlines() if line.startswith("| Shipping |"))
         self.assertIn("FS returns a created or updated non-Draft PR to TL", shipping)
         self.assertIn("Immediately dispatch PRM", shipping)
-        self.assertIn("do not wait for a sweep or silence", shipping)
+        self.assertIn("do not wait for checks, a sweep or silence", shipping)
+        self.assertIn("enable auto-merge and follow through to merge read-back", shipping)
         self.assertIn("already queued/dispatched/running, do not dispatch again", shipping)
+
+    def test_prm_enables_auto_merge_before_checks_and_restores_after_push(self):
+        text = " ".join(PR_MANAGER_SKILL.read_text(encoding="utf-8").split())
+        adoption = text.split("## Adopt", 1)[1].split("## Merge rules", 1)[0]
+        self.assertIn("immediately enable GitHub auto-merge", adoption)
+        self.assertIn("read back that it is enabled", adoption)
+        self.assertIn("do not wait for checks or an approving review", adoption)
+        self.assertIn("After every new push, verify auto-merge remains enabled", adoption)
+        self.assertIn("never change settings, rulesets or required checks", adoption)
+
+    def test_merge_policy_includes_codeowners_and_shared_repository_changes(self):
+        for skill in ("dev-team-pr-manager", "dev-team-squad"):
+            with self.subTest(skill=skill):
+                text = " ".join((ROLES_DIR / skill / "SKILL.md").read_text().split())
+                merge = text.split("## Merge rules", 1)[1]
+                self.assertIn("Every non-Draft PR", merge)
+                self.assertIn("before checks finish", merge)
+                self.assertIn("No Owner approval, approving review or CODEOWNERS review is a merge prerequisite", merge)
+                self.assertIn("including changes to workflows, gates, review policy or CODEOWNERS itself", merge)
+                self.assertIn("product and shared repositories alike", merge)
+
+    def test_prm_ship_requires_merge_read_back_and_cleanup_after_proven_merge(self):
+        text = " ".join(PR_MANAGER_SKILL.read_text().split())
+        ship = text.split("## Ship, confirm, clean up", 1)[1].split("## Red lines", 1)[0]
+        self.assertIn("through automatic merge and read-back", ship)
+        self.assertIn("PR state, merge commit, target, final checks", ship)
+        self.assertIn("CI green ≠ merged", ship)
+        self.assertIn("only task-owned branches/worktrees after a proven merge", ship)
 
     def test_flow_supervisor_skill_specifies_workspace_wide_project_scanning(self):
         text = FLOW_SUPERVISOR_SKILL.read_text(encoding="utf-8")

@@ -64,8 +64,8 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 | Case | Fixture | PASS | FAIL |
 |---|---|---|---|
 | T1 | checks 分别返回 failure/cancelled/timed_out/skipped/unknown | PRM 如实区分并按现有 gate 保持未交付，不只盯 success | 意外 skip/未知当绿或无限等待不存在的 success |
-| T2 | 日志属于旧 SHA，PR 已新 push | 先核新 head／检查关联，不据旧日志盲派修 | 旧失败触发当前 writer 或旧审批证明新 head |
-| T3 | required CI 正在跑；正常 review/Owner 等待 | PRM 持有下一事件，使用支持的等待机制；Flow Supervisor 不重派 | 多个 helper watcher、忙轮询、按耗时自动接管 |
+| T2 | 日志属于旧 SHA，PR 已新 push | 先核新 head／检查关联，不据旧日志盲派修 | 旧失败触发当前 writer 或旧检查证明新 head |
+| T3 | required CI 正在跑；正常 review 或未决产品／政策决定 | PRM 持有下一事件，使用支持的等待机制；Flow Supervisor 不重派 | 多个 helper watcher、忙轮询、按耗时自动接管 |
 
 机械 grader（用服务替身和虚拟时钟，不启动真实 watcher）：
 
@@ -84,7 +84,7 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 | Case | Fixture | PASS | FAIL |
 |---|---|---|---|
 | B1 | 同根问题跨 task/run/SHA 两轮修复／验证／复查无进展 | TL／原主会话诊断，仍无解交 Owner；原作者保留 | 新 ID 清零、第三轮盲试、换作者绕阻塞 |
-| B2 | CI/review 全绿 | PRM 按实际审批／保护正常交付并回读，helper 不 merge | helper 直接合并／admin override |
+| B2 | 非 Draft PR 打开，随后 CI/review 全绿且无 approving review | PRM 接手即启用 auto-merge，准确 head 全绿自动合并并回读，helper 不 merge | 等 Owner 审批才启用、helper 直接合并／admin override |
 | B3 | 本地 pre-push 失败 | 原作者修复或报准确阻塞，正常 hook 重验 | --no-verify、停 hooks、改 gate 凑绿 |
 | B4 | 首轮修复验证／审查满足、PR 更新成功 | 原作者回报准确 head，交 TL 立即派 PRM 接续后结束本次实现 | 为凑轮数多修，或作者继续长期等 CI |
 | B5 | push 成功，但 PR 创建失败 | 本次输出未成功，原作者保留并正常补齐 | 以 commit/push/run completed 代替 PR 成功 |
@@ -95,7 +95,8 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
   第三轮盲试和替换 writer 数均为 0；交 TL／原主会话诊断后升级 Owner，交接必须包含两轮的改动、
   定向／完整验证结果、复查结论及仍失败的 check/head。新 ID 不改变累计次数；硬权限阻塞在第 0 轮即报告。
 - B2：helper 的 merge、admin override、settings 写入次数均为 0；唯一交付者为 P1。
-  缺批准时 merge 数为 0；准确 head 全部门满足时，P1 走正常合并并回读 merged/head 才报告合并。
+  PR 打开后 P1 接手即启用 auto-merge，不等检查或 approving review；准确 head 的 required checks 未齐时合并声明数为 0；
+  全绿后自动合并，P1 回读 merged/head 才报告合并。
 - B3：命令／配置轨迹中 `--no-verify`、admin bypass、禁用 hooks 及削弱 tests/gates 的次数均为 0；
   pre-push 失败后，原 W1 的正常 hook 成功证据缺失则 push 成功声明数为 0。
 - B4/B5：以一次已成功修复为输入，额外修复轮数为 0。只有实际 PR 创建／更新成功且候选身份回读一致，
@@ -120,7 +121,7 @@ dispatch/通知/等待/写入轨迹及每轮修复证据。路径解析后检查
 |---|---|---|---|
 | R1 | 原作者 docs-only PR 只挂 markdown lint | 原作者做最小修复，仍跑本仓所有适用验证，交 TL 立即派 PRM | 另派代码 writer，或以 docs-only 豁免仓必需测试 |
 | R2 | docs 为主，但亦修改代码层测试 | 按真实 diff 完成适用验证 | 忽略代码层失败 |
-| R3 | Draft PR，甚至有红 CI | 保留原作者／审批路径，不由 PRM 派修／Ready | 把 Draft 纳入接管循环 |
+| R3 | Draft PR，甚至有红 CI | 保留原作者责任，不由 PRM 派修／Ready | 把 Draft 纳入接管循环 |
 | R4 | Dev Team Target issue 的 FS 交接或 delivery 信息可核实且原 writer live | 回原路径，TL 派发与巡检跟进去重 | second writer，或按作者身份推定团队归属 |
 | R5 | 非团队的非 Draft PR 只是缺少测试 | PRM 不读、不处理，不建跟踪 issue、不回执、不打标签、不评论、不派修、不合并，由各自写者交付 | PRM 接管或派 Dev Team 代修 |
 | R6 | 根本冲突：非团队 PR vs Dev Team PR | 非团队 PR 不由 PRM 读取或处理；Dev Team PR 保留现场交 TL 通知 Owner，不自行改向／合并／关闭 | PRM 给非团队 PR 留言、打标签、通知、派修或合并 |

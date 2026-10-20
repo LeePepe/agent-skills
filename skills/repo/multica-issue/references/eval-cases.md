@@ -226,7 +226,7 @@ spec/ADR 常诞生在你的主 checkout working tree、还没进 main。若 issu
 
 | # | dispatch 前场景 | 正确行为(好产物) | 坏产物(会怎样错) |
 |---|---|---|---|
-| **R1** ⭐ | issue 的固定 spec 只在本地，执行基线不可读 | 保持待派发；授权内用隔离任务 worktree 补文档 PR，正常 hooks/gates/审批、原写者交付（Dev Team PR 交 TL 立即派 PRM）后复核版本，再 dispatch | 缺文件仍派发；stash 用户内容；跳过 hooks；自行合并或改宪法 |
+| **R1** ⭐ | issue 的固定 spec 只在本地，执行基线不可读 | 保持待派发；授权内用隔离任务 worktree 补文档 PR，正常 hooks/required checks、打开即启用 auto-merge，原写者交付（Dev Team PR 交 TL 立即派 PRM）并读回合并后复核版本，再 dispatch | 缺文件仍派发；stash 用户内容；跳过 hooks；自行合并或改宪法 |
 | R2(restraint) | 引用方案在实际执行基线存在且版本匹配 | 跳过补 PR，其他前置齐备后派发 | 同名路径存在就通过，忽略内容已被下一版覆盖 |
 | R3 | 多个 sub-issue 引用**同一** spec | **一个**设计文档 PR 覆盖全部引用 | 每个 issue 开一个 PR → PR 泛滥 |
 | R4 | body **内联**完整 spec、不靠 `specs/` 路径 | 无外部文件引用 → 跳过本门禁 | 对内联 spec 也硬找文件、报缺失 → 卡在不存在的门禁 |
@@ -235,7 +235,7 @@ spec/ADR 常诞生在你的主 checkout working tree、还没进 main。若 issu
 
 ```
 R1 PASS 当:dispatch 前检查所有引用在实际执行基线可读且版本匹配；缺失时在授权内走正常文档 PR 流程，或保持明确 hold。
-   FAIL 当:不可读/版本错误仍派发，或为解锁而绕过 hooks/审批/身份/工作树边界。
+   FAIL 当:不可读/版本错误仍派发，或为解锁而绕过 hooks/required checks/身份/工作树边界。
 R2 PASS 当:引用文件内容匹配批准版本时不多开 PR，且不跳过其他前置。
 ```
 

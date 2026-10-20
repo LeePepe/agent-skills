@@ -172,8 +172,10 @@ body 用 tech-context/ADR 模板(Decision / Context / Consequences / 受影响 l
 只有同名路径存在不够。记录 commit/ref，防止最新讨论替换当前实施方案。
 
 缺少文件时保留待派发状态。若已授权补文档，使用允许根目录下的独立任务 worktree、配置的 agent 身份与正常
-commit/push/PR 流程，只提交所需文件；保留他人的 checkout 与未提交内容。所需 CI、独立审查和 Owner 审批继续有效，
-Dev Team PR 交 TL 立即派 PRM，其他 PR 由原写者交付，不因“纯文档”跳过 hooks 或自动改宪法。合并后复核实际执行基线与固定版本，再派发。
+commit/push/PR 流程，只提交所需文件；保留他人的 checkout 与未提交内容。所需 CI 和独立审查继续有效；
+非 Draft PR 打开即启用 auto-merge，required checks 全绿即合并，不等 Owner 或 CODEOWNERS 审批。
+Dev Team PR 交 TL 立即派 PRM 启用并跟进到合并读回，其他 PR 由原写者交付；不因“纯文档”跳过 hooks 或自动改宪法。
+合并后复核实际执行基线与固定版本，再派发。
 多个任务引用同一份方案可共用设计文档 PR；内联完整、固定的方案则不需要不存在的外部路径检查。
 
 命令核验见 `references/multica-cli.md` §「spec 先入库门禁」。
