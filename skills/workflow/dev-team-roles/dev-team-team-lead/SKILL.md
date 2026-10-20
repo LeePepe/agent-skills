@@ -112,7 +112,7 @@ restate history. Resolve the recipient through [squad Mentions](../dev-team-squa
 - FS merges the base into the PR branch (no rebase/force-push), gets fresh pre-push `PASS` for the new
   SHA, then pushes and returns the same PR to TL for immediate PRM dispatch.
 - Apply contract R2–R5 to repair scope and [squad merge rules](../dev-team-squad/SKILL.md#merge-rules-all-repos)
-  to behaviour/test findings, CODEOWNERS paths and required gates.
+  to behaviour/test findings and required gates.
 - Definition/dependency gaps follow contract R3. Policy/intent conflicts
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
   steps need Owner resolution; technical failures still unresolved after the required diagnosis
