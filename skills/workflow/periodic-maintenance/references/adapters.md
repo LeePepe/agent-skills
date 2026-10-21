@@ -20,7 +20,7 @@ fixture 是测试用的内部交换格式，不是新平台 schema 或 Multica t
 
 | 输入 | 含义／校验 |
 |---|---|
-| scope | 由运行配置独立提供的仓名→准确 repo HTTPS URL；只允许规则中的九仓名称。真实运行前须另外核实 Owner 范围和可见性，模型不能修改 scope |
+| scope | 由运行配置独立提供的仓名→准确 repo HTTPS URL；只允许规则中的首批仓名。真实运行前须另外核实 Owner 范围和可见性，模型不能修改 scope |
 | snapshot | 仓名、URL、public、完整 revision、expected_paths、files、gaps。缺失或不可读文件保留在预期路径及缺口中；元数据由未来可信采集器核实，不以模拟输入自报当线上证明 |
 | files | path、role（current/code/history）、content、完整 commit、带时区 committed_at、可选 diff；仅仓内相对路径，历史不作为待更新对象 |
 | review | 对应 revision、covered_paths、gaps、assessments；中断／未读路径不能出现在 covered_paths |
