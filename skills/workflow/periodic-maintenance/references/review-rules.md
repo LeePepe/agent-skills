@@ -5,8 +5,10 @@
 
 ## 范围与证据
 
-首批仓名范围：agent-skills、shared-ci、shared-design-tokens、shared-design-system、shared-telemetry、
-VoxKit、VoxPocket、VitalStride、AIDash。仓名枚举不是公开性或可读性的证明。运行配置须绑定准确 remote，
+首批仓名范围（Owner 2026-10-20）：agent-skills（就绪）、user-skills（就绪；goal-target-task 合同在 LeePepe/user-skills）、
+shared-ci（就绪）、shared-design-system（就绪）、shared-telemetry（就绪）、VoxKit（未就绪／未检查；LeePepe/VoxKit 当前 404，
+每轮仅记录缺口，不得记为通过，不得新建仓或扩权）、VoxPocket（就绪）、VitalStride（就绪）、AIDash（就绪）。
+shared-design-tokens 已自范围移除（仓已归档，不再延期）。仓名枚举不是公开性或可读性的证明。运行配置须绑定准确 remote，
 逐仓核对实际身份、公开性与固定 revision；私有 Skills、Financial、其他 owner 的同名仓和范围外仓均不自动加入。
 无法访问、缺 metadata、未检查、中断或证据不足分别记录缺口；不能更改可见性、扩权或把缺口记为通过。
 

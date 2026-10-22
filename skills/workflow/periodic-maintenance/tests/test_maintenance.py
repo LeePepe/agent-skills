@@ -160,10 +160,24 @@ class MaintenanceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "visibility"):
                 self.replay()
         self.snapshot["visibility"] = "public"
-        for name in ("Skills", "Financial", "unrelated"):
+        for name in ("Skills", "Financial", "unrelated", "shared-design-tokens"):
             self.snapshot["repository"] = name
             with self.assertRaisesRegex(ValueError, "approved scope"):
                 self.replay()
+
+    def test_scope_list_accepts_user_skills_rejects_archived_tokens(self):
+        self.assertIn("user-skills", maintenance.REPOSITORIES)
+        self.assertNotIn("shared-design-tokens", maintenance.REPOSITORIES)
+
+    def test_voxkit_not_ready_records_gap_and_never_complete(self):
+        binding = copy.deepcopy(self.bundle["projects"][0])
+        binding["repo_url"] = "https://github.com/LeePepe/VoxKit"
+        self.bundle["scope"] = {"VoxKit": "https://github.com/LeePepe/VoxKit"}
+        self.bundle["projects"] = [binding]
+        self.snapshot.update(repository="VoxKit", url="https://github.com/LeePepe/VoxKit", gaps=[])
+        result = self.replay()
+        self.assertEqual(result["inspection"], "incomplete")
+        self.assertIn(maintenance.NOT_READY_REPOSITORY_GAP, result["gaps"])
 
     def test_same_name_wrong_owner_is_not_in_scope(self):
         self.snapshot["url"] = "https://github.com/unrelated/agent-skills"
