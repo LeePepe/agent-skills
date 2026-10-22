@@ -78,7 +78,7 @@ discover new PRs or inspect PRs without a Dev Team issue.
 ## Dev Team repair path
 
 - An actionable stuck signal from a stuck-PR bot comment, the repair queue
-  (`prmon-repair-queue/v1` under `~/Development/handoff/_watch/prmon/repair-queue/`),
+  (the coordinator-maintained `prmon-repair-queue/v1`),
   or the PRM sweep is a repair trigger, not a terminal comment or summary. Route it through
   TL to the original FS. A legitimate proxy is allowed only when the original writer is
   unreachable, the repair stays within the original owned paths, and the proxy still gets

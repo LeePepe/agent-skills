@@ -107,7 +107,7 @@ restate history. Resolve the recipient through [squad Mentions](../dev-team-squa
 ## Routine PR repairs
 
 - An actionable stuck signal from a stuck-PR bot comment, the repair queue
-  (`prmon-repair-queue/v1` under `~/Development/handoff/_watch/prmon/repair-queue/`),
+  (the coordinator-maintained `prmon-repair-queue/v1`),
   or the PRM sweep is routed to the original FS. If the original writer is unreachable, TL may
   route to a legitimate proxy only within the original owned paths, with different-vendor review,
   exact-head required checks, `--auto --squash --match-head-commit`, merge read-back, and ledger
