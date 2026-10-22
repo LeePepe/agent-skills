@@ -180,7 +180,7 @@ Unknown → observe and record the next check condition.
   place the Dev Team verdict is not a merge gate. Never invent a missing check or waive a required one.
 - No Owner approval, approving review or CODEOWNERS review is a merge prerequisite, including
   changes to workflows, gates, review policy or CODEOWNERS itself. Missing protection, unavailable
-  auto-merge or old approval protection is a gap to TL/definer, never authority to change settings,
+  auto-merge or old approval protection goes to the platform maintainer and coordinator, never authority to change settings,
   rulesets or required checks. Target-repo protections remain effective.
 - **Behaviour/test findings**: in product and shared repositories alike, route changed behaviour
   or removed/weakened tests to the original implementer/TL within the accepted scope. Unresolved
@@ -200,10 +200,16 @@ Unknown → observe and record the next check condition.
   TL writes the interim record; Planner or FS persists it. Technical failures follow the platform
   maintainer/coordinator or definer route above, not an Owner merge gate. A human pause or pending
   decision outranks elapsed time.
-- **Owner-decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts
-  a recorded Owner decision, TL asks Owner **once**, quoting the exact finding with PR, head SHA,
-  check/comment link and decision reference. TL supplies exact proposed comment text; only Owner
-  posts it personally. Agents never write through Owner's account.
+- **Danger and hold**: Owner handling is limited to danger operations—public App Store release,
+  first public npm package, trusted-publisher configuration, secrets/credentials/keychain/`.env`/
+  `app.pem`, CI trust-boundary or prompt-injection disputes, force-push, hook bypass/`--no-verify`,
+  `danger-full-access`/`--yolo`, and destructive production data, billing, or infrastructure changes.
+  An explicit hold means open-only: do not enable auto-merge and only summarize/observe. These are
+  the §6/§10.2 exceptions; normal merge and release are not Owner gates.
+- **Decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts a
+  recorded decision, route the exact finding, current head and decision reference to TL and the
+  definer as a decision question under the contract. Preserve acceptance and history; no Owner PR
+  comment is required for normal merge. Agents never write through the Owner's account.
 - An `Owner decision:` comment is optional written trace only when releasing a danger or an
   explicit hold. If used, verify via API: comment `user.id` equals the repository owner's ID from
   `gh api repos/<owner>/<repo> --jq .owner.id`, `user.type` is `User`, and
