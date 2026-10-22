@@ -8,8 +8,8 @@ repo 内的执行者仍从目标仓 `AGENTS.md` 读取 guide 和固定版本 sha
 |---|---|---|
 | 01 需求沟通与规划 | 获定义 assignment 的人或 agent 按[goal-target-task](https://github.com/LeePepe/user-skills/blob/main/skills/goal-target-task/SKILL.md)定义 Goal／Targets／Tasks、依赖和验收命令 | 冻结的可执行 revision；跨仓协调用 [`orchestrate`](orchestrate/SKILL.md)，团队入口用 [`multica-issue`](../repo/multica-issue/SKILL.md) |
 | 02 实现 | Dev Team 或 subagent 只执行冻结 Target 内获分配的 Tasks，按合同限定审查 | 成功创建／更新本次 PR，回报准确 head、验证、审查及限制；Dev Team PR 交 TL 立即派 PRM 合法合并；其他 PR 由各自写者交付 |
-| 03 PR 接管与交付 | FS 创建或更新 Dev Team 非 Draft PR 后交 TL，TL 立即派 PRM | 立即启用 auto-merge，跟进 CI／review、回派具体修复，直至合并读回或准确授权处置；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
-| 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 对应内容正确发布；现有 SDK 产物辅助为 `shared-release`，新 Actions 接线有下述版本依赖 |
+| 03 PR 接管与交付 | FS 创建或更新 Dev Team 非 Draft PR 后交 TL，TL 立即派 PRM | 立即启用 auto-merge，跟进 CI／review、回派具体修复并跟到合并读回；两轮仍失败交定义方，平台故障交平台维护方与协调者；辅助诊断用 [`layered-ci-autofix`](../repo/layered-ci-autofix/SKILL.md) |
+| 04 自动化发布 | 非破坏性 SDK／内部 TestFlight 的实际发布内容合入且必要检查通过 | 正常发版无需 Owner 逐次放行；对应内容正确发布；现有 SDK 产物辅助为 `shared-release`，新 Actions 接线有下述版本依赖 |
 | 05 产品遥测分析 | 优先交付 pageview／pageaction、PLT 等基础收集：产品→Azure L0→aidata 整理可查询 | 收集链路与分析分别验收；分析只由 workflow skill 独立手动触发，当前目录尚无已交付分析入口 |
 | 06 周期维护（启用 HOLD） | 未来由本仓既有 Codex runner 独立只读核对计划范围内公开仓的当前文档和相关代码 | [`periodic-maintenance`](periodic-maintenance/SKILL.md) 提供未启用规则、离线适配器和模板；普通 backlog／待澄清草稿，不修复、派开发或追修 |
 

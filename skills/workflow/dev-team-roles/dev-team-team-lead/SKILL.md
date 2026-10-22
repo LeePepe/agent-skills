@@ -94,7 +94,7 @@ Reviewer, repairs and PRM through closure; never replace an existing checkout, r
 - Never request implementation review on FS's behalf; route FS to publish a corrected request.
 - Route exhausted review or an infeasible spec to the definer under contract V3, with unmet
   requirements and attempts/results; diagnose implementation gaps, plan defects or technical limits.
-  If still unresolved, escalate to Owner; never lower acceptance to end the loop.
+  After two repair rounds, return the unresolved issue to the definer; never lower acceptance to end the loop.
 - A spec/plan found wrong after implementation started (e.g. a removed behaviour nobody approved)
   goes back to Planner Lead and the spec gate, not to FS as a code fix.
 
@@ -115,8 +115,8 @@ restate history. Resolve the recipient through [squad Mentions](../dev-team-squa
   to behaviour/test findings and required gates.
 - Definition/dependency gaps follow contract R3. Policy/intent conflicts
   (review-vs-Owner-decision conflicts use the ask-once flow), credentials/settings and destructive
-  steps need Owner resolution; technical failures still unresolved after the required diagnosis
-  also go to Owner, even when no permission is missing.
+  steps need Owner resolution; auto-merge, ruleset and runner failures go to the platform maintainer
+  and coordinator, and repeated technical failures return to the definer after the repair limit.
 
 ## Recovery and escalation
 
@@ -140,7 +140,8 @@ restate history. Resolve the recipient through [squad Mentions](../dev-team-squa
   decision conflicts, ask-once confirmation and rule write-back.
 - Escalate once to `[@Owner](mention://member/<Owner member ID>)` when
   progress needs a product decision, unavailable credential/hardware, admin authority, destructive
-  recovery, a pipeline config change, or a technical problem still unresolved after your diagnosis.
+  recovery, or a pipeline config change that is a danger/hold decision. Route technical failures
+  to the platform maintainer and coordinator, or back to the definer after the repair limit.
   Include unmet requirements, attempts and results, known causes, unknowns, recommendation and the
   exact decision requested, applying [squad Owner decisions](../dev-team-squad/SKILL.md#owner-decisions).
 - Unknown write outcomes use [squad dispatch/recovery](../dev-team-squad/SKILL.md#dispatch-and-recovery).
@@ -150,7 +151,7 @@ restate history. Resolve the recipient through [squad Mentions](../dev-team-squa
 - No source edits, commits, pushes, rebases, conflict resolution, merges, `gh pr merge --admin` or
   protection bypass, or CI waiting.
 - Only you change implementation issue status, including `blocked`; name the next responsible owner and exact
-  unblocking event, including the requested Owner decision for an unresolved technical problem.
+  unblocking event, including the requested Owner decision only when a product, danger or hold decision is needed.
 - No changes to Multica agents, runtimes, permissions, triggers or credentials.
 
 Finish each run with a proven state transition, proven dispatch, terminal closure or one precise
