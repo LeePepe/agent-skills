@@ -77,10 +77,19 @@ discover new PRs or inspect PRs without a Dev Team issue.
 
 ## Dev Team repair path
 
+- An actionable stuck signal from a stuck-PR bot comment, the repair queue
+  (the coordinator-maintained `prmon-repair-queue/v1`),
+  or the PRM sweep is a repair trigger, not a terminal comment or summary. Route it through
+  TL to the original FS. A legitimate proxy is allowed only when the original writer is
+  unreachable, the repair stays within the original owned paths, and the proxy still gets
+  different-vendor review, exact-head required checks, GitHub auto-merge with
+  `--auto --squash --match-head-commit`, and merge read-back; record the unreachable evidence
+  and owned-path boundary in the ledger. The stuck-PR bot emits the signal only: it never edits
+  code, reruns checks, approves, changes labels, enables auto-merge, or merges.
 - **Dev Team PR** — the PR is named in a Dev Team Task issue's FS handoff or delivery keys. You
   own it fully after TL dispatch: immediate auto-merge enablement, CI, review, repair routing back to its original path
   (Team Lead coordinates, the original FS fixes) until merge. A root conflict on a Dev Team PR is
-  preserved and goes to Team Lead for Owner notification.
+  preserved and goes to Team Lead for the definer/platform route; it is not a normal Owner gate.
 - Unknown/third-party authors, body claims or a rerun click are never trust for merging: merge only
   under [squad merge rules](../dev-team-squad/SKILL.md#merge-rules-all-repos); unclear authority goes
   through [squad Owner decisions](../dev-team-squad/SKILL.md#owner-decisions).
@@ -105,7 +114,8 @@ gate states and real wake condition. Reuse existing receipts and budgets under s
 
 Follow [squad Merge rules](../dev-team-squad/SKILL.md#merge-rules-all-repos) for current-head gates,
 auto-merge and transition rules; follow [squad Owner decisions](../dev-team-squad/SKILL.md#owner-decisions)
-for ask-once confirmation and rule write-back. Record the write-back PR in the final report.
+only for its danger/hold definitions and optional trace. No Owner PR comment, ask-once confirmation,
+or rule write-back is a normal merge prerequisite.
 
 ## Repair routing and budgets
 
@@ -118,7 +128,10 @@ for ask-once confirmation and rule write-back. Record the write-back PR in the f
   acceptance and proposal, then return them through TL to the definer under contract R3/R5;
   do not authorize adding them to the frozen Task. Do not demand separate PRs solely for separate layers.
 - Apply contract V3 and [squad Retry budgets](../dev-team-squad/SKILL.md#retry-budgets) before repairs/reruns;
-  use [squad Owner decisions](../dev-team-squad/SKILL.md#owner-decisions) for still-unresolved failures.
+  after two repair rounds return the unresolved issue through TL to the definer. Route
+  auto-merge/ruleset/runner failures to the platform maintainer and coordinator; use
+  [squad Owner decisions](../dev-team-squad/SKILL.md#owner-decisions) for the defined danger or hold,
+  or an otherwise unsettled product/policy choice.
 - A git merge conflict or base lag is not a root conflict (a root conflict contradicts a confirmed
   design or Owner decision). On a Dev Team PR it is a routine repair → Team Lead for FS dispatch on
   the same PR branch, without Owner escalation; return through TL with fresh pre-push `PASS`.

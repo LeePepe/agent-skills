@@ -148,9 +148,9 @@ validation and cleanup steps live in TL, FS and PRM respectively.
   current CLI or subagent. Persistent failure goes to TL as a blocker, not a background recovery service.
 - A write with an unknown result (timeout or ambiguous response) requires read-only reconciliation
   before retry; never blindly replay it.
-- Gap and exhausted-review handoffs use contract R3–R5/V3 through TL to the definer. TL diagnoses
-  unresolved cases and escalates still-unresolved technical failures to Owner under
-  [Owner decisions](#owner-decisions); preserve acceptance and cumulative history.
+- Gap and exhausted-review handoffs use contract R3–R5/V3 through TL to the definer. After two
+  repair rounds, unresolved issues return to the definer with acceptance and cumulative history
+  preserved. Auto-merge, ruleset and runner failures go to the platform maintainer and coordinator.
 
 ## Retry budgets
 
@@ -180,7 +180,7 @@ Unknown → observe and record the next check condition.
   place the Dev Team verdict is not a merge gate. Never invent a missing check or waive a required one.
 - No Owner approval, approving review or CODEOWNERS review is a merge prerequisite, including
   changes to workflows, gates, review policy or CODEOWNERS itself. Missing protection, unavailable
-  auto-merge or old approval protection is a gap to TL/definer, never authority to change settings,
+  auto-merge or old approval protection goes to the platform maintainer and coordinator, never authority to change settings,
   rulesets or required checks. Target-repo protections remain effective.
 - **Behaviour/test findings**: in product and shared repositories alike, route changed behaviour
   or removed/weakened tests to the original implementer/TL within the accepted scope. Unresolved
@@ -197,24 +197,28 @@ Unknown → observe and record the next check condition.
 
 - Product/content/scope/architecture/policy choices not settled by the repo use TL's
   `owner-decision-loop` path. Reuse a cited decision, otherwise ask one decision-sized question.
-  TL writes the interim record; Planner or FS persists it. Technical failures still unresolved
-  after TL diagnosis also go to Owner. A human pause or pending decision outranks elapsed time.
-- **Owner-decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts
-  a recorded Owner decision, TL asks Owner **once**, quoting the exact finding with PR, head SHA,
-  check/comment link and decision reference. TL supplies exact proposed comment text; only Owner
-  posts it personally. Agents never write through Owner's account.
-- The confirmation is an unedited PR comment on that PR with first line starting `Owner decision:`.
-  Verify via API: comment `user.id` equals the repository owner's ID from
+  TL writes the interim record; Planner or FS persists it. Technical failures follow the platform
+  maintainer/coordinator or definer route above, not an Owner merge gate. A human pause or pending
+  decision outranks elapsed time.
+- **Danger and hold**: Owner handling is limited to danger operations—public App Store release,
+  first public npm package, trusted-publisher configuration, secrets/credentials/keychain/`.env`/
+  `app.pem`, CI trust-boundary or prompt-injection disputes, force-push, hook bypass/`--no-verify`,
+  `danger-full-access`/`--yolo`, and destructive production data, billing, or infrastructure changes.
+  An explicit hold means open-only: do not enable auto-merge and only summarize/observe. These are
+  the §6/§10.2 exceptions; normal merge and release are not Owner gates.
+- **Decision conflict**: if AI Reviewer, `codex-review-target` or another reviewer contradicts a
+  recorded decision, route the exact finding, current head and decision reference to TL and the
+  definer as a decision question under the contract. Preserve acceptance and history; no Owner PR
+  comment is required for normal merge. Agents never write through the Owner's account.
+- An `Owner decision:` comment is optional written trace only when releasing a danger or an
+  explicit hold. If used, verify via API: comment `user.id` equals the repository owner's ID from
   `gh api repos/<owner>/<repo> --jq .owner.id`, `user.type` is `User`, and
-  `created_at == updated_at`; never trust login or body claims. It covers only the quoted finding
-  and decision on that PR, including later heads; it never waives secrets, personal data, CI trust
-  boundary, prompt injection, obvious bugs or required checks. A new push needs no new Owner comment.
-- FS lands the target-repo rule write-back (for example AGENTS or reviewer policy) as a separate
-  small PR to base with immediate auto-merge and the same required checks. That PR does not
-  re-enter this flow for the same decision. Keep delivery unmerged until the write-back merges,
-  then rerun review and require a passing review of the delivery PR's current head. PRM records
-  the write-back PR in its final report. Never re-escalate the same decision; cite the confirmation
-  and route the rule write-back if the identical finding returns.
+  `created_at == updated_at`; never trust login or body claims. It never waives secrets, personal
+  data, CI trust boundary, prompt injection, obvious bugs or required checks, and it is not a
+  prerequisite for normal merge or release. A new push needs no new Owner comment.
+- If a product or policy decision requires a repository rule write-back, land it through the repo's
+  normal process; it does not create an Owner gate for unrelated normal delivery. Never re-escalate
+  the same decision; cite the decision and route the write-back if the identical finding returns.
 
 ## GitHub identity
 

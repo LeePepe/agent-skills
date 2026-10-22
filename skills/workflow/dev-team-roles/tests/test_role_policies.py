@@ -556,6 +556,27 @@ class SkillDocumentValidationTests(unittest.TestCase):
         self.assertIn("CI green ≠ merged", ship)
         self.assertIn("only task-owned branches/worktrees after a proven merge", ship)
 
+    def test_repair_and_release_routes_do_not_make_owner_a_normal_gate(self):
+        prm = " ".join(PR_MANAGER_SKILL.read_text().split())
+        tl = " ".join((ROLES_DIR / "dev-team-team-lead" / "SKILL.md").read_text().split())
+        squad = " ".join((ROLES_DIR / "dev-team-squad" / "SKILL.md").read_text().split())
+        workflow = " ".join((ROLES_DIR.parent / "README.md").read_text().split())
+        self.assertIn("after two repair rounds return the unresolved issue through TL to the definer", prm)
+        self.assertIn("repeated technical failures return to the definer after the repair limit", tl)
+        self.assertIn("it is not a prerequisite for normal merge or release", squad)
+        self.assertIn("两轮仍失败交定义方，平台故障交平台维护方与协调者", workflow)
+
+    def test_stuck_signal_proxy_and_danger_hold_rules_are_explicit(self):
+        prm = " ".join(PR_MANAGER_SKILL.read_text().split())
+        tl = " ".join((ROLES_DIR / "dev-team-team-lead" / "SKILL.md").read_text().split())
+        squad = " ".join((ROLES_DIR / "dev-team-squad" / "SKILL.md").read_text().split())
+        self.assertIn("prmon-repair-queue/v1", prm)
+        self.assertIn("legitimate proxy is allowed only when the original writer is unreachable", prm)
+        self.assertIn("stuck-PR bot emits the signal only", prm)
+        self.assertIn("open-only: do not enable auto-merge and only summarize/observe", squad)
+        self.assertIn("public App Store release", squad)
+        self.assertIn("review-vs-recorded-decision conflicts go to TL/definer as a decision question", tl)
+
     def test_flow_supervisor_skill_specifies_workspace_wide_project_scanning(self):
         text = FLOW_SUPERVISOR_SKILL.read_text(encoding="utf-8")
         normalized = " ".join(text.split())
