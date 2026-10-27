@@ -5,7 +5,7 @@ description: Implement behavior in repository-approved red-green vertical slices
 
 # FS Test-Driven Development
 
-Adapted from Matt Pocock's `tdd` skill for autonomous Multica tasks.
+Adapted from Matt Pocock's `tdd` skill for autonomous repository tasks.
 
 1. Derive the public seam and expected behavior from the issue, spec, repository context, and existing tests. Treat those sources as the agreement; escalate only when they conflict or leave a material product choice open.
 2. Write one behavior-focused test whose expected value comes from the spec or another independent source of truth.

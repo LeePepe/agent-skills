@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Turn an accepted spec and plan into vertical product slices plus a dependency graph of layer-scoped implementation tasks. Use when Planner Lead creates or refines Spec Kit `tasks.md` or Multica child issues for work that spans one or more repository layers.
+description: Turn an accepted spec and plan into vertical product slices plus a dependency graph of layer-scoped implementation tasks. Use when Planner Lead creates or refines Spec Kit `tasks.md` or issue-tracker child issues for work that spans one or more repository layers.
 ---
 
 # To Tickets
@@ -28,6 +28,6 @@ Extend Matt Pocock's tracer-bullet decomposition for Spec Kit and layered execut
    - dependency edges are acyclic and follow layer direction;
    - parallel tasks have non-conflicting files and contracts;
    - no task asks Fullstack Engineer to infer missing scope or product behavior.
-8. Before independent planning review, write only repository Spec Kit artifacts. After `PASS` or `PASS WITH FOLLOW-UP` for the exact planning revision, reconcile Multica slice parents and child issues from the reviewed graph. Preserve `US#` and `Txxx` in issue descriptions so tracker state can be traced back without flattening the hierarchy.
+8. Before independent planning review, write only repository Spec Kit artifacts. After `PASS` or `PASS WITH FOLLOW-UP` for the exact planning revision, reconcile slice parents and child issues from the reviewed graph. Preserve `US#` and `Txxx` in issue descriptions so tracker state can be traced back without flattening the hierarchy.
 
 Escalate only unresolved product, content, or authority decisions. Granularity and dependency mechanics are Planner Lead responsibilities.

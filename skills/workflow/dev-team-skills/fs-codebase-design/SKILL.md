@@ -5,7 +5,7 @@ description: Design or refine a module interface inside an implementation issue.
 
 # FS Codebase Design
 
-Adapted from Matt Pocock's `codebase-design` skill for the Multica Fullstack Engineer role.
+Adapted from Matt Pocock's `codebase-design` skill for full-stack engineering work.
 
 Design a deep module: substantial behavior behind a small interface, placed at a testable seam.
 

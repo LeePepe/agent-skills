@@ -12,7 +12,7 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 ## 1. 读状态（每次继续前）
 
 1. 读 goal 的**单页台账**（每 repo 一行：当前 PR/SHA、下一动作 owner、hold）。台账超过一页就先压缩再继续。
-2. 刷新真实状态，不信历史描述：各 repo `gh pr list`、最近 CI run、Multica 相关 issue、正在跑的 agent 会话。
+2. 刷新真实状态，不信历史描述：各 repo `gh pr list`、最近 CI run、相关 issue、正在跑的 agent 会话。
 3. 区分：已完成 / 在途（有唯一 owner）/ 等 Owner / 被外部故障阻塞。外部故障只阻塞依赖它的动作。
 
 完成条件：每个未完成项都有 owner 与下一动作，或明确 hold 原因。
@@ -64,6 +64,6 @@ plan/guide 分工和修复升级合同；本 skill 不授予新的实施或受�
 ## 红线
 
 - 不改产品代码、不 merge、不改 ruleset/凭据/可见性，除非 Owner 对该具体操作授权。
-- 不修改 Multica 源码；平台能力缺口写成提案给 Owner。
+- 不修改外部控制面源码；平台能力缺口写成提案给 Owner。
 - 不为“完成目标”批量关闭 issue/PR；无关历史项逐个交 Owner。
 - 账号、profile、本机路径不写进任何 repo。
