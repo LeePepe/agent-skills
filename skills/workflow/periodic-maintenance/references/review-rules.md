@@ -40,7 +40,7 @@ VoxKit、VoxPocket、VitalStride、AIDash。仓名枚举不是公开性或可读
 
 ## 交接与失败
 
-普通需求仅去对应 Multica project 的 backlog，无 assignee／team、todo、run、自动修复或追修动作。
+普通需求仅去对应项目的 backlog，无 assignee／team、todo、run、自动修复或追修动作。
 project 按已核实 workspace 内的完整 repo resource URL 匹配，不用标题猜测；缺失或多重绑定保留草稿、报告缺口。
 未来若出口接收未知，保留原出口和内容证据，先对账；只有确定未接收才可安全补交，不盲目重发或换写者。
 本版只导出草稿，没有发送、去重服务、重试队列或接收确认能力。

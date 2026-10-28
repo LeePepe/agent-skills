@@ -7,7 +7,7 @@ description: 06 周期维护的未启用源码入口：按有效决定核对公�
 
 本版只交付规则、离线适配器、隔离测试和模板。承载仓为 agent-skills；未来采用 Actions 每周一次及手动触发，
 由原仓既有 Codex runner 独立只读核对。源码存在、安装 skill 或质量 CI 通过均不解除运行 HOLD。
-本版不能调用 runner 做维护、连接真实 Multica、配置凭据／settings 或启用调度。
+本版不能调用 runner 做维护、连接真实外部控制面、配置凭据／settings 或启用调度。
 
 ## 离线演练
 
@@ -16,7 +16,7 @@ description: 06 周期维护的未启用源码入口：按有效决定核对公�
 2. 按 [适配器说明](references/adapters.md) 生成独立核对请求、回放语义结论并检查覆盖缺口。
    适配器验证引用与保守出口，不以结构校验或模拟 review 冒充真实语义核对。
 3. 输出普通需求草稿及本轮覆盖结果：每条保留当前陈述、有效决定、实现／diff 证据、期望行为及验收。
-   复用 [普通需求表达](../../repo/multica-issue/references/issue-templates.md)；不调用其 dispatch 全链入口。
+   复用普通需求表达；不调用外部 dispatch 全链入口。
    对应 project 必须由准确 repo resource 唯一匹配；输出固定为未指派的 `backlog`。
 4. 完成时分别报告已查、未查／未知、需求草稿与交接状态。离线结果一律 `not_submitted`，不是需求已接收或问题已修复。
 

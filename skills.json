@@ -1,16 +1,7 @@
 {
   "version": "0.1.0",
-  "count": 8,
+  "count": 6,
   "skills": [
-    {
-      "name": "multica-delivery-supervisor",
-      "category": "workflow",
-      "path": "skills/workflow/multica-delivery-supervisor",
-      "description": "Supervise named Multica projects and delivery PRs, or resume tasks affected by a shared blocker after the Owner reports recovery, preserving existing Dev Team roles and authority.",
-      "user_invocable": false,
-      "has_references": true,
-      "has_eval": false
-    },
     {
       "name": "orchestrate",
       "category": "workflow",
@@ -53,15 +44,6 @@
       "path": "skills/repo/layered-ci-autofix",
       "description": "PRM 的 CI 诊断与原路径修复辅助。用于读取准确 PR head 的失败信号、定位仓库约束并交回原执行者，或执行已交回的具体修复；不启动第二条 PR watcher，不接管 Draft，不安装 CI 或自行合并。",
       "user_invocable": false,
-      "has_references": true,
-      "has_eval": true
-    },
-    {
-      "name": "multica-issue",
-      "category": "repo",
-      "path": "skills/repo/multica-issue",
-      "description": "从当前 repo 定位 Multica project，把已确认的 bug/feature/架构实施需求或现有 plan/tasks 交给 Dev Team；记录问题历史与 ineffective/regression 关系，或创建不派发 Agent 的 Outcome Check。适用于明确提 issue、交团队实现、批量入库或等待发布后验证；现象反馈与诊断请求先澄清，不自动派发。",
-      "user_invocable": true,
       "has_references": true,
       "has_eval": true
     },

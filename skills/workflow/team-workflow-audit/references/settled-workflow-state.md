@@ -4,10 +4,10 @@
 
 ## 最终流程与角色边界
 
-- **A：实现并发起PR。** Dev Team、直接执行agent或其他开发者均可作为来源；不强制先经Codex整理或预建Multica issue。以下内部先审后发布协议适用于Dev Team FS，不把直接作者伪装成FS/TL来源。
+- **A：实现并发起PR。** Dev Team、直接执行agent或其他开发者均可作为来源；不强制先经Codex整理或预建issue-tracker item。以下内部先审后发布协议适用于Dev Team FS，不把直接作者伪装成FS/TL来源。
 - **Dev Team A段：** 保留必要的Planner规划路径 → FS准备/复用工作区、实现与自审 → 固定未提交Git tree → 内部AI Reviewer明确允许发布 → FS commit/push/创建或更新PR。Planner并非每任务必跑；原有规划门槛和no-code验收不增加、不豁免。
 - **B：PR后统一交付。** Dev Team FS 创建或更新非 Draft PR 后交 TL，TL 立即派 PRM接管跟踪 → GitHub Actions独立审查与required CI → 交唯一实现者修复 → 新候选与复验 → 合并 → 按项目获授权发布 → 实际使用/效果验收与反馈。Adopt不等于Ship；红门禁不构成拒绝接管的理由；必须有 Dev Team Target issue 的 FS 交接或 delivery 信息，不按作者身份区分，其他 PR 由各自写者交付。
-- PRM持有 TL 派发的 Dev Team PR 交付推进责任，不改代码/配置；TL持有实现侧监督、恢复与范围判断责任；FS/唯一实现者修复。Multica原生Autopilot对 PR 只跟进已有 Dev Team 交接，不发现新 PR，不成为第二套开发团队。
+- PRM持有 TL 派发的 Dev Team PR 交付推进责任，不改代码/配置；TL持有实现侧监督、恢复与范围判断责任；FS/唯一实现者修复。the control plane原生Autopilot对 PR 只跟进已有 Dev Team 交接，不发现新 PR，不成为第二套开发团队。
 - AIDash既是普通受管App，也是状态、证据及Owner反馈界面，不是自动修复者。Dev Team保持同一物理daemon，保留provider/runtime分工；仅FS模型按下表明确授权变更。各项目保留自己的门禁和发布方式。
 
 ## 最终改动与落地状态
@@ -66,7 +66,7 @@ Owner明确要求修改AIDash/VoxPocket/VitalStride接入、同步layered-agent-
 
 ## Supervisor的最终职责（第5项已配置上线）
 
-Supervisor监督现有Multica issue / Dev Team交接连续性：交接证据是否存在、谁持有下一动作、是否缺少接续。实现内容是否正确、FS是否真正完成和逐条finding是否修好由执行者/Reviewer判断；Supervisor不看源码或diff、不重审、不裁定merge就绪或App效果。它可消费现有issue关联PR证据，不扩为独立全PR扫描器，也不要求直接作者补建issue。[7]
+Supervisor监督现有issue-tracker item / Dev Team交接连续性：交接证据是否存在、谁持有下一动作、是否缺少接续。实现内容是否正确、FS是否真正完成和逐条finding是否修好由执行者/Reviewer判断；Supervisor不看源码或diff、不重审、不裁定merge就绪或App效果。它可消费现有issue关联PR证据，不扩为独立全PR扫描器，也不要求直接作者补建issue。[7]
 
 - **缺交接找发送者，已接收找责任角色。** 先补读触发/父线程与真实交接证据，再通过合法入口唤醒发送者补交接；已接受后由接收角色继续。责任或调用目标不明时找发送者/当前责任人/TL澄清，不自动向Owner索要权限，也不无条件rerun当前assignee。
 - **合法等待不是停滞。** 固定候选已有对应运行中的内部Reviewer则等审；已获发布许可但未push由原FS发布；当前候选被Reviewer阻塞则回原实现/修订负责人。保留Planner先行与规划修订、FS准备、no-code/legacy及现有先审后发布协议；Supervisor不新增验收门。PRM接受交接后独立负责B段，Supervisor仅跟踪责任和活动，不给B段补派内部Reviewer。

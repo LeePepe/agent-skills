@@ -1,6 +1,6 @@
 # 离线适配器与未来接线
 
-`scripts/maintenance.py` 只有 `request`／`replay` 两个本地 JSON 入口，无网络、Codex CLI、Multica CLI、凭据读取或提交能力。
+`scripts/maintenance.py` 只有 `request`／`replay` 两个本地 JSON 入口，无网络、Codex CLI、外部控制面 CLI、凭据读取或提交能力。
 使用 Python 标准库；从仓根运行下面命令即可演练，输入为随源码提供的虚构仓库快照，无需 checkout 检查对象：
 
 ```sh
@@ -12,11 +12,11 @@ python3 -m unittest discover -s skills/workflow/periodic-maintenance/tests -p 't
 `request` 输出固定规则与单独标记的 `untrusted_snapshot`，声明 read-only 执行要求但不启动执行器；
 `replay` 用模拟语义结论测试证据引用、范围／覆盖与普通 backlog 出口。返回码 0 表示离线输入处理完整，
 2 表示存在未查／待澄清／交接映射缺口，1 表示非法输入；所有输出均 `mode: offline`、`delivery: not_submitted`。
-不要用本地 0 退出码代替真实检查、Multica 接收或问题修复证据。
+不要用本地 0 退出码代替真实检查、外部系统接收或问题修复证据。
 
 ## 输入与适配边界
 
-fixture 是测试用的内部交换格式，不是新平台 schema 或 Multica task 类型。
+fixture 是测试用的内部交换格式，不是新平台 schema 或外部任务类型。
 
 | 输入 | 含义／校验 |
 |---|---|
@@ -47,7 +47,7 @@ fixture 是测试用的内部交换格式，不是新平台 schema 或 Multica t
 ## 启用前仍需完成的工作
 
 模板位于 assets 而非 Actions 发现目录，包含每周一次（示例 UTC 时间）和 workflow_dispatch；恒假 job、无权限且占位步骤失败。
-它不使用 self-hosted runner label、不安装依赖、不 checkout／执行扫描对象，不包含 secrets 或真实 Multica 接线。
+它不使用 self-hosted runner label、不安装依赖、不 checkout／执行扫描对象，不包含 secrets 或真实外部系统接线。
 复制模板或删除恒假条件都不足以启用维护；实际执行步骤尚未实现。
 
 后续获准解除启用 HOLD 后，另按正常源码 PR 与准确 head 审查落实：

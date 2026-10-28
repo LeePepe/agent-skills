@@ -14,6 +14,6 @@ Require all showcase checks, zero errors, and zero warnings. Visually inspect th
 
 A generic workflow diagram is not bundled in this repository (the earlier illustration is archived privately); generate diagrams from evidence. Per-team/repository and per-P0/P1 diagrams are audit outputs generated from observed evidence, not bundled guesses.
 
-When auditing Multica supervision, depict Autopilot as a separate control-plane actor: operational dispatch/rerun/report links, repair ownership returning to Dev Team, and exact-SHA PR intake independent of authorship. Distinguish physical execution daemon from provider-specific runtimes in the relationship diagram; show an independently hosted observer only when deployment evidence supports it. Follow [autopilot-contract.md](autopilot-contract.md).
+When auditing scheduled supervision, depict Autopilot as a separate control-plane actor: operational dispatch/rerun/report links, repair ownership returning to Dev Team, and exact-SHA PR intake independent of authorship. Distinguish physical execution daemon from provider-specific runtimes in the relationship diagram; show an independently hosted observer only when deployment evidence supports it. Follow [autopilot-contract.md](autopilot-contract.md).
 
 For a supervision audit, produce a freshly validated relationship diagram based on the written contract and current evidence; do not present any older illustration as complete supervision coverage.

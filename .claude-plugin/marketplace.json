@@ -14,12 +14,6 @@
       "source": "./skills/repo/layered-ci-autofix",
       "category": "repo",
       "description": "运行时闭环:commit/push → 监督 PR CI → 读结构化信号按 layer 自动修 → 修完再等 CI。repo-kit 的 run-time 消费者,门复用 auto-review-merge。"
-    },
-    {
-      "name": "multica-issue",
-      "source": "./skills/repo/multica-issue",
-      "category": "repo",
-      "description": "向 Multica dev team 提 issue 并直接派发触发 pipeline:反查 project、分类 bug/功能/架构、带 layer red_lines+test、三步 dispatch + run 验证。"
     }
   ]
 }

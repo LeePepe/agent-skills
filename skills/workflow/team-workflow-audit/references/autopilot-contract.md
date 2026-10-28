@@ -1,4 +1,4 @@
-# Multica Autopilot in the Team Workflow
+# scheduled autopilot in the Team Workflow
 
 Owner decision recorded 2026-09-10. This reference defines the supervision boundary to audit; it does not authorize this audit skill to execute any operation. Resolve project-specific authority before applying the contract.
 
@@ -6,7 +6,7 @@ For AIDash, VoxPocket and VitalStride, the [2026-09-18/19 settled decisions](set
 
 ## Responsibility
 
-Reuse Multica's existing **autopilot** feature for scheduled or triggered supervision. It is the control plane around Dev Team, not a second implementation pipeline.
+Reuse the control plane's existing **autopilot** feature for scheduled or triggered supervision. It is the control plane around Dev Team, not a second implementation pipeline.
 
 | Actor | Owns | Returns to |
 |---|---|---|
@@ -44,7 +44,7 @@ Before an operational rerun, establish all of the following:
 4. The project's retry budget and backoff permit another attempt. Key the budget by project + PR + HEAD + workflow + normalized failure signature; record both the triggering actor and the resulting attempt.
 5. Read back the new run/attempt identity and its queued/running state. Completion still requires the actual gate result.
 
-Distinguish **GitHub workflow rerun** from **Multica issue/agent rerun**. One retries a CI/review attempt; the other dispatches team work. Neither is a substitute for the other.
+Distinguish **GitHub workflow rerun** from **issue-tracker/agent rerun**. One retries a CI/review attempt; the other dispatches team work. Neither is a substitute for the other.
 
 At the retry limit, or on repeated failure without recovery evidence, return one evidence-backed request to Team Lead/Dev Team. A new sweep does not reset the budget. An explicit, verified repair or new reviewed candidate may establish a new recovery attempt; record that cause. Owner pause/plan-only requests suspend this case's mutations until explicit resumption.
 
