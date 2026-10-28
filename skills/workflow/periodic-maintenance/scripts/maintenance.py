@@ -11,9 +11,13 @@ from urllib.parse import urlparse
 
 
 REPOSITORIES = frozenset({
-    "agent-skills", "shared-ci", "shared-design-tokens", "shared-design-system",
+    "agent-skills", "user-skills", "shared-ci", "shared-design-system",
     "shared-telemetry", "VoxKit", "VoxPocket", "VitalStride", "AIDash",
 })
+NOT_READY_REPOSITORIES = frozenset({"VoxKit"})
+NOT_READY_REPOSITORY_GAP = (
+    "LeePepe/VoxKit: 未就绪／未检查（remote 不可访问或尚未核实；仅记录缺口，不得记为通过，不得新建仓或扩权）"
+)
 OUTCOMES = {"implementation_gap", "stale_document", "obsolete_code", "consistent", "clarify", "deferred"}
 STATES = {"active", "superseded", "draft", "future", "hold", "unknown"}
 RULES = Path(__file__).resolve().parent.parent / "references" / "review-rules.md"
@@ -109,6 +113,8 @@ def adapt_review(snapshot, response, scope, projects):
     require(isinstance(response["gaps"], list) and all(text(g) for g in response["gaps"]),
             "review gaps must contain explanations")
     gaps = list(snapshot["gaps"]) + list(response["gaps"])
+    if snapshot["repository"] in NOT_READY_REPOSITORIES and NOT_READY_REPOSITORY_GAP not in gaps:
+        gaps.insert(0, NOT_READY_REPOSITORY_GAP)
     gaps.extend("Not checked: " + path for path in snapshot["expected_paths"] if path not in covered)
     if not any(source["role"] == "current" for source in files.values()):
         gaps.append("No current documents available")
