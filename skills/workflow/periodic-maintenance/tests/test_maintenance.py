@@ -1,4 +1,4 @@
-"""Synthetic, offline boundary tests; no model, runner or Multica service used."""
+"""Synthetic, offline boundary tests; no model, runner or external service used."""
 
 import copy
 import importlib.util

@@ -11,7 +11,7 @@ Reconstruct this lineage with stable identities:
 Required identities when available:
 
 - `problem_fingerprint`;
-- origin and delivery Multica issue IDs;
+- origin and delivery issue-tracker item IDs;
 - PR and merge SHA;
 - release channel, version, and build;
 - release availability timestamp;

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Team Workflow Audit
 
-Perform an evidence-led, read-only audit. Do not change repositories, issues, runs, teams, Multica, aidata, or AIDash. Show findings and wait for explicit owner approval before any separate remediation work.
+Perform an evidence-led, read-only audit. Do not change repositories, issues, runs, teams, the control plane, aidata, or AIDash. Show findings and wait for explicit owner approval before any separate remediation work.
 
 ## Start
 
@@ -14,7 +14,7 @@ Perform an evidence-led, read-only audit. Do not change repositories, issues, ru
 2. Read [audit-rubric.md](references/audit-rubric.md), [agent-repeat-metrics.md](references/agent-repeat-metrics.md), [task-effectiveness.md](references/task-effectiveness.md), [owner-report.md](references/owner-report.md), [evidence-schema.md](references/evidence-schema.md), [workflow-authority.md](references/workflow-authority.md), and [aidata-contract.md](references/aidata-contract.md).
 3. Resolve repositories and projects from authoritative identifiers; never hardcode a checkout path.
 4. Record the current instruction documents only. If the source has no version history, identify each observed version with `updated_at + SHA-256(content)`.
-5. When the scope includes Multica autopilot, runtime migration or adoption of an externally created PR, read [autopilot-contract.md](references/autopilot-contract.md). Audit the control-plane actions separately from Dev Team implementation; this remains a read-only audit.
+5. When the scope includes scheduled autopilot, runtime migration or adoption of an externally created PR, read [autopilot-contract.md](references/autopilot-contract.md). Audit the control-plane actions separately from Dev Team implementation; this remains a read-only audit.
 6. For repeated Owner intervention, preparation/Planner routing, review-stage confusion, or model-capability claims, read [owner-intervention-cases.md](references/owner-intervention-cases.md). Its dated AIDash/VoxPocket/VitalStride decisions supersede older generic role examples only for those projects; establish the authority effective at each event.
 7. For AI review false positives on instruction artifacts or claims that Markdown extraction fixes prompt safety, read [prompt-safety-and-semantics.md](references/prompt-safety-and-semantics.md). Audit construction, classification and validation evidence separately; this grants no remediation authority.
 8. For the settled AIDash/VoxPocket/VitalStride workflow, read [settled-workflow-state.md](references/settled-workflow-state.md): final role/stage decisions, dated deployment and merge evidence, withdrawn proposals and unverified outcomes. Treat it as an evidence snapshot, not authorization to configure or dispatch.
