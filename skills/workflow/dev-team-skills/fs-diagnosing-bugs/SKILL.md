@@ -5,7 +5,7 @@ description: Reproduce, diagnose, and fix code or local-service defects with a t
 
 # FS Diagnosing Bugs
 
-Adapted from Matt Pocock's `diagnosing-bugs` skill and the former Multica Debugger role.
+Adapted from Matt Pocock's `diagnosing-bugs` skill and a former debugger role.
 
 ## Tight loop
 

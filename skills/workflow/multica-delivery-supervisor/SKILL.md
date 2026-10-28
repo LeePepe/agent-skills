@@ -5,7 +5,7 @@ description: Supervise named Multica projects and delivery PRs, or resume tasks 
 
 # Multica Delivery Supervisor
 
-Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level helper usable by Codex or Hermes, not the deployed Dev Team Flow Supervisor. Read the [workflow responsibility boundary](../README.md), [Flow Supervisor role instructions](../dev-team-roles/dev-team-flow-supervisor/SKILL.md), and [PR Manager role instructions](../dev-team-roles/dev-team-pr-manager/SKILL.md): PRM owns only TL-dispatched Dev Team non-Draft PR adoption and delivery; Flow Supervisor only wakes the interrupted original Dev Team actor through the existing Multica Autopilot path, and never repairs daemon/runner/API/credentials/platform state. This skill adds no background wake capability and does not replace the original subagent coordinator.
+Supervise the explicitly named projects until the requested stopping condition. This is a conversation-level helper usable by Codex or Hermes, not the deployed Dev Team Flow Supervisor. Read the [workflow responsibility boundary](../README.md), Flow Supervisor role instructions, and PR Manager role instructions: PRM owns only TL-dispatched Dev Team non-Draft PR adoption and delivery; Flow Supervisor only wakes the interrupted original Dev Team actor through the existing Multica Autopilot path, and never repairs daemon/runner/API/credentials/platform state. This skill adds no background wake capability and does not replace the original subagent coordinator.
 
 ## Invocation
 

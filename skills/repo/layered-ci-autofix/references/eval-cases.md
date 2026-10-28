@@ -1,7 +1,7 @@
 # Eval Cases — CI 诊断、原路径修复与唯一 PR 交付
 
 评分看具体下一动作、交接内容与调用轨迹，不按关键词或“流程已遵守”声明。
-用隔离 fixture／服务替身，不向真实 GitHub、Multica 或主机写入。prose 变动须做盲评旧／新对照；
+用隔离 fixture／服务替身，不向真实 GitHub、外部控制面或主机写入。prose 变动须做盲评旧／新对照；
 两者都通过则记 honest non-discriminating，不声称行为翻转。对照旧内容取实际冻结 base，不假定 HEAD~1 是改前版本。
 
 ## 判分输入与证据
